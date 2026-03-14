@@ -1,6 +1,5 @@
 <template>
   <q-page>
-
     <!-- 영화 선택 캐러셀 -->
     <MovieCarousel
       :movies="movies"
@@ -11,7 +10,6 @@
 
     <!-- 영화 선택 후 표시 영역 -->
     <template v-if="selectedMovie">
-
       <!-- 날짜 선택 -->
       <DateSelector
         :movie="selectedMovie"
@@ -21,10 +19,7 @@
       />
 
       <!-- 극장 필터 -->
-      <TheaterFilter
-        v-model:chain-model="selectedChain"
-        v-model:region-model="selectedRegion"
-      />
+      <TheaterFilter v-model:chain-model="selectedChain" v-model:region-model="selectedRegion" />
 
       <!-- 스케줄 목록 -->
       <q-inner-loading :showing="schedulesLoading">
@@ -37,17 +32,15 @@
         :favorites="favoriteTheaters"
         @toggle-favorite="onToggleFavorite"
       />
-
     </template>
 
-    <!-- 영화 미선택 안내 -->
-    <div v-else class="no-movie-selected">
-      <q-icon name="movie_filter" size="56px" color="grey-4" />
-      <p class="q-mt-md text-grey-5 text-body1">위에서 영화를 선택해 주세요</p>
-    </div>
-
     <!-- 영화 상세 모달 -->
-    <q-dialog v-model="showDetailModal" maximized transition-show="slide-up" transition-hide="slide-down">
+    <q-dialog
+      v-model="showDetailModal"
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
       <q-card>
         <q-toolbar class="bg-primary text-white">
           <q-toolbar-title>영화 상세정보</q-toolbar-title>
@@ -58,11 +51,7 @@
           <div class="row q-col-gutter-lg">
             <!-- 포스터 -->
             <div class="col-12 col-sm-4 col-md-3">
-              <q-img
-                :src="selectedMovie.poster"
-                :ratio="2/3"
-                class="rounded-borders"
-              >
+              <q-img :src="selectedMovie.poster" :ratio="2 / 3" class="rounded-borders">
                 <template #error>
                   <div class="absolute-full flex flex-center bg-grey-3 text-grey-7">
                     <q-icon name="image_not_supported" size="40px" />
@@ -78,15 +67,21 @@
               <q-list separator>
                 <q-item>
                   <q-item-section avatar><q-icon name="tag" /></q-item-section>
-                  <q-item-section>{{ selectedMovie.naverMovieId ? `네이버 영화 #${selectedMovie.naverMovieId}` : '-' }}</q-item-section>
+                  <q-item-section>{{
+                    selectedMovie.naverMovieId ? `네이버 영화 #${selectedMovie.naverMovieId}` : '-'
+                  }}</q-item-section>
                 </q-item>
                 <q-item v-if="selectedMovie.createdAt">
                   <q-item-section avatar><q-icon name="calendar_today" /></q-item-section>
-                  <q-item-section>등록일 {{ selectedMovie.createdAt?.slice(0, 10) }}</q-item-section>
+                  <q-item-section
+                    >등록일 {{ selectedMovie.createdAt?.slice(0, 10) }}</q-item-section
+                  >
                 </q-item>
                 <q-item>
                   <q-item-section avatar><q-icon name="track_changes" /></q-item-section>
-                  <q-item-section>알림 {{ selectedMovie.isTracking ? '활성' : '비활성' }}</q-item-section>
+                  <q-item-section
+                    >알림 {{ selectedMovie.isTracking ? '활성' : '비활성' }}</q-item-section
+                  >
                 </q-item>
               </q-list>
             </div>
@@ -94,7 +89,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
@@ -135,7 +129,7 @@ const filteredSchedules = computed(() =>
     const matchDate = !selectedDate.value || s.date === selectedDate.value;
     const matchChain = selectedChain.value === '극장 전체' || s.chain === selectedChain.value;
     return matchDate && matchChain;
-  })
+  }),
 );
 
 const availableDates = computed(() => {
