@@ -11,12 +11,14 @@
   position: relative;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px;
+  /* 모바일: 좌우 여백 최소화 */
+  padding: 0 8px;
 }
 
 .movie-carousel-track {
   display: flex;
-  gap: 14px;
+  /* 모바일 기본 gap */
+  gap: 10px;
   overflow-x: auto;
   overflow-y: visible;
   scroll-behavior: smooth;
@@ -24,19 +26,44 @@
   -ms-overflow-style: none;
   padding-top: 12px;
   padding-bottom: 8px;
-  /* 선택 아이템(160px) 절반(80px)을 기준으로 양 끝 여백 확보
-     → 첫/마지막 영화 선택 시에도 트랙 중앙에 위치 가능 */
-  padding-left: calc(50% - 80px);
-  padding-right: calc(50% - 80px);
+  /* 선택 아이템(110px) 절반(55px)을 기준 — 모바일 기본 */
+  padding-left: calc(50% - 55px);
+  padding-right: calc(50% - 55px);
+}
+
+/* 태블릿 (600px+) */
+@media (min-width: 600px) {
+  .movie-carousel-wrapper {
+    padding: 0 16px;
+  }
+  .movie-carousel-track {
+    gap: 12px;
+    /* 선택 아이템(130px) 절반(65px) 기준 */
+    padding-left: calc(50% - 65px);
+    padding-right: calc(50% - 65px);
+  }
+}
+
+/* 데스크탑 (1024px+) */
+@media (min-width: 1024px) {
+  .movie-carousel-wrapper {
+    padding: 0 24px;
+  }
+  .movie-carousel-track {
+    gap: 14px;
+    /* 선택 아이템(160px) 절반(80px) 기준 */
+    padding-left: calc(50% - 80px);
+    padding-right: calc(50% - 80px);
+  }
 }
 
 .movie-carousel-track::-webkit-scrollbar {
   display: none;
 }
 
-/* 개별 포스터 아이템 */
+/* 개별 포스터 아이템 — 모바일 기본 (360px에서 3개 보임) */
 .movie-poster-item {
-  flex: 0 0 110px;
+  flex: 0 0 80px;
   cursor: pointer;
   border-radius: 8px;
   transition: transform 0.25s, flex-basis 0.3s;
@@ -48,11 +75,31 @@
   opacity: 0.85;
 }
 
-/* 선택된 영화 — 크게 + 선명하게 */
+/* 선택된 영화 — 모바일: 크게 + 선명하게 */
 .movie-poster-item.selected {
-  flex: 0 0 160px;
+  flex: 0 0 110px;
   opacity: 1;
   transform: translateY(-6px);
+}
+
+/* 태블릿 (600px+) */
+@media (min-width: 600px) {
+  .movie-poster-item {
+    flex: 0 0 95px;
+  }
+  .movie-poster-item.selected {
+    flex: 0 0 130px;
+  }
+}
+
+/* 데스크탑 (1024px+) */
+@media (min-width: 1024px) {
+  .movie-poster-item {
+    flex: 0 0 110px;
+  }
+  .movie-poster-item.selected {
+    flex: 0 0 160px;
+  }
 }
 
 /* 포스터 이미지 래퍼 */
