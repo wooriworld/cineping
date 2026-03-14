@@ -2,6 +2,20 @@
    레이아웃 공통 스타일
 =========================== */
 
+/* 헤더 — Slate-900 다크 오버라이드 */
+.q-header {
+  background: #0f1a13 !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* 모바일 드로어 */
+.q-drawer {
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+}
+
 /* cineping 로고 */
 .cineping-logo {
   display: flex;

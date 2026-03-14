@@ -3,7 +3,7 @@
 =========================== */
 
 .schedule-section {
-  background: #f5f5f5;
+  background: #f8fafc;
   min-height: 300px;
   padding: 8px 0 16px;
 }
@@ -23,6 +23,16 @@
   padding: 48px 0;
   color: #aaa;
   font-size: 13px;
+}
+
+.schedule-empty .q-icon {
+  font-size: 28px !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.schedule-empty .text-body1 {
+  font-size: 12px !important;
 }
 
 /* 극장 카드 */
@@ -167,11 +177,11 @@
 
 /* 좌석 상태별 스타일 */
 .showtime-btn.available {
-  border-color: #f0b8bc;
+  border-color: #74c69d;
 }
 
 .showtime-btn.available:hover:not(:disabled) {
-  background: #fff5f6;
+  background: #f0faf4;
 }
 
 .showtime-btn.normal {

@@ -3,31 +3,70 @@
 =========================== */
 
 .theater-filter-section {
-  background: #f8f8f8;
-  border-bottom: 1px solid #e0e0e0;
+  background: #ffffff;
+  border-bottom: 1px solid #e8ede9;
 }
 
 .theater-filter-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 12px 16px;
+  padding: 10px 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
 }
 
 /* 지역 드롭다운 */
 .region-dropdown {
-  min-width: 110px;
+  min-width: 0;
 }
 
-
-/* 극장 드롭다운 버튼 */
+/* 극장 드롭다운 */
 .chain-dropdown {
-  min-width: 110px;
+  min-width: 0;
 }
 
-/* 드롭다운 선택된 항목 */
+/* 드롭다운 버튼 — 완전 보더리스, 배경 없음 */
+.region-dropdown.q-btn--outline::before,
+.chain-dropdown.q-btn--outline::before {
+  border: none !important;
+}
+
+.region-dropdown.q-btn--outline,
+.chain-dropdown.q-btn--outline {
+  border: none !important;
+  background: transparent !important;
+  color: #111111 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 0px 4px !important;
+  min-height: 24px !important;
+  transition: color 0.15s ease !important;
+}
+
+.region-dropdown.q-btn--outline:hover,
+.chain-dropdown.q-btn--outline:hover {
+  background: transparent !important;
+  color: #111111 !important;
+}
+
+/* 버튼 내부 콘텐츠 패딩 제거 */
+.region-dropdown .q-btn__content,
+.chain-dropdown .q-btn__content {
+  padding: 0 !important;
+}
+
+/* 드롭다운 화살표 아이콘 */
+.region-dropdown .q-icon,
+.chain-dropdown .q-icon {
+  color: inherit;
+  opacity: 0.6;
+  font-size: 16px !important;
+}
+
+/* 선택된 드롭다운 항목 (체인 단일선택) */
 .chain-item-active {
-  color: #fb4357 !important;
-  font-weight: 600;
+  color: #111111 !important;
+  font-weight: 700 !important;
+  background: #f0f5f2 !important;
 }
