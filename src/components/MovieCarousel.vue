@@ -59,9 +59,8 @@ async function centerSelected(): Promise<void> {
   const selected = track.querySelector<HTMLElement>('.selected');
   if (!selected) return;
 
-  // CSS 브레이크포인트별 선택 아이템 최종 너비 (CSS와 동기화 필수)
-  const vw = window.innerWidth;
-  const selWidth = vw >= 1024 ? 135 : vw >= 600 ? 125 : 112;
+  // 선택 아이템 너비 고정값 (CSS flex-basis 112px과 동기화)
+  const selWidth = 112;
   const halfSel = selWidth / 2;
   const halfTrack = track.clientWidth / 2;
 
