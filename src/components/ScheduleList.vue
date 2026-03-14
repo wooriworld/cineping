@@ -56,34 +56,41 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Schedule } from 'src/types';
+import type { SortType } from 'components/TheaterFilter.vue';
 import 'src/css/schedule.css';
 
 interface TheaterGroup {
   name: string;
   chain: string;
   halls: Record<string, Schedule[]>;
+  earliestTime: string;
 }
 
 const props = defineProps<{
   schedules: Schedule[];
+  sortModel: SortType;
 }>();
 
-/* 즐겨찾기 극장 우선 → 이름순 정렬 후 그룹화 */
 const grouped = computed(() => {
   const map: Record<string, TheaterGroup> = {};
 
   for (const s of props.schedules) {
     if (!map[s.theater]) {
-      map[s.theater] = { name: s.theater, chain: s.chain, halls: {} };
+      map[s.theater] = { name: s.theater, chain: s.chain, halls: {}, earliestTime: s.startTime };
     }
     const key = s.screenType || '2D';
-    const theater = map[s.theater];
-    if (theater && !theater.halls[key]) theater.halls[key] = [];
-    theater?.halls[key]?.push(s);
+    const theater = map[s.theater]!;
+    if (!theater.halls[key]) theater.halls[key] = [];
+    theater.halls[key]?.push(s);
+    if (s.startTime < theater.earliestTime) theater.earliestTime = s.startTime;
   }
 
   return Object.values(map)
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) =>
+      props.sortModel === 'time'
+        ? a.earliestTime.localeCompare(b.earliestTime)
+        : a.name.localeCompare(b.name, 'ko'),
+    )
     .map((t) => ({
       ...t,
       halls: Object.entries(t.halls).map(([key, list]) => ({

@@ -89,7 +89,7 @@
           <q-input v-model="scheduleForm.theater" label="지점명 *" outlined dense :rules="[required]" />
           <q-input v-model="scheduleForm.date" label="날짜 (YYYY-MM-DD) *" outlined dense :rules="[required]" />
           <div class="row q-gutter-sm">
-            <q-input v-model="scheduleForm.startTime" label="시작 (HH:mm) *" outlined dense class="col" :rules="[required]" />
+            <q-input v-model="scheduleForm.startTime" label="시작 (HH:mm) *" outlined dense class="col" :rules="[required]" @update:model-value="onStartTimeInput" />
             <q-input v-model="scheduleForm.endTime" label="종료 (HH:mm)" outlined dense class="col" />
           </div>
           <q-input v-model="scheduleForm.screenType" label="상영관 타입 (IMAX, 4DX...)" outlined dense />
@@ -143,6 +143,7 @@ const chainOptions = [
   { label: 'CGV', value: 'CGV' },
   { label: '롯데시네마', value: '롯데시네마' },
   { label: '메가박스', value: '메가박스' },
+  { label: '씨네Q', value: '씨네Q' },
 ];
 
 // ── 영화 다이얼로그 ───────────────────────────────────────────────
@@ -178,13 +179,21 @@ const scheduleDialog = ref(false);
 const scheduleTargetMovieId = ref('');
 const scheduleTargetTitle = ref('');
 
+function todayStr(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 const emptyScheduleForm = () => ({
   chain: 'CGV' as ChainType,
   theater: '',
-  date: '',
+  date: todayStr(),
   startTime: '',
   endTime: '',
-  screenType: '',
+  screenType: '1관',
   bookingUrl: '',
 });
 
@@ -197,6 +206,29 @@ function openScheduleDialog(movie: Movie) {
   scheduleDialog.value = true;
 }
 
+function onStartTimeInput(val: string | number | null): void {
+  const raw = String(val ?? '').replace(/\D/g, '');
+  if (raw.length === 4) {
+    const formatted = `${raw.slice(0, 2)}:${raw.slice(2, 4)}`;
+    scheduleForm.value.startTime = formatted;
+    autoSetEndTime(formatted);
+  } else {
+    autoSetEndTime(val);
+  }
+}
+
+function autoSetEndTime(val: string | number | null): void {
+  const time = String(val ?? '');
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return;
+  const h = parseInt(match[1]!, 10);
+  const m = parseInt(match[2]!, 10);
+  const totalMin = h * 60 + m + 120;
+  const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
+  const endM = String(totalMin % 60).padStart(2, '0');
+  scheduleForm.value.endTime = `${endH}:${endM}`;
+}
+
 async function submitSchedule() {
   if (!scheduleForm.value.theater || !scheduleForm.value.date || !scheduleForm.value.startTime) return;
   try {
@@ -205,7 +237,6 @@ async function submitSchedule() {
       movieId: scheduleTargetMovieId.value,
       lastUpdatedAt: new Date().toISOString(),
     });
-    scheduleDialog.value = false;
   } catch {
     // schedulesStore.error로 표시됨
   }

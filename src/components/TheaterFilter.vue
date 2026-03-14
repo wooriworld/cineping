@@ -50,6 +50,31 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
+
+      <!-- 정렬 드롭다운 (우측 정렬) -->
+      <q-btn-dropdown
+        :label="sortLabel"
+        outline
+        dense
+        no-caps
+        menu-anchor="bottom right"
+        menu-self="top right"
+        class="sort-dropdown"
+      >
+        <q-list dense>
+          <q-item
+            v-for="s in SORTS"
+            :key="s.value"
+            v-close-popup
+            clickable
+            :active="sortModel === s.value"
+            active-class="chain-item-active"
+            @click="$emit('update:sortModel', s.value)"
+          >
+            <q-item-section>{{ s.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     </div>
   </div>
 </template>
@@ -58,14 +83,18 @@
 import { computed } from 'vue';
 import 'src/css/theater-filter.css';
 
+export type SortType = 'theater' | 'time';
+
 const props = defineProps<{
   chainModel: string;
   regionModel: string;
+  sortModel: SortType;
 }>();
 
 defineEmits<{
   'update:chainModel': [value: string];
   'update:regionModel': [value: string];
+  'update:sortModel': [value: SortType];
 }>();
 
 const CHAINS = [
@@ -73,6 +102,7 @@ const CHAINS = [
   { value: 'CGV', label: 'CGV' },
   { value: '롯데시네마', label: '롯데시네마' },
   { value: '메가박스', label: '메가박스' },
+  { value: '씨네Q', label: '씨네Q' },
 ];
 
 const REGIONS = [
@@ -93,8 +123,15 @@ const REGIONS = [
   { value: '제주', label: '제주' },
 ];
 
+const SORTS = [
+  { value: 'theater' as SortType, label: '영화관 순' },
+  { value: 'time' as SortType, label: '시간 순' },
+];
+
 const regionLabel = computed(() => {
   if (!props.regionModel || props.regionModel === '지역 선택') return '지역 선택';
   return `${props.regionModel} 지역`;
 });
+
+const sortLabel = computed(() => SORTS.find((s) => s.value === props.sortModel)?.label ?? '영화관 순');
 </script>

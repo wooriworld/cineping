@@ -17,7 +17,7 @@
       />
 
       <!-- 극장 필터 -->
-      <TheaterFilter v-model:chain-model="selectedChain" v-model:region-model="selectedRegion" />
+      <TheaterFilter v-model:chain-model="selectedChain" v-model:region-model="selectedRegion" v-model:sort-model="selectedSort" />
 
       <!-- 스케줄 목록 -->
       <q-inner-loading :showing="schedulesLoading">
@@ -27,6 +27,7 @@
       <ScheduleList
         v-if="!schedulesLoading"
         :schedules="filteredSchedules"
+        :sort-model="selectedSort"
       />
     </template>
 
@@ -89,7 +90,7 @@ import { useMoviesStore } from 'stores/moviesStore';
 import { useSchedulesStore } from 'stores/schedulesStore';
 import MovieCarousel from 'components/MovieCarousel.vue';
 import DateSelector from 'components/DateSelector.vue';
-import TheaterFilter from 'components/TheaterFilter.vue';
+import TheaterFilter, { type SortType } from 'components/TheaterFilter.vue';
 import ScheduleList from 'components/ScheduleList.vue';
 import 'src/css/home.css';
 
@@ -100,6 +101,7 @@ const selectedMovie = ref<Movie | null>(null);
 const selectedDate = ref('');
 const selectedChain = ref('극장 전체');
 const selectedRegion = ref('서울');
+const selectedSort = ref<SortType>('theater');
 const showDetailModal = ref(false);
 
 const movies = computed(() => moviesStore.movies);
@@ -131,6 +133,7 @@ async function onMovieSelect(movie: Movie): Promise<void> {
   selectedDate.value = todayStr();
   selectedChain.value = '극장 전체';
   selectedRegion.value = '서울';
+  selectedSort.value = 'theater';
   await schedulesStore.fetchByMovie(movie.id);
 }
 
