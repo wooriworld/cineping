@@ -83,9 +83,12 @@ const REGIONS = [
   '전라', '광주', '경상', '대구', '부산', '울산', '제주',
 ];
 
-const regionLabel = computed(() =>
-  props.regionModel.length === 0 ? '지역 전체' : props.regionModel.join(', ')
-);
+const regionLabel = computed(() => {
+  const selected = props.regionModel;
+  if (selected.length === 0) return '지역 전체';
+  if (selected.length <= 2) return selected.join(', ');
+  return `${selected[0]}, ${selected[1]} 외 ${selected.length - 2}개`;
+});
 
 function toggleRegion(region: string): void {
   const next = props.regionModel.includes(region)

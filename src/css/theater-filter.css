@@ -21,13 +21,6 @@
   min-width: 0;
 }
 
-/* 드롭다운 라벨 말줄임 */
-.region-dropdown :deep(.q-btn__content span) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 120px;
-}
 
 /* 극장 드롭다운 버튼 */
 .chain-dropdown {
