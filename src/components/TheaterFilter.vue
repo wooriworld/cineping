@@ -50,6 +50,7 @@ defineEmits<{
 }>();
 
 const CHAINS = [
+  { value: '전체', label: '전체' },
   { value: 'CGV', label: 'CGV' },
   { value: '롯데시네마', label: '롯데시네마' },
   { value: '메가박스', label: '메가박스' },
