@@ -17,7 +17,7 @@
 
 .movie-carousel-track {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   overflow-x: auto;
   overflow-y: visible;
@@ -55,12 +55,14 @@
   display: none;
 }
 
-/* 개별 포스터 아이템 */
+/* 개별 포스터 아이템
+   padding-top: 제목 영역(margin 6px + 약 34px) 절반 ≈ 20px 으로 img-wrap 세로 중앙 맞춤 */
 .movie-poster-item {
   flex: 0 0 80px;
   position: relative;
   cursor: pointer;
   border-radius: 8px;
+  padding-top: 20px;
   transition:
     transform 0.25s,
     flex-basis 0.3s;
@@ -72,13 +74,13 @@
   opacity: 0.85;
 }
 
-/* 선택된 영화 — 크게 + 선명하게 */
+/* 선택된 영화 — 크게 + 선명하게, 제목이 아래에 붙으므로 padding-top 불필요 */
 .movie-poster-item.selected {
   flex: 0 0 112px;
+  padding-top: 0;
   opacity: 1;
   transform: translateY(-6px);
 }
-
 
 /* 포스터 이미지 래퍼 — 높이 고정, 너비는 flex-basis 따름 */
 .movie-poster-img-wrap {
@@ -88,7 +90,9 @@
   background: #333;
   border-radius: 8px;
   overflow: hidden;
-  transition: box-shadow 0.25s, height 0.3s;
+  transition:
+    box-shadow 0.25s,
+    height 0.3s;
 }
 
 .movie-poster-img {
@@ -135,13 +139,10 @@
   border-radius: 4px !important;
 }
 
-/* 영화 제목 — 이미지 아래 absolute 배치 (flex 정렬에 영향 없음) */
+/* 영화 제목 — normal flow, 선택된 포스터 이미지 바로 아래 표시 */
 .movie-poster-title {
   display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
+  margin-top: 6px;
   color: #ffffff;
   font-size: 12px;
   font-weight: 600;
