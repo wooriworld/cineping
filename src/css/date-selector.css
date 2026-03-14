@@ -12,24 +12,18 @@
   margin: 0 auto;
 }
 
-/* 날짜 탭 행 */
+/* 날짜 탭 행 — 모바일: 패딩/갭 최소화로 7개 전부 표시 */
 .date-tabs-row {
   display: flex;
-  gap: 8px;
-  padding: 14px 24px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  gap: 4px;
+  padding: 10px 8px;
 }
 
-.date-tabs-row::-webkit-scrollbar {
-  display: none;
-}
-
-/* 날짜 버튼 */
+/* 날짜 버튼 — flex: 1로 균등 분배 */
 .date-btn {
-  flex: 0 0 72px;
-  height: 64px;
+  flex: 1;
+  min-width: 0;
+  height: 54px;
   border-radius: 10px !important;
   display: flex !important;
   flex-direction: column;
@@ -40,6 +34,29 @@
   border: 1px solid #e0e0e0 !important;
 }
 
+/* 태블릿 (600px+) */
+@media (min-width: 600px) {
+  .date-tabs-row {
+    gap: 6px;
+    padding: 12px 16px;
+  }
+  .date-btn {
+    height: 60px;
+  }
+}
+
+/* 데스크탑 (1024px+) */
+@media (min-width: 1024px) {
+  .date-tabs-row {
+    gap: 8px;
+    padding: 14px 24px;
+  }
+  .date-btn {
+    max-width: 96px;
+    height: 64px;
+  }
+}
+
 .date-btn-label {
   display: flex;
   flex-direction: column;
@@ -48,19 +65,29 @@
 }
 
 .date-btn-day {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
 }
 
 .date-btn-num {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .date-btn-sub {
-  font-size: 10px;
+  font-size: 9px;
   margin-top: 1px;
+}
+
+@media (min-width: 600px) {
+  .date-btn-day { font-size: 12px; }
+  .date-btn-num { font-size: 18px; }
+  .date-btn-sub { font-size: 10px; }
+}
+
+@media (min-width: 1024px) {
+  .date-btn-num { font-size: 20px; }
 }
 
 /* 선택된 날짜 */
