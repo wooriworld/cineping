@@ -16,65 +16,38 @@
       >
         <!-- 극장 헤더 -->
         <div class="theater-header">
-          <q-btn
-            flat
-            round
-            dense
-            :icon="favorites.includes(theater.name) ? 'star' : 'star_outline'"
-            class="theater-favorite-btn"
-            :class="{ favorited: favorites.includes(theater.name) }"
-            size="sm"
-            @click="$emit('toggleFavorite', theater.name)"
-            :aria-label="favorites.includes(theater.name) ? '즐겨찾기 해제' : '즐겨찾기 추가'"
-          />
-
-          <span class="theater-name">{{ theater.name }}</span>
-
-          <span
-            class="theater-chain-badge"
-            :class="chainBadgeClass(theater.chain)"
-          >{{ theater.chain }}</span>
-
-          <a
-            :href="theaterInfoUrl(theater.chain)"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="theater-info-link"
-          >극장안내</a>
+          <span class="theater-name" :class="'chain-' + chainBadgeClass(theater.chain)">{{ theater.name }}</span>
         </div>
 
-        <!-- 관별 상영 행 -->
-        <div
-          v-for="hall in theater.halls"
-          :key="hall.key"
-          class="hall-row"
-        >
-          <!-- 관 정보 -->
-          <div class="hall-info">
-            <span class="hall-name">{{ hall.key }}</span>
-            <span
-              class="screen-type-badge"
-              :class="screenTypeBadgeClass(hall.key)"
-            >{{ hall.key }}</span>
+        <!-- 가로 스크롤 상영 시간 -->
+        <div class="showtime-scroll-wrapper">
+          <q-btn
+            flat round dense icon="chevron_left" size="sm"
+            class="scroll-arrow"
+            @click="scrollShowtime($event, -260)"
+          />
+          <div class="showtime-scroll">
+            <template v-for="hall in theater.halls" :key="hall.key">
+              <button
+                v-for="s in hall.schedules"
+                :key="s.id"
+                class="showtime-btn"
+                :class="seatStatusClass(s.availableSeats)"
+                :disabled="s.availableSeats === 0"
+                @click="openBooking(s.bookingUrl)"
+              >
+                <div class="showtime-btn-time-row">
+                  <span class="showtime-btn-start">{{ s.startTime }}</span><span class="showtime-btn-end">~{{ s.endTime }}</span>
+                </div>
+                <span class="showtime-btn-hall" :class="screenTypeBadgeClass(hall.key)">{{ hall.key }}</span>
+              </button>
+            </template>
           </div>
-
-          <!-- 시간 버튼 목록 -->
-          <div class="showtime-buttons">
-            <button
-              v-for="s in hall.schedules"
-              :key="s.id"
-              class="showtime-btn"
-              :class="seatStatusClass(s.availableSeats)"
-              :disabled="s.availableSeats === 0"
-              @click="openBooking(s.bookingUrl)"
-            >
-              <span class="showtime-btn-start">{{ s.startTime }}</span>
-              <span class="showtime-btn-end">~{{ s.endTime }}</span>
-              <span class="showtime-btn-seats">
-                {{ s.availableSeats === 0 ? '매진' : `잔여 ${s.availableSeats}석` }}
-              </span>
-            </button>
-          </div>
+          <q-btn
+            flat round dense icon="chevron_right" size="sm"
+            class="scroll-arrow"
+            @click="scrollShowtime($event, 260)"
+          />
         </div>
 
       </div>
@@ -153,14 +126,14 @@ function seatStatusClass(seats: number): string {
   return 'normal';
 }
 
-function theaterInfoUrl(chain: string): string {
-  if (chain === 'CGV') return 'https://www.cgv.co.kr';
-  if (chain === '롯데시네마') return 'https://www.lottecinema.co.kr';
-  if (chain === '메가박스') return 'https://www.megabox.co.kr';
-  return '#';
-}
 
 function openBooking(url: string): void {
   if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function scrollShowtime(event: Event, delta: number): void {
+  const wrapper = (event.currentTarget as HTMLElement).closest('.showtime-scroll-wrapper');
+  const scroll = wrapper?.querySelector('.showtime-scroll');
+  scroll?.scrollBy({ left: delta, behavior: 'smooth' });
 }
 </script>

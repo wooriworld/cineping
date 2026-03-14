@@ -8,6 +8,7 @@ Vue 3 / Quasar / Firebase / Node.js 를 주력으로 다루며,
 - Quasar 컴포넌트 기반 화면 구현 (src/pages/, src/components/)
 - Vue 파일로 UI 구현
 - CSS는 기능별로 분리하여 관리 (src/css/)
+- commit은 한글로 해
 
 ## 규칙
 

@@ -116,7 +116,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useUsersStore } from 'src/stores/usersStore';
-import type { User, ChainType } from 'src/types';
+import type { User } from 'src/types';
 import type { QTableColumn } from 'quasar';
 
 const store = useUsersStore();

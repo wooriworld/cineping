@@ -67,6 +67,12 @@ export default defineConfigWithVueTs(
 
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+
+      // _접두사 변수는 의도적 미사용(destructuring omit 패턴)으로 허용
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
+      ],
     },
   },
 

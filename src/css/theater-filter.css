@@ -17,8 +17,7 @@
 
 /* 지역 드롭다운 */
 .region-dropdown {
-  flex: 1;
-  min-width: 0;
+  min-width: 110px;
 }
 
 

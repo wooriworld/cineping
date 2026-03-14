@@ -5,6 +5,7 @@
     <MovieCarousel
       :movies="movies"
       :selected-id="selectedMovie?.id ?? ''"
+      :loading="moviesStore.loading"
       @select="onMovieSelect"
     />
 
@@ -113,7 +114,7 @@ const schedulesStore = useSchedulesStore();
 
 const selectedMovie = ref<Movie | null>(null);
 const selectedDate = ref('');
-const selectedChain = ref('전체');
+const selectedChain = ref('극장 전체');
 const selectedRegion = ref<string[]>([]);
 const showDetailModal = ref(false);
 const favoriteTheaters = ref<string[]>([]);
@@ -132,7 +133,7 @@ function todayStr(): string {
 const filteredSchedules = computed(() =>
   schedulesStore.schedules.filter((s) => {
     const matchDate = !selectedDate.value || s.date === selectedDate.value;
-    const matchChain = selectedChain.value === '전체' || s.chain === selectedChain.value;
+    const matchChain = selectedChain.value === '극장 전체' || s.chain === selectedChain.value;
     return matchDate && matchChain;
   })
 );
@@ -145,7 +146,7 @@ const availableDates = computed(() => {
 async function onMovieSelect(movie: Movie): Promise<void> {
   selectedMovie.value = movie;
   selectedDate.value = todayStr();
-  selectedChain.value = '전체';
+  selectedChain.value = '극장 전체';
   selectedRegion.value = [];
   await schedulesStore.fetchByMovie(movie.id);
 }

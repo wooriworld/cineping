@@ -38,6 +38,7 @@ Vue 3 / Quasar / Firebase / Node.js 를 주력으로 다루며,
 - API 연동 및 데이터 처리 (src/services/, src/api/)
 - 상태 관리 구현 (src/stores/)
 - 라우터 설정 및 관리 (src/router/)
+- commit은 한글로 해
 
 ## 규칙
 

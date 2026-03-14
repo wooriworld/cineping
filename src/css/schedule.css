@@ -3,236 +3,197 @@
 =========================== */
 
 .schedule-section {
-  background: #f8f8f8;
+  background: #f5f5f5;
   min-height: 300px;
-  padding: 20px 0 40px;
+  padding: 8px 0 16px;
 }
 
 .schedule-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 /* 빈 상태 */
 .schedule-empty {
   text-align: center;
-  padding: 80px 0;
+  padding: 48px 0;
   color: #aaa;
+  font-size: 13px;
 }
 
 /* 극장 카드 */
 .theater-card {
   background: #fff;
-  border-radius: 12px;
-  border: 1px solid #ebebeb;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* 극장 헤더 */
 .theater-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.theater-favorite-btn {
-  color: #ccc !important;
-  transition: color 0.15s !important;
-}
-
-.theater-favorite-btn.favorited {
-  color: #fb4357 !important;
-}
-
-.theater-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #111;
-  flex: 1;
-}
-
-.theater-chain-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid currentColor;
-}
-
-.theater-chain-badge.cgv {
-  color: #fb4357;
-  background: #fff5f5;
-  border-color: #fb4357;
-}
-
-.theater-chain-badge.lotte {
-  color: #e60012;
-  background: #fff5f5;
-  border-color: #e60012;
-}
-
-.theater-chain-badge.mega {
-  color: #0070d0;
-  background: #f0f6ff;
-  border-color: #0070d0;
-}
-
-.theater-info-link {
-  font-size: 12px;
-  color: #888;
-  text-decoration: none;
-  border-bottom: 1px solid #ccc;
-  white-space: nowrap;
-}
-
-.theater-info-link:hover {
-  color: #555;
-}
-
-/* 관(Hall) 행 */
-.hall-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.hall-row:last-child {
-  border-bottom: none;
-}
-
-/* 상영관 정보 */
-.hall-info {
-  flex-shrink: 0;
-  min-width: 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 2px;
-}
-
-.hall-name {
-  font-size: 13px;
-  color: #555;
-  font-weight: 500;
-}
-
-/* 상영 타입 뱃지 */
-.screen-type-badge {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.screen-type-badge.imax {
-  background: #000;
-  color: #fff;
-}
-
-.screen-type-badge.four-dx {
-  background: #b8860b;
-  color: #fff;
-}
-
-.screen-type-badge.screenx {
-  background: #6a0dad;
-  color: #fff;
-}
-
-.screen-type-badge.dolby {
-  background: #1a1a2e;
-  color: #e0e0ff;
-}
-
-.screen-type-badge.type-2d {
-  background: #f0f0f0;
-  color: #555;
-  border: 1px solid #ddd;
-}
-
-/* 상영 시간 버튼 영역 */
-.showtime-buttons {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  padding: 8px 14px 4px;
+}
+
+/* 극장명 - 체인별 컬러 */
+.theater-name {
+  font-size: 14px;
+  font-weight: 700;
   flex: 1;
+  color: #222;
+}
+
+.theater-name.chain-cgv {
+  color: #e8001d;
+}
+
+.theater-name.chain-lotte {
+  color: #e60012;
+}
+
+.theater-name.chain-mega {
+  color: #0070d0;
+}
+
+/* 가로 스크롤 상영 시간 영역 */
+.showtime-scroll-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 4px 2px 6px 2px;
+  gap: 0;
+}
+
+.scroll-arrow {
+  flex-shrink: 0;
+  color: #bbb !important;
+}
+
+.scroll-arrow:hover {
+  color: #777 !important;
+}
+
+.showtime-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 2px;
+}
+
+.showtime-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 /* 상영 시간 버튼 */
 .showtime-btn {
-  min-width: 90px;
-  height: auto !important;
-  padding: 8px 10px !important;
-  border-radius: 8px !important;
-  border: 1.5px solid !important;
-  text-align: left !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  transition: all 0.15s !important;
-  line-height: 1.2 !important;
+  flex-shrink: 0;
+  min-width: 84px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e2e2;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.showtime-btn:hover:not(:disabled) {
+  border-color: #bbb;
+  background: #fafafa;
+}
+
+/* 시간 행 */
+.showtime-btn-time-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  line-height: 1;
 }
 
 .showtime-btn-start {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
+  color: #111;
+  letter-spacing: -0.3px;
 }
 
 .showtime-btn-end {
   font-size: 11px;
-  opacity: 0.7;
+  color: #999;
+  margin-left: 1px;
 }
 
-.showtime-btn-seats {
+/* 관 이름 */
+.showtime-btn-hall {
   font-size: 11px;
-  margin-top: 2px;
+  color: #888;
+  line-height: 1;
 }
 
-/* 좌석 상태별 색상 */
+.showtime-btn-hall.imax {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.showtime-btn-hall.four-dx {
+  color: #c84b00;
+}
+
+.showtime-btn-hall.screenx {
+  color: #6a0dad;
+}
+
+.showtime-btn-hall.dolby {
+  color: #2255aa;
+}
+
+.showtime-btn-hall.type-2d {
+  color: #888;
+}
+
+/* 좌석 상태별 스타일 */
 .showtime-btn.available {
-  border-color: #fb4357 !important;
-  color: #fb4357 !important;
-  background: #fff !important;
+  border-color: #f0b8bc;
 }
 
-.showtime-btn.available:hover {
-  background: #fff5f6 !important;
+.showtime-btn.available:hover:not(:disabled) {
+  background: #fff5f6;
 }
 
 .showtime-btn.normal {
-  border-color: #4caf50 !important;
-  color: #2e7d32 !important;
-  background: #fff !important;
-}
-
-.showtime-btn.normal:hover {
-  background: #f1f8e9 !important;
+  border-color: #e2e2e2;
 }
 
 .showtime-btn.almost-full {
-  border-color: #ff9800 !important;
-  color: #e65100 !important;
-  background: #fff !important;
+  border-color: #ffd0a0;
 }
 
-.showtime-btn.almost-full:hover {
-  background: #fff8e1 !important;
+.showtime-btn.almost-full:hover:not(:disabled) {
+  background: #fff9f3;
 }
 
 .showtime-btn.sold-out {
-  border-color: #ccc !important;
-  color: #aaa !important;
-  background: #f5f5f5 !important;
-  cursor: not-allowed !important;
+  border-color: #e5e5e5;
+  background: #f7f7f7;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.showtime-btn.sold-out .showtime-btn-start {
   text-decoration: line-through;
+  color: #aaa;
 }

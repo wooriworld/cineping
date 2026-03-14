@@ -4,33 +4,44 @@
 
       <!-- 포스터 스크롤 트랙 -->
       <div ref="trackRef" class="movie-carousel-track">
-        <div
-          v-for="movie in movies"
-          :key="movie.id"
-          class="movie-poster-item"
-          :class="{ selected: selectedId === movie.id }"
-          @click="$emit('select', movie)"
-        >
-          <!-- 포스터 이미지 영역 -->
-          <div class="movie-poster-img-wrap">
-            <img
-              :src="movie.poster || 'https://via.placeholder.com/152x228?text=No+Image'"
-              :alt="movie.title"
-              class="movie-poster-img"
-            />
 
-            <!-- 호버 오버레이 -->
-            <div class="movie-poster-overlay" />
+        <!-- 로딩 스켈레톤 -->
+        <template v-if="loading">
+          <div
+            v-for="n in 6"
+            :key="`skeleton-${n}`"
+            class="movie-poster-item skeleton-item"
+          >
+            <div class="movie-poster-img-wrap skeleton-poster" />
+          </div>
+        </template>
+
+        <!-- 실제 포스터 목록 -->
+        <template v-else>
+          <div
+            v-for="movie in movies"
+            :key="movie.id"
+            class="movie-poster-item"
+            :class="{ selected: selectedId === movie.id }"
+            @click="$emit('select', movie)"
+          >
+            <div class="movie-poster-img-wrap">
+              <img
+                :src="movie.poster || 'https://via.placeholder.com/152x228?text=No+Image'"
+                :alt="movie.title"
+                class="movie-poster-img"
+              />
+              <div class="movie-poster-overlay" />
+            </div>
+            <div class="movie-poster-title">{{ movie.title }}</div>
           </div>
 
-          <!-- 영화 정보 -->
-          <div class="movie-poster-title">{{ movie.title }}</div>
-        </div>
+          <!-- 빈 상태 -->
+          <div v-if="movies.length === 0" class="text-grey-5 q-pa-xl text-body2">
+            등록된 영화가 없습니다.
+          </div>
+        </template>
 
-        <!-- 빈 상태 -->
-        <div v-if="movies.length === 0" class="text-grey-5 q-pa-xl text-body2">
-          등록된 영화가 없습니다.
-        </div>
       </div>
 
 
@@ -46,6 +57,7 @@ import 'src/css/movie-carousel.css';
 const props = defineProps<{
   movies: Movie[];
   selectedId: string;
+  loading?: boolean;
 }>();
 
 defineEmits<{ select: [movie: Movie] }>();
