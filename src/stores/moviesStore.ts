@@ -85,11 +85,11 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  async function scrapeFromNaverViaApi(url: string): Promise<ScrapeResult> {
+  async function scrapeFromNaverViaApi(): Promise<ScrapeResult> {
     apiScrapeLoading.value = true;
     error.value = null;
     try {
-      const result = await scrapeNaverMoviesViaApi(url);
+      const result = await scrapeNaverMoviesViaApi();
       await fetchMovies();
       return result;
     } catch (e) {

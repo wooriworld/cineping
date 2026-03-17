@@ -1,9 +1,10 @@
 import * as cheerio from 'cheerio';
 
+const NAVER_MOVIE_API_URL = 'https://ts-proxy.naver.com/content/qapirender.nhn?_callback=___MovieAPIforPList_key_68_pkid_nexearch_where_9_start_8_display_s1_dsc_so_%ED%98%84%EC%9E%AC%EC%83%81%EC%98%81%EC%98%81%ED%99%94_q&key=MovieAPIforPList&pkid=68&where=nexearch&start=1&display=20&so=s1.dsc&q=%ED%98%84%EC%9E%AC%EC%83%81%EC%98%81%EC%98%81%ED%99%94';
 const DISPLAY = 20;
 
-async function fetchPage(inputUrl, start, display) {
-  const url = new URL(inputUrl);
+async function fetchPage(start, display) {
+  const url = new URL(NAVER_MOVIE_API_URL);
   url.searchParams.set('start', String(start));
   url.searchParams.set('display', String(display));
 
@@ -46,8 +47,8 @@ function parseItems(items) {
   return movies;
 }
 
-export async function scrapeMoviesViaApi(inputUrl) {
-  const first = await fetchPage(inputUrl, 1, DISPLAY);
+export async function scrapeMoviesViaApi() {
+  const first = await fetchPage(1, DISPLAY);
   const total = parseInt(String(first.total), 10) || 0;
   const movies = parseItems(first.items);
 
@@ -55,7 +56,7 @@ export async function scrapeMoviesViaApi(inputUrl) {
     const starts = [];
     for (let s = DISPLAY + 1; s <= total; s += DISPLAY) starts.push(s);
 
-    const pages = await Promise.all(starts.map((s) => fetchPage(inputUrl, s, DISPLAY)));
+    const pages = await Promise.all(starts.map((s) => fetchPage(s, DISPLAY)));
     for (const page of pages) {
       movies.push(...parseItems(page.items));
     }

@@ -79,13 +79,10 @@ app.post('/api/scrape/movies', async (_req, res) => {
 });
 
 // API 기반 영화 수집 엔드포인트
-app.post('/api/scrape/movies-api', async (req, res) => {
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ success: false, error: 'url 파라미터가 필요합니다.' });
-
+app.post('/api/scrape/movies-api', async (_req, res) => {
   try {
     console.log('\n[API 영화 수집 시작]');
-    const scraped = await scrapeMoviesViaApi(url);
+    const scraped = await scrapeMoviesViaApi();
     console.log(`[크롤링 완료] ${scraped.length}개 영화 파싱`);
 
     if (scraped.length === 0) {
