@@ -37,7 +37,7 @@
                 <div class="showtime-btn-time-row">
                   <span class="showtime-btn-start">{{ s.startTime }}</span><span class="showtime-btn-end">~{{ s.endTime }}</span>
                 </div>
-                <span class="showtime-btn-hall">{{ hall.key }}</span>
+                <span class="showtime-btn-hall">{{ s.screenType || '2D' }}</span>
               </button>
             </template>
           </div>
@@ -93,10 +93,14 @@ const grouped = computed(() => {
     )
     .map((t) => ({
       ...t,
-      halls: Object.entries(t.halls).map(([key, list]) => ({
-        key,
-        schedules: [...list].sort((a, b) => a.startTime.localeCompare(b.startTime)),
-      })),
+      halls: [
+        {
+          key: '',
+          schedules: Object.values(t.halls)
+            .flat()
+            .sort((a, b) => a.startTime.localeCompare(b.startTime)),
+        },
+      ],
     }));
 });
 

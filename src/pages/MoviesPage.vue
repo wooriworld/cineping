@@ -52,7 +52,10 @@
     >
       <template #body-cell-title="props">
         <q-td>
-          {{ props.row.title }}
+          <span
+            class="cursor-pointer text-primary"
+            @click="openScheduleDialog(props.row)"
+          >{{ props.row.title }}</span>
           <q-badge
             v-if="scheduleCountMap[props.row.id]"
             color="teal"
@@ -203,6 +206,32 @@
       </q-card>
     </q-dialog>
 
+    <!-- 스케줄 조회 팝업 -->
+    <q-dialog v-model="scheduleDialog" maximized>
+      <q-card>
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">{{ scheduleDialogMovie?.title }}</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pt-sm">
+          <div v-if="scheduleDialogLoading" class="text-center q-pa-lg">
+            <q-spinner size="40px" color="primary" />
+          </div>
+          <template v-else>
+            <DateSelector
+              v-model="scheduleDialogDate"
+              :available-dates="scheduleDialogAvailableDates"
+            />
+            <ScheduleList
+              :schedules="scheduleDialogFiltered"
+              sort-model="theater"
+            />
+          </template>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- 스케줄 수집 결과 -->
     <q-dialog v-model="scheduleScrapeDialog">
       <q-card style="min-width: 320px">
@@ -254,7 +283,9 @@
 import { computed, ref, onMounted } from 'vue';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
-import type { Movie } from 'src/types';
+import type { Movie, Schedule } from 'src/types';
+import DateSelector from 'src/components/DateSelector.vue';
+import ScheduleList from 'src/components/ScheduleList.vue';
 import type {
   ScrapeResult,
   ScrapeScheduleResult,
@@ -375,6 +406,38 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
     movieScheduleScrapeDialog.value = true;
   } catch {
     // schedulesStore.error 로 표시됨
+  }
+}
+
+// ── 스케줄 조회 팝업 ──────────────────────────────────────────────
+const scheduleDialog = ref(false);
+const scheduleDialogMovie = ref<Movie | null>(null);
+const scheduleDialogDate = ref('');
+const scheduleDialogLoading = ref(false);
+const scheduleDialogSchedules = ref<Schedule[]>([]);
+
+const scheduleDialogAvailableDates = computed(() => [
+  ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
+]);
+
+const scheduleDialogFiltered = computed(() =>
+  scheduleDialogSchedules.value.filter((s) => s.date === scheduleDialogDate.value),
+);
+
+async function openScheduleDialog(movie: Movie) {
+  scheduleDialogMovie.value = movie;
+  scheduleDialogDate.value = '';
+  scheduleDialogSchedules.value = [];
+  scheduleDialogLoading.value = true;
+  scheduleDialog.value = true;
+  try {
+    const list = await schedulesStore.getByMovie(movie.id);
+    scheduleDialogSchedules.value = list;
+    const dates = [...new Set(list.map((s) => s.date))].sort();
+    const today = new Date().toISOString().slice(0, 10);
+    scheduleDialogDate.value = dates.find((d) => d >= today) ?? dates[0] ?? '';
+  } finally {
+    scheduleDialogLoading.value = false;
   }
 }
 

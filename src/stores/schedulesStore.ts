@@ -87,6 +87,15 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     }
   }
 
+  async function getByMovie(movieId: string): Promise<Schedule[]> {
+    try {
+      return await getWhere<Schedule>(COLLECTION, 'movieId', '==', movieId);
+    } catch (e) {
+      error.value = (e as Error).message;
+      return [];
+    }
+  }
+
   async function fetchByMovieCount(movieId: string): Promise<number> {
     try {
       const list = await getWhere<Schedule>(COLLECTION, 'movieId', '==', movieId);
@@ -150,6 +159,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     addSchedule,
     editSchedule,
     deleteSchedule,
+    getByMovie,
     fetchByMovieCount,
     deleteAllByMovie,
     scrapeScheduleForMovieViaApi,
