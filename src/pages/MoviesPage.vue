@@ -71,6 +71,14 @@
           >
             <q-tooltip>{{ props.row.naverMovieId ? '스케줄 수집' : 'naverMovieId 없음' }}</q-tooltip>
           </q-btn>
+          <q-btn
+            flat round dense icon="bolt" color="purple"
+            :loading="schedulesStore.apiScrapeLoadingMovies.has(props.row.id)"
+            :disable="!props.row.naverMovieId"
+            @click="runMovieScheduleScrapeViaApi(props.row)"
+          >
+            <q-tooltip>{{ props.row.naverMovieId ? 'API 스케줄 수집 (빠름)' : 'naverMovieId 없음' }}</q-tooltip>
+          </q-btn>
         </q-td>
       </template>
     </q-table>
@@ -472,6 +480,16 @@ const movieScheduleScrapeResult = ref<ScrapeMovieScheduleResult & { title: strin
 async function runMovieScheduleScrape(movie: Movie) {
   try {
     const result = await schedulesStore.scrapeScheduleForMovie(movie.id);
+    movieScheduleScrapeResult.value = { ...result, title: movie.title };
+    movieScheduleScrapeDialog.value = true;
+  } catch {
+    // schedulesStore.error 로 표시됨
+  }
+}
+
+async function runMovieScheduleScrapeViaApi(movie: Movie) {
+  try {
+    const result = await schedulesStore.scrapeScheduleForMovieViaApi(movie.id);
     movieScheduleScrapeResult.value = { ...result, title: movie.title };
     movieScheduleScrapeDialog.value = true;
   } catch {

@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { scrapeNaverMovies } from './parsers/naverParser.js';
 import { scrapeMovieSchedules } from './parsers/naverScheduleParser.js';
+import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js';
 
 // ── Firebase 초기화 (seed.mjs 와 동일한 설정) ─────────────────────
 const firebaseConfig = {
@@ -171,6 +172,44 @@ app.post('/api/scrape/schedules/:movieId', async (req, res) => {
     return res.json({ success: true, schedulesAdded: scraped.length });
   } catch (err) {
     console.error('[단일 스케줄 수집 오류]', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 단일 영화 스케줄 수집 (API 직접 호출) 엔드포인트
+app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
+  const { movieId } = req.params;
+  try {
+    const moviesSnap = await getDocs(collection(db, 'movies'));
+    const movie = moviesSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .find((m) => m.id === movieId);
+
+    if (!movie) return res.status(404).json({ success: false, error: '영화를 찾을 수 없습니다.' });
+    if (!movie.naverMovieId) return res.status(400).json({ success: false, error: 'naverMovieId 가 없습니다.' });
+
+    console.log(`\n[API 스케줄 수집] "${movie.title}" (${movie.naverMovieId})`);
+
+    const movieStart = Date.now();
+
+    const scraped = await scrapeMovieSchedulesViaApi(movie);
+
+    const existingSnap = await getDocs(
+      query(collection(db, 'schedules'), where('movieId', '==', movieId)),
+    );
+    for (const d of existingSnap.docs) await deleteDoc(d.ref);
+
+    for (const schedule of scraped) {
+      await addDoc(collection(db, 'schedules'), schedule);
+    }
+
+    const elapsed = Date.now() - movieStart;
+    const m = Math.floor(elapsed / 60000);
+    const s = Math.floor((elapsed % 60000) / 1000);
+    console.log(`  ✓ "${movie.title}" 완료 — 기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장 (${m}분 ${s}초)\n`);
+    return res.json({ success: true, schedulesAdded: scraped.length });
+  } catch (err) {
+    console.error('[API 스케줄 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

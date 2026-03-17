@@ -5,6 +5,7 @@ import type { Schedule } from 'src/types';
 import {
   scrapeNaverSchedules,
   scrapeNaverScheduleForMovie,
+  scrapeNaverScheduleForMovieViaApi,
   type ScrapeScheduleResult,
   type ScrapeMovieScheduleResult,
 } from 'src/services/scraperService';
@@ -19,6 +20,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
   const scrapeLoadingMovies = ref<Set<string>>(new Set());
+  const apiScrapeLoadingMovies = ref<Set<string>>(new Set());
 
   async function fetchSchedules() {
     loading.value = true;
@@ -126,6 +128,21 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     }
   }
 
+  async function scrapeScheduleForMovieViaApi(movieId: string): Promise<ScrapeMovieScheduleResult> {
+    apiScrapeLoadingMovies.value = new Set([...apiScrapeLoadingMovies.value, movieId]);
+    error.value = null;
+    try {
+      return await scrapeNaverScheduleForMovieViaApi(movieId);
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      const next = new Set(apiScrapeLoadingMovies.value);
+      next.delete(movieId);
+      apiScrapeLoadingMovies.value = next;
+    }
+  }
+
   async function scrapeSchedulesFromNaver(): Promise<ScrapeScheduleResult> {
     scrapeLoading.value = true;
     error.value = null;
@@ -145,6 +162,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     error,
     scrapeLoading,
     scrapeLoadingMovies,
+    apiScrapeLoadingMovies,
     fetchSchedules,
     fetchByMovie,
     addSchedule,
@@ -153,6 +171,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     fetchByMovieCount,
     deleteAllByMovie,
     scrapeScheduleForMovie,
+    scrapeScheduleForMovieViaApi,
     scrapeSchedulesFromNaver,
   };
 });
