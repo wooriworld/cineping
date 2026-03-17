@@ -4,7 +4,6 @@ import { useFirestore } from 'src/composables/useFirestore';
 import type { Schedule } from 'src/types';
 import {
   scrapeNaverSchedules,
-  scrapeNaverScheduleForMovie,
   scrapeNaverScheduleForMovieViaApi,
   type ScrapeScheduleResult,
   type ScrapeMovieScheduleResult,
@@ -19,7 +18,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
-  const scrapeLoadingMovies = ref<Set<string>>(new Set());
   const apiScrapeLoadingMovies = ref<Set<string>>(new Set());
 
   async function fetchSchedules() {
@@ -113,21 +111,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     }
   }
 
-  async function scrapeScheduleForMovie(movieId: string): Promise<ScrapeMovieScheduleResult> {
-    scrapeLoadingMovies.value = new Set([...scrapeLoadingMovies.value, movieId]);
-    error.value = null;
-    try {
-      return await scrapeNaverScheduleForMovie(movieId);
-    } catch (e) {
-      error.value = (e as Error).message;
-      throw e;
-    } finally {
-      const next = new Set(scrapeLoadingMovies.value);
-      next.delete(movieId);
-      scrapeLoadingMovies.value = next;
-    }
-  }
-
   async function scrapeScheduleForMovieViaApi(movieId: string): Promise<ScrapeMovieScheduleResult> {
     apiScrapeLoadingMovies.value = new Set([...apiScrapeLoadingMovies.value, movieId]);
     error.value = null;
@@ -161,7 +144,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     loading,
     error,
     scrapeLoading,
-    scrapeLoadingMovies,
     apiScrapeLoadingMovies,
     fetchSchedules,
     fetchByMovie,
@@ -170,7 +152,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     deleteSchedule,
     fetchByMovieCount,
     deleteAllByMovie,
-    scrapeScheduleForMovie,
     scrapeScheduleForMovieViaApi,
     scrapeSchedulesFromNaver,
   };

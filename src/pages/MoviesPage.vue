@@ -64,14 +64,6 @@
             <q-tooltip>스케줄 전체 삭제</q-tooltip>
           </q-btn>
           <q-btn
-            flat round dense icon="cloud_download" color="deep-orange"
-            :loading="schedulesStore.scrapeLoadingMovies.has(props.row.id)"
-            :disable="!props.row.naverMovieId"
-            @click="runMovieScheduleScrape(props.row)"
-          >
-            <q-tooltip>{{ props.row.naverMovieId ? '스케줄 수집' : 'naverMovieId 없음' }}</q-tooltip>
-          </q-btn>
-          <q-btn
             flat round dense icon="bolt" color="purple"
             :loading="schedulesStore.apiScrapeLoadingMovies.has(props.row.id)"
             :disable="!props.row.naverMovieId"
@@ -476,16 +468,6 @@ async function runScheduleScrape() {
 // ── 스케줄 개별 수집 (영화별) ─────────────────────────────────────
 const movieScheduleScrapeDialog = ref(false);
 const movieScheduleScrapeResult = ref<ScrapeMovieScheduleResult & { title: string } | null>(null);
-
-async function runMovieScheduleScrape(movie: Movie) {
-  try {
-    const result = await schedulesStore.scrapeScheduleForMovie(movie.id);
-    movieScheduleScrapeResult.value = { ...result, title: movie.title };
-    movieScheduleScrapeDialog.value = true;
-  } catch {
-    // schedulesStore.error 로 표시됨
-  }
-}
 
 async function runMovieScheduleScrapeViaApi(movie: Movie) {
   try {
