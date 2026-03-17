@@ -2,7 +2,6 @@ import {
   collection,
   doc,
   getDocs,
-  getDoc,
   addDoc,
   setDoc,
   updateDoc,
@@ -17,12 +16,6 @@ export function useFirestore() {
   async function getAll<T>(collectionName: string): Promise<T[]> {
     const snap = await getDocs(collection(db, collectionName));
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as T);
-  }
-
-  async function getById<T>(collectionName: string, id: string): Promise<T | null> {
-    const snap = await getDoc(doc(db, collectionName, id));
-    if (!snap.exists()) return null;
-    return { id: snap.id, ...snap.data() } as T;
   }
 
   async function getWhere<T>(
@@ -61,5 +54,5 @@ export function useFirestore() {
     await deleteDoc(doc(db, collectionName, id));
   }
 
-  return { getAll, getById, getWhere, create, update, remove };
+  return { getAll, getWhere, create, update, remove };
 }
