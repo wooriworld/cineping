@@ -29,8 +29,18 @@
       {{ store.error }}
     </q-banner>
 
+    <q-input
+      v-model="searchTitle"
+      outlined dense clearable
+      placeholder="영화 제목 검색"
+      class="q-mb-md"
+      style="max-width: 300px"
+    >
+      <template #prepend><q-icon name="search" /></template>
+    </q-input>
+
     <q-table
-      :rows="store.movies"
+      :rows="filteredMovies"
       :columns="columns"
       row-key="id"
       :loading="store.loading"
@@ -271,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
 import type { Movie, ChainType } from 'src/types';
@@ -288,6 +298,13 @@ const columns: QTableColumn[] = [
   { name: 'createdAt', label: '등록일', field: 'createdAt', align: 'left', sortable: true, format: (val: string) => val ? val.substring(0, 10).replace(/-/g, '/') : '-' },
   { name: 'actions', label: '관리', field: 'actions', align: 'center' },
 ];
+
+const searchTitle = ref('');
+const filteredMovies = computed(() =>
+  searchTitle.value.trim()
+    ? store.movies.filter((m) => m.title.includes(searchTitle.value.trim()))
+    : store.movies,
+);
 
 const chainOptions = [
   { label: 'CGV', value: 'CGV' },
