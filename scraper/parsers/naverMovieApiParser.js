@@ -65,6 +65,15 @@ export async function scrapeMoviesViaApi() {
     }
   }
 
-  console.log(`[MovieAPI] 총 ${total}개 중 ${movies.length}개 파싱 완료`);
-  return movies;
+  // API에서 중복 항목이 내려오는 경우 제거
+  const seen = new Set();
+  const unique = movies.filter((m) => {
+    const key = m.naverMovieId || m.title;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  console.log(`[MovieAPI] 총 ${total}개 중 ${unique.length}개 파싱 완료 (중복 ${movies.length - unique.length}개 제거)`);
+  return unique;
 }
