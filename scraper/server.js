@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { scrapeNaverMovies } from './parsers/naverParser.js';
 import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js';
+import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
 // ── Firebase 초기화 (seed.mjs 와 동일한 설정) ─────────────────────
 const firebaseConfig = {
@@ -73,6 +74,52 @@ app.post('/api/scrape/movies', async (_req, res) => {
     return res.json({ success: true, added, skipped, total: scraped.length });
   } catch (err) {
     console.error('[스크래핑 오류]', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// API 기반 영화 수집 엔드포인트
+app.post('/api/scrape/movies-api', async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ success: false, error: 'url 파라미터가 필요합니다.' });
+
+  try {
+    console.log('\n[API 영화 수집 시작]');
+    const scraped = await scrapeMoviesViaApi(url);
+    console.log(`[크롤링 완료] ${scraped.length}개 영화 파싱`);
+
+    if (scraped.length === 0) {
+      return res.json({ success: true, added: 0, skipped: 0, total: 0 });
+    }
+
+    const existingSnap = await getDocs(collection(db, 'movies'));
+    const existingTitles = new Set(existingSnap.docs.map((d) => d.data().title));
+
+    let added = 0;
+    let skipped = 0;
+
+    for (const movie of scraped) {
+      if (existingTitles.has(movie.title)) {
+        skipped++;
+        continue;
+      }
+
+      await addDoc(collection(db, 'movies'), {
+        title: movie.title,
+        naverMovieId: movie.naverMovieId || '',
+        poster: movie.poster || '',
+        createdAt: new Date().toISOString(),
+      });
+
+      existingTitles.add(movie.title);
+      added++;
+      console.log(`  + 저장: ${movie.title}`);
+    }
+
+    console.log(`[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개\n`);
+    return res.json({ success: true, added, skipped, total: scraped.length });
+  } catch (err) {
+    console.error('[API 영화 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

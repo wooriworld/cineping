@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useFirestore } from 'src/composables/useFirestore';
 import type { Movie } from 'src/types';
-import { scrapeNaverMovies, type ScrapeResult } from 'src/services/scraperService';
+import { scrapeNaverMovies, scrapeNaverMoviesViaApi, type ScrapeResult } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
 
@@ -13,6 +13,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
+  const apiScrapeLoading = ref(false);
 
   async function fetchMovies() {
     loading.value = true;
@@ -84,5 +85,20 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  return { movies, loading, error, scrapeLoading, fetchMovies, addMovie, editMovie, deleteMovie, scrapeFromNaver };
+  async function scrapeFromNaverViaApi(url: string): Promise<ScrapeResult> {
+    apiScrapeLoading.value = true;
+    error.value = null;
+    try {
+      const result = await scrapeNaverMoviesViaApi(url);
+      await fetchMovies();
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      apiScrapeLoading.value = false;
+    }
+  }
+
+  return { movies, loading, error, scrapeLoading, apiScrapeLoading, fetchMovies, addMovie, editMovie, deleteMovie, scrapeFromNaver, scrapeFromNaverViaApi };
 });

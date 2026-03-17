@@ -13,6 +13,16 @@
         <q-tooltip>네이버 현재 상영 영화 자동 수집</q-tooltip>
       </q-btn>
       <q-btn
+        color="indigo"
+        icon="api"
+        label="API 영화 스크래핑"
+        class="q-mr-sm"
+        :loading="store.apiScrapeLoading"
+        @click="openApiMovieScrapeDialog"
+      >
+        <q-tooltip>네이버 API URL로 영화 수집</q-tooltip>
+      </q-btn>
+      <q-btn
         color="deep-orange"
         icon="event_note"
         label="스케줄 수집"
@@ -198,6 +208,41 @@
         </q-card-section>
         <q-card-actions align="right">
           <q-btn color="primary" label="확인" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- API 영화 스크래핑 입력 다이얼로그 -->
+    <q-dialog v-model="apiMovieScrapeDialog" persistent>
+      <q-card style="min-width: 480px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">API 영화 스크래핑</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section>
+          <div class="text-caption text-grey-7 q-mb-sm">
+            네이버 영화 목록 API URL을 붙여넣으세요.
+          </div>
+          <q-input
+            v-model="apiMovieScrapeUrl"
+            type="textarea"
+            outlined
+            dense
+            autogrow
+            placeholder="https://ts-proxy.naver.com/content/qapirender.nhn?..."
+            :rules="[(v) => !!v || 'URL을 입력하세요.']"
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="취소" v-close-popup />
+          <q-btn
+            color="indigo"
+            label="수집 시작"
+            :loading="store.apiScrapeLoading"
+            :disable="!apiMovieScrapeUrl.trim()"
+            @click="runApiMovieScrape"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -461,6 +506,27 @@ const movieScrapeResult = ref<ScrapeResult | null>(null);
 async function runMovieScrape() {
   try {
     const result = await store.scrapeFromNaver();
+    movieScrapeResult.value = result;
+    movieScrapeDialog.value = true;
+  } catch {
+    // store.error 로 표시됨
+  }
+}
+
+// ── API 영화 스크래핑 ─────────────────────────────────────────────
+const apiMovieScrapeDialog = ref(false);
+const apiMovieScrapeUrl = ref('');
+
+function openApiMovieScrapeDialog() {
+  apiMovieScrapeUrl.value = '';
+  apiMovieScrapeDialog.value = true;
+}
+
+async function runApiMovieScrape() {
+  if (!apiMovieScrapeUrl.value.trim()) return;
+  try {
+    const result = await store.scrapeFromNaverViaApi(apiMovieScrapeUrl.value.trim());
+    apiMovieScrapeDialog.value = false;
     movieScrapeResult.value = result;
     movieScrapeDialog.value = true;
   } catch {
