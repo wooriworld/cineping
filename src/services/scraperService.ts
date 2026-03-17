@@ -27,10 +27,6 @@ async function postScraper<T>(path: string): Promise<T> {
 }
 
 
-export function scrapeNaverMovies(): Promise<ScrapeResult> {
-  return postScraper<ScrapeResult>('/api/scrape/movies');
-}
-
 export function scrapeNaverMoviesViaApi(): Promise<ScrapeResult> {
   return postScraper<ScrapeResult>('/api/scrape/movies-api');
 }
