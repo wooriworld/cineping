@@ -50,6 +50,18 @@
       flat
       bordered
     >
+      <template #body-cell-title="props">
+        <q-td>
+          {{ props.row.title }}
+          <q-badge
+            v-if="scheduleCountMap[props.row.id]"
+            color="teal"
+            :label="scheduleCountMap[props.row.id]"
+            class="q-ml-xs"
+          />
+        </q-td>
+      </template>
+
       <template #body-cell-poster="{ value }">
         <q-td>
           <q-img
@@ -275,6 +287,14 @@ const filteredMovies = computed(() =>
     : store.movies,
 );
 
+const scheduleCountMap = computed(() => {
+  const map: Record<string, number> = {};
+  for (const s of schedulesStore.schedules) {
+    map[s.movieId] = (map[s.movieId] ?? 0) + 1;
+  }
+  return map;
+});
+
 // ── 삭제 ─────────────────────────────────────────────────────────
 const deleteDialog = ref(false);
 const deleteTargetId = ref('');
@@ -358,5 +378,8 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
   }
 }
 
-onMounted(() => store.fetchMovies());
+onMounted(() => {
+  void store.fetchMovies();
+  void schedulesStore.fetchSchedules();
+});
 </script>
