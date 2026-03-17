@@ -28,21 +28,25 @@ function parseItems(items) {
   const movies = [];
   for (const item of items) {
     const $ = cheerio.load(item.html);
-    const title = $('a.this_text._text').text().trim();
-    if (!title) continue;
+    // item.html 안에 .card_item 여러 개가 연결되어 있음
+    $('.card_item').each((_, card) => {
+      const $card = $(card);
+      const title = $card.find('a.this_text._text').text().trim();
+      if (!title) return;
 
-    const poster = $('a.img_box img').attr('src') ?? '';
+      const poster = $card.find('a.img_box img').attr('src') ?? '';
 
-    let naverMovieId = '';
-    $('a[href*="mediaView.nhn"]').each((_, el) => {
-      const match = ($(el).attr('href') ?? '').match(/[?&]code=(\d+)/);
-      if (match) {
-        naverMovieId = match[1];
-        return false;
-      }
+      let naverMovieId = '';
+      $card.find('a[href*="mediaView.nhn"]').each((_, el) => {
+        const match = ($(el).attr('href') ?? '').match(/[?&]code=(\d+)/);
+        if (match) {
+          naverMovieId = match[1];
+          return false;
+        }
+      });
+
+      movies.push({ title, naverMovieId, poster });
     });
-
-    movies.push({ title, naverMovieId, poster });
   }
   return movies;
 }
