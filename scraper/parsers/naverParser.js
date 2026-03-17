@@ -99,13 +99,15 @@ async function extractMoviesFromPage(page) {
       const imgEl = card.querySelector('a.img_box img');
       const poster = imgEl?.getAttribute('src') || '';
 
-      // ── naverMovieId (href 의 os= 파라미터) ───────────────────
-      const linkEl = card.querySelector('a.img_box');
+      // ── naverMovieId (movie.naver.com mediaView.nhn 의 code= 파라미터) ──
       let naverMovieId = '';
-      if (linkEl) {
-        const href = linkEl.getAttribute('href') || '';
-        const match = href.match(/[?&]os=(\d+)/);
-        if (match) naverMovieId = match[1] ?? '';
+      const anchors = card.querySelectorAll('a[href*="mediaView.nhn"]');
+      for (const a of anchors) {
+        const match = (a.getAttribute('href') || '').match(/[?&]code=(\d+)/);
+        if (match) {
+          naverMovieId = match[1];
+          break;
+        }
       }
 
       results.push({ title, poster, naverMovieId });
