@@ -94,6 +94,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     const errors = [];
 
     for (const movie of movies) {
+      const movieStart = Date.now();
       try {
         // 2. 크롤링
         const scraped = await scrapeMovieSchedules(movie);
@@ -103,16 +104,23 @@ app.post('/api/scrape/schedules', async (_req, res) => {
           query(collection(db, 'schedules'), where('movieId', '==', movie.id)),
         );
         for (const d of existingSnap.docs) await deleteDoc(d.ref);
-        console.log(`  기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장`);
 
         // 4. 신규 저장
         for (const schedule of scraped) {
           await addDoc(collection(db, 'schedules'), schedule);
         }
         schedulesAdded += scraped.length;
+
+        const elapsed = Date.now() - movieStart;
+        const m = Math.floor(elapsed / 60000);
+        const s = Math.floor((elapsed % 60000) / 1000);
+        console.log(`  ✓ "${movie.title}" 완료 — 기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장 (${m}분 ${s}초)`);
       } catch (err) {
+        const elapsed = Date.now() - movieStart;
+        const m = Math.floor(elapsed / 60000);
+        const s = Math.floor((elapsed % 60000) / 1000);
         const msg = `${movie.title}: ${err.message}`;
-        console.error(`  [오류] ${msg}`);
+        console.error(`  [오류] ${msg} (${m}분 ${s}초)`);
         errors.push(msg);
       }
     }
@@ -140,6 +148,8 @@ app.post('/api/scrape/schedules/:movieId', async (req, res) => {
 
     console.log(`\n[스케줄 수집] "${movie.title}" (${movie.naverMovieId})`);
 
+    const movieStart = Date.now();
+
     // 2. 크롤링
     const scraped = await scrapeMovieSchedules(movie);
 
@@ -154,7 +164,10 @@ app.post('/api/scrape/schedules/:movieId', async (req, res) => {
       await addDoc(collection(db, 'schedules'), schedule);
     }
 
-    console.log(`  기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장\n`);
+    const elapsed = Date.now() - movieStart;
+    const m = Math.floor(elapsed / 60000);
+    const s = Math.floor((elapsed % 60000) / 1000);
+    console.log(`  ✓ "${movie.title}" 완료 — 기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장 (${m}분 ${s}초)\n`);
     return res.json({ success: true, schedulesAdded: scraped.length });
   } catch (err) {
     console.error('[단일 스케줄 수집 오류]', err.message);

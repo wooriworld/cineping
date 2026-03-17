@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 /**
  * 특정 영화의 네이버 상영일정 크롤링 (날짜별 전체)
  *
- * 지역 필터: 서울 → 전체 로 변경 후 수집
+ * 지역 필터: 서울 → 전체 로 변경 후 수집 (첫 번째 날짜에서만 1회 수행)
  * 에러 복구: ._retry 버튼 감지 시 최대 3회 재시도
  */
 export async function scrapeMovieSchedules(movie) {
@@ -33,15 +33,14 @@ export async function scrapeMovieSchedules(movie) {
     console.log(`  [스케줄] "${title}" 로딩...`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    // 1. 영화 세팅: 초기 콘텐츠 로드
-    const loaded = await waitForContentOrRetry(page, title);
+    // 1. 초기 콘텐츠 로드 대기
+    const loaded = await waitForContent(page, title);
     if (!loaded) {
       console.warn(`  [스케줄] "${title}" — 콘텐츠 로드 실패, 빈 결과 반환`);
       return [];
     }
 
     // ── 날짜 탭 수집 (오늘부터 최대 7일) ────────────────────────
-    // 실제 HTML: li[data-kgs-option="2026-03-15"] > button.play_btn_date
     const dateTabs = await page.$$('button.play_btn_date');
     const dateCount = Math.min(dateTabs.length, 7);
     console.log(`  [스케줄] "${title}" — 날짜 탭 ${dateCount}개 (최대 7일)`);
@@ -49,23 +48,28 @@ export async function scrapeMovieSchedules(movie) {
     const allSchedules = [];
 
     if (dateCount === 0) {
-      // 날짜 탭 없는 경우: 서울 전체 선택 후 수집
+      // 날짜 탭 없는 경우
       await selectSeoulAll(page, title);
-      await waitForContentOrRetry(page, title, 2);
-      allSchedules.push(...await extractSchedules(page, movieId));
+      await waitForContent(page, title, 2);
+      allSchedules.push(...(await extractSchedules(page, movieId)));
     } else {
       for (let i = 0; i < dateCount; i++) {
-        // 2. 날짜 세팅
+        // 날짜 탭 클릭
         const tabs = await page.$$('button.play_btn_date');
         if (!tabs[i]) break;
         await tabs[i].click();
-        await waitForContentOrRetry(page, title, 2);
 
-        // 3. 서울 전체 선택
-        await selectSeoulAll(page, title);
-        await waitForContentOrRetry(page, title, 2);
+        // 콘텐츠 갱신 대기
+        const ok = await waitForContent(page, title, 2);
+        if (!ok) continue;
 
-        // 4. 수집
+        // 서울 전체 선택은 첫 번째 날짜에서만
+        if (i === 0) {
+          await selectSeoulAll(page, title);
+          await waitForContent(page, title, 2);
+        }
+
+        // 수집
         const list = await extractSchedules(page, movieId);
         allSchedules.push(...list);
         console.log(`  [스케줄] "${title}" 날짜 ${i + 1}: ${list.length}개`);
@@ -80,26 +84,25 @@ export async function scrapeMovieSchedules(movie) {
 }
 
 /**
- * 극장 목록 로드 대기. 로드 실패 시 ._retry 버튼 클릭 후 재시도.
- * @returns {boolean} 성공 여부
+ * 극장 목록 로드 대기. 실패 시 ._retry 버튼 클릭 후 재시도.
+ * 고정 sleep 없이 이벤트 기반 대기 사용.
  */
-async function waitForContentOrRetry(page, title, maxRetries = 3) {
+async function waitForContent(page, title, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const found = await page
-      .waitForSelector('li._scrolling_wrapper', { timeout: 8000 })
+      .waitForSelector('li._scrolling_wrapper', { timeout: 6000 })
       .then(() => true)
       .catch(() => false);
 
     if (found) return true;
 
-    // ._retry 버튼이 있으면 클릭 후 재시도
     const retryBtn = page.locator('button._retry').first();
     if (await retryBtn.isVisible().catch(() => false)) {
       console.warn(`  [스케줄] "${title}" — 에러 감지, 새로고침 시도 (${attempt}/${maxRetries})`);
       await retryBtn.click();
-      await page.waitForTimeout(1500);
+      // 재시도 버튼 클릭 후 버튼이 사라질 때까지 대기 (고정 sleep 대신)
+      await page.waitForSelector('button._retry', { state: 'hidden', timeout: 3000 }).catch(() => {});
     } else {
-      // 재시도 버튼도 없으면 상영 데이터 없음
       console.warn(`  [스케줄] "${title}" — 극장 목록 없음 (상영 종료 또는 데이터 없음)`);
       return false;
     }
@@ -108,36 +111,32 @@ async function waitForContentOrRetry(page, title, maxRetries = 3) {
 }
 
 /**
- * 지역 필터를 서울 → 전체 로 변경
- *
- * HTML 구조:
- *   a._select_trigger                          ← 필터 토글 버튼
- *   ul._depth1_list li[data-kgs-option="서울특별시"] a.item_link  ← 서울 선택
- *   ul._depth2_list li[data-kgs-option=""] a.item_link            ← 전체 선택
+ * 지역 필터를 서울 → 전체 로 변경.
+ * 고정 sleep 대신 각 클릭 후 다음 요소가 visible 해질 때까지 대기.
  */
 async function selectSeoulAll(page, title) {
   try {
-    // 지역 필터 드롭다운 열기
     const trigger = page.locator('a._select_trigger').first();
     if (!(await trigger.isVisible().catch(() => false))) return;
 
     await trigger.click();
-    await page.waitForTimeout(400);
+    // depth1 리스트가 열릴 때까지 대기
+    await page.waitForSelector('ul._depth1_list', { state: 'visible', timeout: 3000 }).catch(() => {});
 
-    // 서울 클릭 (depth1)
     const seoulBtn = page.locator('ul._depth1_list li[data-kgs-option="서울특별시"] a.item_link').first();
     if (!(await seoulBtn.isVisible().catch(() => false))) {
       await trigger.click(); // 닫기
       return;
     }
     await seoulBtn.click();
-    await page.waitForTimeout(400);
+    // depth2 리스트가 열릴 때까지 대기
+    await page.waitForSelector('ul._depth2_list', { state: 'visible', timeout: 3000 }).catch(() => {});
 
-    // 전체 클릭 (depth2: data-kgs-option="" data-text="전체")
     const allBtn = page.locator('ul._depth2_list li[data-kgs-option=""] a.item_link').first();
     if (await allBtn.isVisible().catch(() => false)) {
       await allBtn.click();
-      await page.waitForTimeout(800);
+      // 드롭다운이 닫히고 극장 목록이 갱신될 때까지 대기
+      await page.waitForSelector('ul._depth2_list', { state: 'hidden', timeout: 3000 }).catch(() => {});
       console.log(`  [스케줄] "${title}" — 지역: 서울 전체 선택 완료`);
     }
   } catch (err) {
