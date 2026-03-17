@@ -114,15 +114,6 @@ async function openPage(browser) {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   });
   await page.setViewportSize({ width: 1280, height: 900 });
-
-  // 이미지만 차단 (CSS/JS는 허용하여 렌더링 정상 유지)
-  await page.route('**/*', (route) => {
-    if (route.request().resourceType() === 'image') {
-      return route.abort();
-    }
-    return route.continue();
-  });
-
   return page;
 }
 
