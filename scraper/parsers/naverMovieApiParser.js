@@ -28,7 +28,6 @@ function parseItems(items) {
   const movies = [];
   for (const item of items) {
     const $ = cheerio.load(item.html);
-    // item.html 안에 .card_item 여러 개가 연결되어 있음
     $('.card_item').each((_, card) => {
       const $card = $(card);
       const title = $card.find('a.this_text._text').text().trim();
