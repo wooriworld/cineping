@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useFirestore } from 'src/composables/useFirestore';
+import { useSupabase } from 'src/composables/useSupabase';
 import type { Schedule } from 'src/types';
 import {
   scrapeNaverSchedules,
@@ -12,7 +12,7 @@ import {
 const COLLECTION = 'schedules';
 
 export const useSchedulesStore = defineStore('schedulesStore', () => {
-  const { getAll, getWhere, create, update, remove } = useFirestore();
+  const { getAll, getWhere, create, update, remove } = useSupabase();
 
   const schedules = ref<Schedule[]>([]);
   const loading = ref(false);

@@ -1,22 +1,15 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, query, where, deleteDoc, writeBatch, doc } from 'firebase/firestore';
+import { createClient } from '@supabase/supabase-js';
 import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js';
 import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
-// ── Firebase 초기화 (seed.mjs 와 동일한 설정) ─────────────────────
-const firebaseConfig = {
-  apiKey: 'AIzaSyDmx9CExa5hrye-u3OyLP1WYPJmLoPta84',
-  authDomain: 'cineping.firebaseapp.com',
-  projectId: 'cineping',
-  storageBucket: 'cineping.firebasestorage.app',
-  messagingSenderId: '444231705969',
-  appId: '1:444231705969:web:f28635003d5bc29e4b42d0',
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+// ── Supabase 초기화 ───────────────────────────────────────────────
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
 
 // ── Express 서버 설정 ────────────────────────────────────────────
 const app = express();
@@ -27,7 +20,6 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.json({ ok: true, message: 'Cineping Scraper Server 실행 중' });
 });
-
 
 // API 기반 영화 수집 엔드포인트
 app.post('/api/scrape/movies-api', async (_req, res) => {
@@ -40,8 +32,10 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
       return res.json({ success: true, added: 0, skipped: 0, total: 0 });
     }
 
-    const existingSnap = await getDocs(collection(db, 'movies'));
-    const existingTitles = new Set(existingSnap.docs.map((d) => d.data().title));
+    const { data: existing, error: fetchErr } = await supabase.from('movies').select('title');
+    if (fetchErr) throw new Error(fetchErr.message);
+
+    const existingTitles = new Set(existing.map((m) => m.title));
 
     let added = 0;
     let skipped = 0;
@@ -52,13 +46,14 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
         continue;
       }
 
-      await addDoc(collection(db, 'movies'), {
+      const { error } = await supabase.from('movies').insert({
         title: movie.title,
         naverMovieId: movie.naverMovieId || '',
         poster: movie.poster || '',
         createdAt: new Date().toISOString(),
       });
 
+      if (error) throw new Error(error.message);
       existingTitles.add(movie.title);
       added++;
       console.log(`  + 저장: ${movie.title}`);
@@ -72,53 +67,48 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
   }
 });
 
-// 스케줄 수집 엔드포인트
+// 스케줄 수집 엔드포인트 (전체)
 app.post('/api/scrape/schedules', async (_req, res) => {
   try {
     console.log('\n[스케줄 수집 시작]');
 
-    // 1. naverMovieId 있는 영화만 대상
-    const moviesSnap = await getDocs(collection(db, 'movies'));
-    const movies = moviesSnap.docs
-      .map((d) => ({ id: d.id, ...d.data() }))
-      .filter((m) => m.naverMovieId);
+    const { data: movies, error: fetchErr } = await supabase
+      .from('movies')
+      .select('*')
+      .neq('naverMovieId', '');
+    if (fetchErr) throw new Error(fetchErr.message);
 
     console.log(`[대상 영화] ${movies.length}개`);
 
     let schedulesAdded = 0;
     const errors = [];
+    const CHUNK = 500;
 
     for (const movie of movies) {
       const movieStart = Date.now();
       try {
-        // 2. 크롤링 (API 직접 호출)
         const scraped = await scrapeMovieSchedulesViaApi(movie);
 
-        // 3. 기존 스케줄 삭제 (배치)
-        const existingSnap = await getDocs(
-          query(collection(db, 'schedules'), where('movieId', '==', movie.id)),
-        );
-        if (existingSnap.size > 0) {
-          const deleteBatch = writeBatch(db);
-          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
-          await deleteBatch.commit();
-        }
+        // 기존 스케줄 전체 삭제
+        const { error: delErr } = await supabase
+          .from('schedules')
+          .delete()
+          .eq('movieId', movie.id);
+        if (delErr) throw new Error(delErr.message);
 
-        // 4. 신규 저장 (배치, 500개 단위)
-        const BATCH_SIZE = 500;
-        for (let i = 0; i < scraped.length; i += BATCH_SIZE) {
-          const batch = writeBatch(db);
-          scraped.slice(i, i + BATCH_SIZE).forEach((schedule) => {
-            batch.set(doc(collection(db, 'schedules')), schedule);
-          });
-          await batch.commit();
+        // 신규 저장 (500개 단위)
+        for (let i = 0; i < scraped.length; i += CHUNK) {
+          const { error: insErr } = await supabase
+            .from('schedules')
+            .insert(scraped.slice(i, i + CHUNK));
+          if (insErr) throw new Error(insErr.message);
         }
         schedulesAdded += scraped.length;
 
         const elapsed = Date.now() - movieStart;
         const m = Math.floor(elapsed / 60000);
         const s = Math.floor((elapsed % 60000) / 1000);
-        console.log(`  ✓ "${movie.title}" 완료 — 기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장 (${m}분 ${s}초)`);
+        console.log(`  ✓ "${movie.title}" 완료 — 신규 ${scraped.length}개 저장 (${m}분 ${s}초)`);
       } catch (err) {
         const elapsed = Date.now() - movieStart;
         const m = Math.floor(elapsed / 60000);
@@ -137,47 +127,60 @@ app.post('/api/scrape/schedules', async (_req, res) => {
   }
 });
 
-// 단일 영화 스케줄 수집 엔드포인트
+// 단일 영화 스케줄 수집 엔드포인트 (diff)
 app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
   const { movieId } = req.params;
   try {
-    const moviesSnap = await getDocs(collection(db, 'movies'));
-    const movie = moviesSnap.docs
-      .map((d) => ({ id: d.id, ...d.data() }))
-      .find((m) => m.id === movieId);
+    const { data: movies, error: fetchErr } = await supabase
+      .from('movies')
+      .select('*')
+      .eq('id', movieId);
+    if (fetchErr) throw new Error(fetchErr.message);
 
+    const movie = movies[0];
     if (!movie) return res.status(404).json({ success: false, error: '영화를 찾을 수 없습니다.' });
     if (!movie.naverMovieId) return res.status(400).json({ success: false, error: 'naverMovieId 가 없습니다.' });
 
     console.log(`\n[API 스케줄 수집] "${movie.title}" (${movie.naverMovieId})`);
-
     const movieStart = Date.now();
 
     const scraped = await scrapeMovieSchedulesViaApi(movie);
 
-    const existingSnap = await getDocs(
-      query(collection(db, 'schedules'), where('movieId', '==', movieId)),
-    );
-    if (existingSnap.size > 0) {
-      const deleteBatch = writeBatch(db);
-      existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
-      await deleteBatch.commit();
+    const { data: existing, error: exErr } = await supabase
+      .from('schedules')
+      .select('*')
+      .eq('movieId', movieId);
+    if (exErr) throw new Error(exErr.message);
+
+    // unique key: date_theater_startTime
+    const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
+    const existingKeyMap = new Map(existing.map((s) => [scheduleKey(s), s.id]));
+    const scrapedKeySet = new Set(scraped.map(scheduleKey));
+
+    const toAdd = scraped.filter((s) => !existingKeyMap.has(scheduleKey(s)));
+    const toDeleteIds = existing
+      .filter((s) => !scrapedKeySet.has(scheduleKey(s)))
+      .map((s) => s.id);
+    const skipped = scraped.length - toAdd.length;
+
+    // 삭제
+    if (toDeleteIds.length > 0) {
+      const { error: delErr } = await supabase.from('schedules').delete().in('id', toDeleteIds);
+      if (delErr) throw new Error(delErr.message);
     }
 
-    const BATCH_SIZE = 500;
-    for (let i = 0; i < scraped.length; i += BATCH_SIZE) {
-      const batch = writeBatch(db);
-      scraped.slice(i, i + BATCH_SIZE).forEach((schedule) => {
-        batch.set(doc(collection(db, 'schedules')), schedule);
-      });
-      await batch.commit();
+    // 추가
+    const CHUNK = 500;
+    for (let i = 0; i < toAdd.length; i += CHUNK) {
+      const { error: insErr } = await supabase.from('schedules').insert(toAdd.slice(i, i + CHUNK));
+      if (insErr) throw new Error(insErr.message);
     }
 
     const elapsed = Date.now() - movieStart;
     const m = Math.floor(elapsed / 60000);
     const s = Math.floor((elapsed % 60000) / 1000);
-    console.log(`  ✓ "${movie.title}" 완료 — 기존 ${existingSnap.size}개 삭제 → 신규 ${scraped.length}개 저장 (${m}분 ${s}초)\n`);
-    return res.json({ success: true, schedulesAdded: scraped.length });
+    console.log(`  ✓ "${movie.title}" 완료 — 추가 ${toAdd.length}개 / 스킵 ${skipped}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)\n`);
+    return res.json({ success: true, added: toAdd.length, skipped, deleted: toDeleteIds.length });
   } catch (err) {
     console.error('[API 스케줄 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -188,7 +191,7 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`\n[Cineping Scraper Server] 포트 ${PORT} 실행 중`);
-  console.log(`  영화 스크래핑 : POST http://localhost:${PORT}/api/scrape/movies`);
+  console.log(`  영화 스크래핑 : POST http://localhost:${PORT}/api/scrape/movies-api`);
   console.log(`  스케줄 수집   : POST http://localhost:${PORT}/api/scrape/schedules`);
   console.log(`  상태 확인     : GET  http://localhost:${PORT}/health\n`);
 });

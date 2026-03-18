@@ -165,13 +165,29 @@
         </q-card-section>
         <q-card-section v-if="movieScheduleScrapeResult">
           <div class="text-body2 q-mb-sm text-grey-7">{{ movieScheduleScrapeResult.title }}</div>
-          <q-item>
-            <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
-            <q-item-section>
-              <q-item-label>저장된 스케줄</q-item-label>
-              <q-item-label caption>{{ movieScheduleScrapeResult.schedulesAdded }}개</q-item-label>
-            </q-item-section>
-          </q-item>
+          <q-list>
+            <q-item>
+              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
+              <q-item-section>
+                <q-item-label>추가</q-item-label>
+                <q-item-label caption>{{ movieScheduleScrapeResult.added }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
+              <q-item-section>
+                <q-item-label>중복 스킵</q-item-label>
+                <q-item-label caption>{{ movieScheduleScrapeResult.skipped }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="delete" color="negative" /></q-item-section>
+              <q-item-section>
+                <q-item-label>삭제</q-item-label>
+                <q-item-label caption>{{ movieScheduleScrapeResult.deleted }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn color="primary" label="확인" v-close-popup />

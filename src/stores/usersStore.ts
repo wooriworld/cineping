@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useFirestore } from 'src/composables/useFirestore';
+import { useSupabase } from 'src/composables/useSupabase';
 import type { User } from 'src/types';
 
 const COLLECTION = 'users';
 
 export const useUsersStore = defineStore('usersStore', () => {
-  const { getAll, create, update, remove } = useFirestore();
+  const { getAll, create, update, remove } = useSupabase();
 
   const users = ref<User[]>([]);
   const loading = ref(false);

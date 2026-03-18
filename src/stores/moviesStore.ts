@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useFirestore } from 'src/composables/useFirestore';
+import { useSupabase } from 'src/composables/useSupabase';
 import type { Movie } from 'src/types';
 import { scrapeNaverMoviesViaApi, type ScrapeResult } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
 
 export const useMoviesStore = defineStore('moviesStore', () => {
-  const { getAll, remove } = useFirestore();
+  const { getAll, remove } = useSupabase();
 
   const movies = ref<Movie[]>([]);
   const loading = ref(false);
