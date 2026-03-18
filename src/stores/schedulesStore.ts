@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useSupabase } from 'src/composables/useSupabase';
+import { supabase } from 'src/supabase';
 import type { Schedule } from 'src/types';
 import {
   scrapeNaverSchedules,
@@ -15,6 +16,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   const { getAll, getWhere, create, update, remove } = useSupabase();
 
   const schedules = ref<Schedule[]>([]);
+  const scheduleCounts = ref<Record<string, number>>({});
   const loading = ref(false);
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
@@ -29,6 +31,23 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
       error.value = (e as Error).message;
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function fetchScheduleCounts() {
+    try {
+      const { data, error: err } = await supabase
+        .from('schedule_counts')
+        .select('movieId, count');
+      if (err) throw new Error(err.message);
+      const counts: Record<string, number> = {};
+      for (const row of data ?? []) {
+        const r = row as { movieId: string; count: number };
+        counts[r.movieId] = Number(r.count);
+      }
+      scheduleCounts.value = counts;
+    } catch (e) {
+      error.value = (e as Error).message;
     }
   }
 
@@ -150,11 +169,13 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
 
   return {
     schedules,
+    scheduleCounts,
     loading,
     error,
     scrapeLoading,
     apiScrapeLoadingMovies,
     fetchSchedules,
+    fetchScheduleCounts,
     fetchByMovie,
     addSchedule,
     editSchedule,

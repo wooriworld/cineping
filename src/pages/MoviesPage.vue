@@ -45,11 +45,15 @@
       :columns="columns"
       row-key="id"
       :loading="store.loading"
-      :rows-per-page-options="[8, 16, 24, 0]"
-      :pagination="{ rowsPerPage: 8 }"
+      :rows-per-page-options="[10, 20, 30, 0]"
+      :pagination="{ rowsPerPage: 10 }"
       flat
       bordered
     >
+      <template #body-cell-no="props">
+        <q-td align="center">{{ props.rowIndex + 1 }}</q-td>
+      </template>
+
       <template #body-cell-title="props">
         <q-td>
           <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
@@ -66,7 +70,7 @@
 
       <template #body-cell-scheduleCount="props">
         <q-td align="center">
-          {{ scheduleCountMap[props.row.id] || 0 }}
+          {{ schedulesStore.scheduleCounts[props.row.id] || 0 }}
         </q-td>
       </template>
 
@@ -315,6 +319,7 @@ const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
 const columns: QTableColumn[] = [
+  { name: 'no', label: 'No', field: 'id', align: 'center' },
   { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
   { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
   { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
@@ -333,28 +338,22 @@ const columns: QTableColumn[] = [
 
 const searchTitle = ref('');
 const filteredMovies = computed(() => {
+  const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const base = searchTitle.value.trim()
     ? store.movies.filter((m) => m.title.includes(searchTitle.value.trim()))
     : [...store.movies];
 
   return base.sort((a, b) => {
+    const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
+    if (countDiff !== 0) return countDiff;
     const releaseDiff = (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
     if (releaseDiff !== 0) return releaseDiff;
-    const createdDiff = (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
-    if (createdDiff !== 0) return createdDiff;
-    return (scheduleCountMap.value[b.id] ?? 0) - (scheduleCountMap.value[a.id] ?? 0);
+    return (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
   });
 });
 
 const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
 
-const scheduleCountMap = computed(() => {
-  const map: Record<string, number> = {};
-  for (const s of schedulesStore.schedules) {
-    map[s.movieId] = (map[s.movieId] ?? 0) + 1;
-  }
-  return map;
-});
 
 // ── 삭제 ─────────────────────────────────────────────────────────
 const deleteDialog = ref(false);
@@ -434,6 +433,7 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
     const result = await schedulesStore.scrapeScheduleForMovieViaApi(movie.id);
     movieScheduleScrapeResult.value = { ...result, title: movie.title };
     movieScheduleScrapeDialog.value = true;
+    void schedulesStore.fetchScheduleCounts();
   } catch {
     // schedulesStore.error 로 표시됨
   }
@@ -473,6 +473,6 @@ async function openScheduleDialog(movie: Movie) {
 
 onMounted(() => {
   void store.fetchMovies();
-  void schedulesStore.fetchSchedules();
+  void schedulesStore.fetchScheduleCounts();
 });
 </script>
