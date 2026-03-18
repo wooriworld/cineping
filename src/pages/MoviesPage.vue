@@ -341,11 +341,11 @@ const filteredMovies = computed(() => {
     : [...store.movies];
 
   return base.sort((a, b) => {
-    const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
-    if (countDiff !== 0) return countDiff;
     const releaseDiff = (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
     if (releaseDiff !== 0) return releaseDiff;
-    return (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+    const createdDiff = (b.createdAt ?? '').slice(0, 10).localeCompare((a.createdAt ?? '').slice(0, 10));
+    if (createdDiff !== 0) return createdDiff;
+    return (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
   });
 });
 
