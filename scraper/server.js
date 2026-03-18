@@ -5,11 +5,28 @@ import { createClient } from '@supabase/supabase-js';
 import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js';
 import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
+// ── Telegram 알림 ─────────────────────────────────────────────────
+const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+const MOVIES_URL = 'https://cheadev5831.github.io/cineping/#/movies';
+
+async function sendTelegramMessage(text) {
+  try {
+    const res = await fetch(TELEGRAM_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      console.error('[Telegram 오류]', err.description ?? res.status);
+    }
+  } catch (err) {
+    console.error('[Telegram 오류]', err.message);
+  }
+}
+
 // ── Supabase 초기화 ───────────────────────────────────────────────
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 // ── Express 서버 설정 ────────────────────────────────────────────
 const app = express();
@@ -39,6 +56,7 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
 
     let added = 0;
     let skipped = 0;
+    const addedTitles = [];
 
     for (const movie of scraped) {
       if (existingTitles.has(movie.title)) {
@@ -56,11 +74,21 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
 
       if (error) throw new Error(error.message);
       existingTitles.add(movie.title);
+      addedTitles.push(movie.title);
       added++;
       console.log(`  + 저장: ${movie.title}`);
     }
 
     console.log(`[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개\n`);
+
+    if (addedTitles.length > 0) {
+      const displayTitles = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
+      if (addedTitles.length > 3) displayTitles.push(`    ...외 ${addedTitles.length - 3}개`);
+      const message = `🔥🔥 신규 영화 업데이트 ${addedTitles.length}건\n\n${displayTitles.join('\n')}\n\n🔗 바로가기:\n${MOVIES_URL}`;
+      await sendTelegramMessage(message);
+      console.log(`[Telegram 발송] ${addedTitles.length}개 신규 영화 알림 발송`);
+    }
+
     return res.json({ success: true, added, skipped, total: scraped.length });
   } catch (err) {
     console.error('[API 영화 수집 오류]', err.message);
@@ -93,10 +121,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
         const scraped = await scrapeMovieSchedulesViaApi(movie);
 
         // 기존 스케줄 전체 삭제
-        const { error: delErr } = await supabase
-          .from('schedules')
-          .delete()
-          .eq('movieId', movie.id);
+        const { error: delErr } = await supabase.from('schedules').delete().eq('movieId', movie.id);
         if (delErr) throw new Error(delErr.message);
 
         // 신규 저장 (500개 단위)
@@ -146,7 +171,8 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
 
     const movie = movies[0];
     if (!movie) return res.status(404).json({ success: false, error: '영화를 찾을 수 없습니다.' });
-    if (!movie.naverMovieId) return res.status(400).json({ success: false, error: 'naverMovieId 가 없습니다.' });
+    if (!movie.naverMovieId)
+      return res.status(400).json({ success: false, error: 'naverMovieId 가 없습니다.' });
 
     console.log(`\n[API 스케줄 수집] "${movie.title}" (${movie.naverMovieId})`);
     const movieStart = Date.now();
@@ -179,13 +205,20 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
         s.bookingUrl !== ex.bookingUrl ||
         s.chain !== ex.chain
       ) {
-        toUpdate.push({ id: ex.id, data: { endTime: s.endTime, screenType: s.screenType, bookingUrl: s.bookingUrl, chain: s.chain, lastUpdatedAt: s.lastUpdatedAt } });
+        toUpdate.push({
+          id: ex.id,
+          data: {
+            endTime: s.endTime,
+            screenType: s.screenType,
+            bookingUrl: s.bookingUrl,
+            chain: s.chain,
+            lastUpdatedAt: s.lastUpdatedAt,
+          },
+        });
       }
     }
 
-    const toDeleteIds = existing
-      .filter((s) => !scrapedKeySet.has(scheduleKey(s)))
-      .map((s) => s.id);
+    const toDeleteIds = existing.filter((s) => !scrapedKeySet.has(scheduleKey(s))).map((s) => s.id);
 
     // 삭제
     if (toDeleteIds.length > 0) {
@@ -209,8 +242,15 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     const elapsed = Date.now() - movieStart;
     const m = Math.floor(elapsed / 60000);
     const s = Math.floor((elapsed % 60000) / 1000);
-    console.log(`  ✓ "${movie.title}" 완료 — 신규 ${toAdd.length}개 / 수정 ${toUpdate.length}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)\n`);
-    return res.json({ success: true, added: toAdd.length, updated: toUpdate.length, deleted: toDeleteIds.length });
+    console.log(
+      `  ✓ "${movie.title}" 완료 — 신규 ${toAdd.length}개 / 수정 ${toUpdate.length}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)\n`,
+    );
+    return res.json({
+      success: true,
+      added: toAdd.length,
+      updated: toUpdate.length,
+      deleted: toDeleteIds.length,
+    });
   } catch (err) {
     console.error('[API 스케줄 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });

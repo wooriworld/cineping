@@ -59,7 +59,7 @@
           <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
             props.row.title
           }}</span>
-          <q-badge v-if="props.row.releaseDate === today" color="red" label="NEW" class="q-ml-xs" />
+          <q-badge v-if="props.row.createdAt?.slice(0, 10) === today" color="red" label="NEW" class="q-ml-xs" />
         </q-td>
       </template>
 
@@ -337,17 +337,17 @@ const filteredMovies = computed(() => {
     : [...store.movies];
 
   return base.sort((a, b) => {
-    const releaseDiff = (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
-    if (releaseDiff !== 0) return releaseDiff;
     const createdDiff = (b.createdAt ?? '')
       .slice(0, 10)
       .localeCompare((a.createdAt ?? '').slice(0, 10));
     if (createdDiff !== 0) return createdDiff;
-    return (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
+    const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
+    if (countDiff !== 0) return countDiff;
+    return (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
   });
 });
 
-const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
+const today = new Date().toISOString().slice(0, 10);
 
 // ── 삭제 ─────────────────────────────────────────────────────────
 const deleteDialog = ref(false);
