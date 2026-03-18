@@ -171,10 +171,10 @@
               </q-item-section>
             </q-item>
             <q-item>
-              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
+              <q-item-section avatar><q-icon name="edit" color="warning" /></q-item-section>
               <q-item-section>
-                <q-item-label>중복 스킵</q-item-label>
-                <q-item-label caption>{{ movieScheduleScrapeResult.skipped }}개</q-item-label>
+                <q-item-label>수정</q-item-label>
+                <q-item-label caption>{{ movieScheduleScrapeResult.updated }}개</q-item-label>
               </q-item-section>
             </q-item>
             <q-item>
@@ -413,6 +413,7 @@ async function runScheduleScrape() {
     const result = await schedulesStore.scrapeSchedulesFromNaver();
     scheduleScrapeResult.value = result;
     scheduleScrapeDialog.value = true;
+    void schedulesStore.fetchScheduleCounts();
   } catch {
     // schedulesStore.error 로 표시됨
   }

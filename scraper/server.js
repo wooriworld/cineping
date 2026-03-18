@@ -162,19 +162,41 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
 
     // unique key: date_theater_startTime
     const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
-    const existingKeyMap = new Map(existing.map((s) => [scheduleKey(s), s.id]));
+    const existingMap = new Map(existing.map((s) => [scheduleKey(s), s]));
     const scrapedKeySet = new Set(scraped.map(scheduleKey));
 
-    const toAdd = scraped.filter((s) => !existingKeyMap.has(scheduleKey(s)));
+    const toAdd = [];
+    const toUpdate = []; // { id, data }
+
+    for (const s of scraped) {
+      const key = scheduleKey(s);
+      const ex = existingMap.get(key);
+      if (!ex) {
+        toAdd.push(s);
+      } else if (
+        s.endTime !== ex.endTime ||
+        s.screenType !== ex.screenType ||
+        s.bookingUrl !== ex.bookingUrl ||
+        s.chain !== ex.chain
+      ) {
+        toUpdate.push({ id: ex.id, data: { endTime: s.endTime, screenType: s.screenType, bookingUrl: s.bookingUrl, chain: s.chain, lastUpdatedAt: s.lastUpdatedAt } });
+      }
+    }
+
     const toDeleteIds = existing
       .filter((s) => !scrapedKeySet.has(scheduleKey(s)))
       .map((s) => s.id);
-    const skipped = scraped.length - toAdd.length;
 
     // 삭제
     if (toDeleteIds.length > 0) {
       const { error: delErr } = await supabase.from('schedules').delete().in('id', toDeleteIds);
       if (delErr) throw new Error(delErr.message);
+    }
+
+    // 수정
+    for (const { id, data } of toUpdate) {
+      const { error: updErr } = await supabase.from('schedules').update(data).eq('id', id);
+      if (updErr) throw new Error(updErr.message);
     }
 
     // 추가
@@ -187,8 +209,8 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     const elapsed = Date.now() - movieStart;
     const m = Math.floor(elapsed / 60000);
     const s = Math.floor((elapsed % 60000) / 1000);
-    console.log(`  ✓ "${movie.title}" 완료 — 추가 ${toAdd.length}개 / 스킵 ${skipped}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)\n`);
-    return res.json({ success: true, added: toAdd.length, skipped, deleted: toDeleteIds.length });
+    console.log(`  ✓ "${movie.title}" 완료 — 신규 ${toAdd.length}개 / 수정 ${toUpdate.length}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)\n`);
+    return res.json({ success: true, added: toAdd.length, updated: toUpdate.length, deleted: toDeleteIds.length });
   } catch (err) {
     console.error('[API 스케줄 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });

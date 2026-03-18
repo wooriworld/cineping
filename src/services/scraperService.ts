@@ -38,7 +38,7 @@ export function scrapeNaverSchedules(): Promise<ScrapeScheduleResult> {
 export interface ScrapeMovieScheduleResult {
   success: boolean;
   added: number;
-  skipped: number;
+  updated: number;
   deleted: number;
 }
 
