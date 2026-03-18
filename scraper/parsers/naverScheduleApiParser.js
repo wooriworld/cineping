@@ -24,6 +24,8 @@ function getNext7Dates() {
  * 네이버 스케줄 API 직접 호출 → items 배열 반환
  * 응답 구조: { key, scheduleDates, items: [{ date, html }, ...] }
  */
+const FETCH_TIMEOUT_MS = 10_000; // 10초
+
 async function fetchScheduleItems(title, naverMovieId, date) {
   const params = new URLSearchParams({
     where: 'nexearch',
@@ -38,7 +40,16 @@ async function fetchScheduleItems(title, naverMovieId, date) {
     u6: '',
   });
 
-  const res = await fetch(`${SCHEDULE_API}?${params}`, { headers: FETCH_HEADERS });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let res;
+  try {
+    res = await fetch(`${SCHEDULE_API}?${params}`, { headers: FETCH_HEADERS, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+
   const text = await res.text();
 
   // JSONP 언래핑: cb({...})
@@ -110,7 +121,8 @@ export async function scrapeMovieSchedulesViaApi(movie) {
         console.log(`  [API 스케줄] "${title}" ${date}: ${list.length}개`);
         return list;
       } catch (err) {
-        console.warn(`  [API 스케줄] "${title}" ${date} 오류: ${err.message}`);
+        const reason = err.name === 'AbortError' ? '타임아웃(20s)' : err.message;
+        console.warn(`  [API 스케줄] "${title}" ${date} 오류: ${reason}`);
         return [];
       }
     }),

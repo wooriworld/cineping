@@ -5,7 +5,7 @@
       <q-btn
         color="indigo"
         icon="api"
-        label="영화 수집"
+        label="현재 상영 영화 수집"
         class="q-mr-sm"
         :loading="store.apiScrapeLoading"
         @click="runApiMovieScrape"
@@ -15,7 +15,7 @@
       <q-btn
         color="deep-orange"
         icon="event_note"
-        label="스케줄 수집"
+        label="전체 스케줄 수집"
         class="q-mr-sm"
         :loading="schedulesStore.scrapeLoading"
         @click="runScheduleScrape"
@@ -59,12 +59,7 @@
           <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
             props.row.title
           }}</span>
-          <q-badge
-            v-if="props.row.releaseDate === today"
-            color="red"
-            label="NEW"
-            class="q-ml-xs"
-          />
+          <q-badge v-if="props.row.releaseDate === today" color="red" label="NEW" class="q-ml-xs" />
         </q-td>
       </template>
 
@@ -98,7 +93,7 @@
             color="orange"
             @click="confirmDeleteSchedules(props.row)"
           >
-            <q-tooltip>스케줄 전체 삭제</q-tooltip>
+            <q-tooltip>스케쥴 삭제</q-tooltip>
           </q-btn>
           <q-btn
             flat
@@ -140,9 +135,10 @@
     <!-- 스케줄 전체 삭제 확인 -->
     <q-dialog v-model="deleteSchedulesDialog">
       <q-card>
-        <q-card-section class="text-h6">스케줄 전체 삭제</q-card-section>
+        <q-card-section class="text-h6">스케줄 삭제</q-card-section>
         <q-card-section class="text-body2 q-pt-none">
-          <strong>{{ deleteSchedulesTarget?.title }}</strong>의 스케줄을 모두 삭제하시겠습니까?
+          <strong>{{ deleteSchedulesTarget?.title }}</strong
+          >의 스케줄을 모두 삭제하시겠습니까?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="취소" v-close-popup />
@@ -343,14 +339,15 @@ const filteredMovies = computed(() => {
   return base.sort((a, b) => {
     const releaseDiff = (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
     if (releaseDiff !== 0) return releaseDiff;
-    const createdDiff = (b.createdAt ?? '').slice(0, 10).localeCompare((a.createdAt ?? '').slice(0, 10));
+    const createdDiff = (b.createdAt ?? '')
+      .slice(0, 10)
+      .localeCompare((a.createdAt ?? '').slice(0, 10));
     if (createdDiff !== 0) return createdDiff;
     return (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
   });
 });
 
 const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
-
 
 // ── 삭제 ─────────────────────────────────────────────────────────
 const deleteDialog = ref(false);

@@ -71,6 +71,7 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
 // 스케줄 수집 엔드포인트 (전체)
 app.post('/api/scrape/schedules', async (_req, res) => {
   try {
+    const totalStart = Date.now();
     console.log('\n[스케줄 수집 시작]');
 
     const { data: movies, error: fetchErr } = await supabase
@@ -84,6 +85,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     let schedulesAdded = 0;
     const errors = [];
     const CHUNK = 500;
+    const DELAY_MS = 1500; // 영화 간 딜레이 (레이트 리밋 방지)
 
     for (const movie of movies) {
       const movieStart = Date.now();
@@ -118,9 +120,13 @@ app.post('/api/scrape/schedules', async (_req, res) => {
         console.error(`  [오류] ${msg} (${m}분 ${s}초)`);
         errors.push(msg);
       }
+      await new Promise((r) => setTimeout(r, DELAY_MS));
     }
 
-    console.log(`[스케줄 수집 완료] 총 ${schedulesAdded}개 저장\n`);
+    const totalElapsed = Date.now() - totalStart;
+    const tm = Math.floor(totalElapsed / 60000);
+    const ts = Math.floor((totalElapsed % 60000) / 1000);
+    console.log(`[스케줄 수집 완료] 총 ${schedulesAdded}개 저장 (소요: ${tm}분 ${ts}초)\n`);
     return res.json({ success: true, moviesProcessed: movies.length, schedulesAdded, errors });
   } catch (err) {
     console.error('[스케줄 수집 오류]', err.message);
