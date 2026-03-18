@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, query, where, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc, query, where, deleteDoc, writeBatch, doc } from 'firebase/firestore';
 import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js';
 import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
@@ -94,15 +94,24 @@ app.post('/api/scrape/schedules', async (_req, res) => {
         // 2. 크롤링 (API 직접 호출)
         const scraped = await scrapeMovieSchedulesViaApi(movie);
 
-        // 3. 기존 스케줄 삭제
+        // 3. 기존 스케줄 삭제 (배치)
         const existingSnap = await getDocs(
           query(collection(db, 'schedules'), where('movieId', '==', movie.id)),
         );
-        for (const d of existingSnap.docs) await deleteDoc(d.ref);
+        if (existingSnap.size > 0) {
+          const deleteBatch = writeBatch(db);
+          existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+          await deleteBatch.commit();
+        }
 
-        // 4. 신규 저장
-        for (const schedule of scraped) {
-          await addDoc(collection(db, 'schedules'), schedule);
+        // 4. 신규 저장 (배치, 500개 단위)
+        const BATCH_SIZE = 500;
+        for (let i = 0; i < scraped.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          scraped.slice(i, i + BATCH_SIZE).forEach((schedule) => {
+            batch.set(doc(collection(db, 'schedules')), schedule);
+          });
+          await batch.commit();
         }
         schedulesAdded += scraped.length;
 
@@ -149,10 +158,19 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     const existingSnap = await getDocs(
       query(collection(db, 'schedules'), where('movieId', '==', movieId)),
     );
-    for (const d of existingSnap.docs) await deleteDoc(d.ref);
+    if (existingSnap.size > 0) {
+      const deleteBatch = writeBatch(db);
+      existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+      await deleteBatch.commit();
+    }
 
-    for (const schedule of scraped) {
-      await addDoc(collection(db, 'schedules'), schedule);
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < scraped.length; i += BATCH_SIZE) {
+      const batch = writeBatch(db);
+      scraped.slice(i, i + BATCH_SIZE).forEach((schedule) => {
+        batch.set(doc(collection(db, 'schedules')), schedule);
+      });
+      await batch.commit();
     }
 
     const elapsed = Date.now() - movieStart;
