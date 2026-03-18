@@ -1,7 +1,7 @@
 # 🎬 영화 스케줄 알림 서비스 기획서
 
 > **프로젝트명: cineping  
-> **버전:** v1.0  
+> **버전:** v1.1  
 > **작성일:\*\* 2026.03.13
 
 ---
@@ -31,19 +31,19 @@
 
 ### 2.1 스케줄 수집 배치 (GitHub Actions)
 
-| 항목      | 내용                                      |
-| --------- | ----------------------------------------- |
-| 수집 주기 | 매일 00시, 12시 2회 (GitHub Actions cron) |
-| 수집 대상 | CGV, 롯데시네마, 메가박스                 |
-| 수집 방식 | Playwright 기반 스크래핑                  |
-| 저장소    | Firebase Firestore                        |
+| 항목      | 내용                                            |
+| --------- | ----------------------------------------------- |
+| 수집 주기 | 매일 00시, 12시 2회 (GitHub Actions cron)       |
+| 수집 대상 | 네이버 "현재 상영 영화" 통합 수집               |
+| 수집 방식 | 네이버 스케줄 API HTTP 직접 호출 + cheerio 파싱 |
+| 저장소    | Supabase (PostgreSQL)                           |
 
 **수집 데이터 항목**
 
 - 영화명, 영화관 체인, 지점명
 - 상영 날짜, 시작 시간, 종료 시간
 - 상영관 타입 (IMAX, 4DX, 일반 등)
-- 잔여 좌석 수 / 예매 가능 여부
+- 예매 링크
 - 마지막 수집 시각
 
 ### 2.2 알림 시스템 (텔레그램)
@@ -68,25 +68,22 @@
 
 #### 페이지 구성
 
-| 페이지 | 경로        | 설명                                  |
-| ------ | ----------- | ------------------------------------- |
-| 홈     | `/`         | 영화 선택 → 날짜 → 극장 → 스케줄 조회 |
-| 설정   | `/settings` | 텔레그램 연동 및 알림 조건 설정       |
+| 페이지      | 경로      | 설명                                   |
+| ----------- | --------- | -------------------------------------- |
+| 홈          | `/`       | 영화 선택 → 날짜 → 극장 → 스케줄 조회  |
+| 영화 관리   | `/movies` | 영화 수집, 스케줄 수집/조회, 영화 삭제 |
+| 사용자 관리 | `/users`  | 텔레그램 연동 및 알림 조건 설정        |
 
 #### 주요 UI 컴포넌트
 
 **① 영화 선택 컴포넌트**
 
-- 현재상영중인 영화 목록을 포스터 가로 스크롤로 표시
-- 선택된 영화: 제목 굵게 표시
+- 현재 상영 중인 영화 목록을 포스터 가로 스크롤로 표시
 - 포스터 클릭으로 선택 전환, 선택 시 하위 컴포넌트(날짜·극장·스케줄) 자동 갱신
 
 **② 날짜 선택 컴포넌트**
 
 - 오늘부터 7일치 날짜 탭 가로 나열
-- 오늘: 강조 + `오늘` 텍스트
-- 내일: 텍스트 강조
-- 이후: 날짜(숫자) + 요일 기본 스타일
 - 해당 날짜에 스케줄 없으면 비활성(disabled) 처리
 
 **③ 필터 컴포넌트**
@@ -97,16 +94,22 @@
 
 **④ 스케줄 컴포넌트**
 
-- 극장-관별 카드 단위로 시간표 표시
+- 극장별 카드 단위로 시간표 표시
 - 극장 별로 시간 버튼이 가로 스크롤로 표시
 - 시간 버튼 클릭 시 해당 영화관 예매 페이지로 이동
 
-**설정 페이지 (/settings)**
+**영화 관리 페이지 (/movies)**
 
-- 텔레그램 Chat ID 입력 및 연동 테스트 버튼
-- 감시 영화 추가/삭제 관리
-- 영화별 알림 조건 설정 (신규 회차 추가 / 삭제 / 수정)
-- 선호 극장 체인 · 지역 · 상영 타입 필터 지정
+- 현재 상영 영화 수집 (네이버 API)
+- 전체 스케줄 수집 / 영화별 개별 스케줄 수집
+- 영화 목록 테이블: 개봉일 desc → 등록일 desc → 스케줄 수 desc 정렬
+- 개봉일 기준 NEW 뱃지, 스케줄 수 표시
+
+**사용자 관리 페이지 (/users)**
+
+- 텔레그램 Chat ID 입력 및 연동
+- 감시 영화(watchlist) 관리
+- 영화별 알림 조건 설정
 
 ---
 
@@ -143,75 +146,63 @@
 
 ### 4.1 프론트엔드
 
-| 항목        | 기술                               |
-| ----------- | ---------------------------------- |
-| 프레임워크  | Vue 3 (Composition API)            |
-| UI 컴포넌트 | quasar framework                   |
-| 상태관리    | Pinia                              |
-| 라우팅      | Vue Router                         |
-| HTTP        | Firebase SDK (Firestore 직접 연동) |
-| 배포        | Firebase Hosting                   |
+| 항목        | 기술                                      |
+| ----------- | ----------------------------------------- |
+| 프레임워크  | Vue 3 (Composition API)                   |
+| UI 컴포넌트 | Quasar Framework                          |
+| 상태관리    | Pinia                                     |
+| 라우팅      | Vue Router                                |
+| DB 연동     | Supabase JS SDK (`@supabase/supabase-js`) |
+| 배포        | GitHub Pages (GitHub Actions)             |
 
 ### 4.2 배치 / 백엔드
 
-| 항목         | 기술                          |
-| ------------ | ----------------------------- |
-| 런타임       | Node.js                       |
-| 스크래핑     | Playwright                    |
-| 스케줄러     | GitHub Actions (cron)         |
-| 데이터베이스 | Firebase Firestore            |
-| 알림         | Telegram Bot API              |
-| 인증         | Firebase Auth (Google 로그인) |
-
-### 4.3 스크래핑 대상 상세
-
-| 사이트     | 방식                      | 비고          |
-| ---------- | ------------------------- | ------------- |
-| CGV        | Playwright (SPA 렌더링)   | 로그인 불필요 |
-| 롯데시네마 | Playwright + API 인터셉트 | XHR 응답 캡처 |
-| 메가박스   | HTTP 직접 요청 (JSON API) | 공개 API 존재 |
+| 항목         | 기술                                       |
+| ------------ | ------------------------------------------ |
+| 런타임       | Node.js                                    |
+| 서버         | Express (로컬 실행, 수동 트리거)           |
+| 스크래핑     | 네이버 스케줄 API HTTP 직접 호출 + cheerio |
+| 스케줄러     | GitHub Actions (cron)                      |
+| 데이터베이스 | Supabase (PostgreSQL)                      |
+| 알림         | Telegram Bot API                           |
+| 인증         | Firebase Auth (Google 로그인)              |
 
 ---
 
-## 5. 데이터 모델 (Firestore)
+## 5. 데이터 모델 (Supabase)
 
-### `movies` 컬렉션
+### `movies` 테이블
 
 ```json
 {
-  "id": "movie_001",
+  "id": "uuid",
   "title": "왕과 사는 남자",
-  "naverMovieId": "136873",
+  "naverMovieId": "244329",
   "poster": "https://...",
-  "rating": "12",
-  "runtime": 109,
+  "releaseDate": "2026.02.04",
   "createdAt": "2026-03-14T00:00:00Z"
 }
 ```
 
 > 필드 설명
 >
-> - rating: 등급 뱃지 값 ("전체" / "12" / "15" / "청불")
-> - runtime: 러닝타임(분) — 종료 시간 계산 및 영화 헤더 표시용
+> - naverMovieId: 네이버 영화 고유 ID — 스케줄 API 호출 시 사용
+> - releaseDate: 개봉일 (점 구분, YYYY.MM.DD) — 정렬 및 NEW 뱃지 표시용
 
 ---
 
-### `schedules` 컬렉션
+### `schedules` 테이블
 
 ```json
 {
-  "id": "schedule_001",
-  "movieId": "movie_001",
+  "id": "uuid",
+  "movieId": "uuid",
   "chain": "메가박스",
   "theater": "메가박스 강동",
-  "region": "서울",
-  "hall": "1관",
   "date": "2026-03-14",
   "startTime": "16:00",
   "endTime": "18:07",
   "screenType": "2D",
-  "totalSeats": 249,
-  "seatStatus": "available",
   "bookingUrl": "https://...",
   "lastUpdatedAt": "2026-03-14T12:00:00Z"
 }
@@ -219,42 +210,30 @@
 
 > 필드 설명
 >
-> - hall: 관 번호 — 동일 극장 내 복수 상영관 구분용
-> - endTime: 종료 시간 — 시간 버튼 2번째 줄 표시용
-> - totalSeats: 총 좌석수 — "잔여석 | 총석" 표시 및 비율 계산용
-> - seatStatus: "available" / "normal" / "almost_full" / "sold_out" — 버튼 색상 분기용
-> - region: 지역 필터링용
+> - chain: 영화관 체인 ("CGV" / "롯데시네마" / "메가박스" / "씨네Q")
+> - unique key: `date + theater + startTime` — diff 비교 및 중복 방지용
 
 ---
 
-### `users` 컬렉션
+### `users` 테이블
 
 ```json
 {
-  "uid": "firebase_uid",
+  "uid": "user_uid",
   "telegramChatId": "123456789",
-  "favoriteTheaters": ["메가박스 강동", "CGV 강남"],
-  "watchlist": [
-    {
-      "movieId": "movie_001",
-      "alertConditions": {
-        "newSchedule": true,
-        "deletedSchedule": false,
-        "modifiedSchedule": true,
-        "preferredChains": ["CGV", "메가박스"],
-        "preferredRegions": ["서울", "경기"],
-        "preferredScreenTypes": ["IMAX", "4DX"]
-      }
-    }
-  ]
+  "watchlist": ["movie_uuid_1", "movie_uuid_2"],
+  "alertConditions": {
+    "newSchedule": true,
+    "deletedSchedule": false,
+    "modifiedSchedule": true
+  }
 }
 ```
 
 > 필드 설명
 >
-> - favoriteTheaters: 극장 헤더 ☆ 즐겨찾기 기능 — 즐겨찾기 극장 우선 노출용
-> - watchlist: 단순 ID 배열 대신 영화별 세분화 알림 조건 포함 객체 배열
-> - preferredRegions / preferredScreenTypes: 지역·상영타입 조건 알림 지원
+> - watchlist: 감시 중인 영화 ID 배열
+> - alertConditions: 알림 트리거 조건 (신규 추가 / 삭제 / 수정)
 
 ---
 
@@ -306,13 +285,13 @@
 
 **현재 미수집 영화 예시 (2026-03-18 기준)**
 
-| 영화 | `os=` (검색 파라미터) | `code=` |
-|------|----------------------|---------|
-| 좀비 랜드 사가: 유메긴가 파라다이스 | 38087004 | 미제공 |
-| 레이의 겨울방학 | 40330433 | 미제공 |
-| 페루지노. 영원한 르네상스 | 40685420 | 미제공 |
-| 남쪽 | 1774641 | 미제공 |
-| 결혼해줄래? | 40427339 | 미제공 |
+| 영화                                | `os=` (검색 파라미터) | `code=` |
+| ----------------------------------- | --------------------- | ------- |
+| 좀비 랜드 사가: 유메긴가 파라다이스 | 38087004              | 미제공  |
+| 레이의 겨울방학                     | 40330433              | 미제공  |
+| 페루지노. 영원한 르네상스           | 40685420              | 미제공  |
+| 남쪽                                | 1774641               | 미제공  |
+| 결혼해줄래?                         | 40427339              | 미제공  |
 
 > `os=`는 네이버 내부 검색 파라미터로 스케줄 API의 `code=`와 다른 값이므로 대체 불가.
 
@@ -339,5 +318,3 @@
 - **Discord Webhook** 연동
 
 ---
-
-_본 기획서는 초안이며, 개발 진행에 따라 내용이 변경될 수 있습니다._
