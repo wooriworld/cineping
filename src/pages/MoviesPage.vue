@@ -142,10 +142,7 @@
       <q-card>
         <q-card-section class="text-h6">스케줄 전체 삭제</q-card-section>
         <q-card-section class="text-body2 q-pt-none">
-          <strong>{{ deleteSchedulesTarget?.title }}</strong
-          >의 스케줄
-          <q-badge color="negative" :label="deleteSchedulesCount" class="q-mx-xs" />
-          개를 모두 삭제하시겠습니까?
+          <strong>{{ deleteSchedulesTarget?.title }}</strong>의 스케줄을 모두 삭제하시겠습니까?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="취소" v-close-popup />

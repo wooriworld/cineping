@@ -150,7 +150,8 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     const { data: existing, error: exErr } = await supabase
       .from('schedules')
       .select('*')
-      .eq('movieId', movieId);
+      .eq('movieId', movieId)
+      .limit(10000);
     if (exErr) throw new Error(exErr.message);
 
     // unique key: date_theater_startTime
@@ -171,7 +172,7 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     }
 
     // 추가
-    const CHUNK = 500;
+    const CHUNK = 100;
     for (let i = 0; i < toAdd.length; i += CHUNK) {
       const { error: insErr } = await supabase.from('schedules').insert(toAdd.slice(i, i + CHUNK));
       if (insErr) throw new Error(insErr.message);
