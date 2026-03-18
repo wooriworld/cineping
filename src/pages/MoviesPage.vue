@@ -52,16 +52,21 @@
     >
       <template #body-cell-title="props">
         <q-td>
-          <span
-            class="cursor-pointer text-primary"
-            @click="openScheduleDialog(props.row)"
-          >{{ props.row.title }}</span>
+          <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
+            props.row.title
+          }}</span>
           <q-badge
-            v-if="scheduleCountMap[props.row.id]"
-            color="teal"
-            :label="scheduleCountMap[props.row.id]"
+            v-if="props.row.createdAt?.slice(0, 10) === today"
+            color="red"
+            label="NEW"
             class="q-ml-xs"
           />
+        </q-td>
+      </template>
+
+      <template #body-cell-scheduleCount="props">
+        <q-td align="center">
+          {{ scheduleCountMap[props.row.id] || 0 }}
         </q-td>
       </template>
 
@@ -223,10 +228,7 @@
               v-model="scheduleDialogDate"
               :available-dates="scheduleDialogAvailableDates"
             />
-            <ScheduleList
-              :schedules="scheduleDialogFiltered"
-              sort-model="theater"
-            />
+            <ScheduleList :schedules="scheduleDialogFiltered" sort-model="theater" />
           </template>
         </q-card-section>
       </q-card>
@@ -308,15 +310,24 @@ const columns: QTableColumn[] = [
     sortable: true,
     format: (val: string) => (val ? val.substring(0, 10).replace(/-/g, '/') : '-'),
   },
+  { name: 'scheduleCount', label: '스케줄', field: 'id', align: 'center' },
   { name: 'actions', label: '관리', field: 'actions', align: 'center' },
 ];
 
 const searchTitle = ref('');
-const filteredMovies = computed(() =>
-  searchTitle.value.trim()
+const filteredMovies = computed(() => {
+  const base = searchTitle.value.trim()
     ? store.movies.filter((m) => m.title.includes(searchTitle.value.trim()))
-    : store.movies,
-);
+    : [...store.movies];
+
+  return base.sort((a, b) => {
+    const dateDiff = (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+    if (dateDiff !== 0) return dateDiff;
+    return (scheduleCountMap.value[b.id] ?? 0) - (scheduleCountMap.value[a.id] ?? 0);
+  });
+});
+
+const today = new Date().toISOString().slice(0, 10);
 
 const scheduleCountMap = computed(() => {
   const map: Record<string, number> = {};
