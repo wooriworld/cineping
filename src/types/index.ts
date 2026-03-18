@@ -5,6 +5,7 @@ export interface Movie {
   title: string;
   naverMovieId: string;
   poster: string;
+  releaseDate: string;
   createdAt: string;
 }
 

@@ -5,6 +5,7 @@ create table movies (
   title text not null unique,
   "naverMovieId" text default '',
   poster text default '',
+  "releaseDate" text default '',
   "createdAt" timestamptz default now()
 );
 

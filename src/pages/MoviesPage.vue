@@ -56,7 +56,7 @@
             props.row.title
           }}</span>
           <q-badge
-            v-if="props.row.createdAt?.slice(0, 10) === today"
+            v-if="props.row.releaseDate === today"
             color="red"
             label="NEW"
             class="q-ml-xs"
@@ -317,6 +317,7 @@ const schedulesStore = useSchedulesStore();
 const columns: QTableColumn[] = [
   { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
   { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
+  { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
   { name: 'naverMovieId', label: '네이버 ID', field: 'naverMovieId', align: 'left' },
   {
     name: 'createdAt',
@@ -337,13 +338,15 @@ const filteredMovies = computed(() => {
     : [...store.movies];
 
   return base.sort((a, b) => {
-    const dateDiff = (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
-    if (dateDiff !== 0) return dateDiff;
+    const releaseDiff = (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
+    if (releaseDiff !== 0) return releaseDiff;
+    const createdDiff = (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+    if (createdDiff !== 0) return createdDiff;
     return (scheduleCountMap.value[b.id] ?? 0) - (scheduleCountMap.value[a.id] ?? 0);
   });
 });
 
-const today = new Date().toISOString().slice(0, 10);
+const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
 
 const scheduleCountMap = computed(() => {
   const map: Record<string, number> = {};

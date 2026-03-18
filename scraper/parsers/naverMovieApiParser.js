@@ -44,7 +44,16 @@ function parseItems(items) {
         }
       });
 
-      movies.push({ title, naverMovieId, poster });
+      let releaseDate = '';
+      $card.find('dl.info_group').each((_, dl) => {
+        const dtText = $(dl).find('dt').first().text().trim();
+        if (dtText === '개봉' || dtText === '재개봉') {
+          releaseDate = $(dl).find('dd').first().text().trim().replace(/\.$/, '');
+          return false;
+        }
+      });
+
+      movies.push({ title, naverMovieId, poster, releaseDate });
     });
   }
   return movies;
