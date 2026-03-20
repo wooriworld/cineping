@@ -20,7 +20,8 @@ async function fetchNaverMovieInfoBySearch(title) {
     const $ = cheerio.load(html);
     const naverMovieId = $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
     const txts = $('.sub_title .txt');
-    const englishTitle = txts.length >= 2 ? $(txts[1]).text().trim() : '';
+    const candidate = txts.length >= 2 ? $(txts[1]).text().trim() : '';
+    const englishTitle = /[a-zA-Z]/.test(candidate) ? candidate : '';
     return { naverMovieId, englishTitle };
   } catch {
     return { naverMovieId: '', englishTitle: '' };

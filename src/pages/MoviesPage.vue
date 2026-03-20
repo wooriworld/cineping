@@ -233,7 +233,10 @@
     <q-dialog v-model="scheduleDialog" maximized>
       <q-card>
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ scheduleDialogMovie?.title }}</div>
+          <div class="text-h6">
+            {{ scheduleDialogMovie?.title }}
+            <span v-if="scheduleDialogMovie?.englishTitle" class="text-subtitle1 text-grey-6">({{ scheduleDialogMovie.englishTitle }})</span>
+          </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -344,8 +347,9 @@ const columns: QTableColumn[] = [
 const searchTitle = ref('');
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
-  const base = searchTitle.value.trim()
-    ? store.movies.filter((m) => m.title.includes(searchTitle.value.trim()))
+  const q = searchTitle.value.trim();
+  const base = q
+    ? store.movies.filter((m) => m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()))
     : [...store.movies];
 
   return base.sort((a, b) => {
@@ -485,8 +489,8 @@ async function openScheduleDialog(movie: Movie) {
     const list = await schedulesStore.getByMovie(movie.id);
     scheduleDialogSchedules.value = list;
     const dates = [...new Set(list.map((s) => s.date))].sort();
-    const today = new Date().toISOString().slice(0, 10);
-    scheduleDialogDate.value = dates.find((d) => d >= today) ?? dates[0] ?? '';
+    const todayStr = new Date().toISOString().slice(0, 10);
+    scheduleDialogDate.value = dates.find((d) => d >= todayStr) ?? '';
   } finally {
     scheduleDialogLoading.value = false;
   }

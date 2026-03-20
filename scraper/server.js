@@ -41,6 +41,7 @@ app.get('/health', (_req, res) => {
 // API 기반 영화 수집 엔드포인트
 app.post('/api/scrape/movies-api', async (_req, res) => {
   try {
+    const movieScrapeStart = Date.now();
     console.log('\n[API 영화 수집 시작]');
     const scraped = await scrapeMoviesViaApi();
     console.log(`[크롤링 완료] ${scraped.length}개 영화 파싱`);
@@ -49,17 +50,28 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
       return res.json({ success: true, added: 0, skipped: 0, total: 0 });
     }
 
-    const { data: existing, error: fetchErr } = await supabase.from('movies').select('title');
+    const { data: existing, error: fetchErr } = await supabase.from('movies').select('id, title, englishTitle');
     if (fetchErr) throw new Error(fetchErr.message);
 
-    const existingTitles = new Set(existing.map((m) => m.title));
+    const existingMap = new Map(existing.map((m) => [m.title, m]));
 
     let added = 0;
     let skipped = 0;
     const addedTitles = [];
 
     for (const movie of scraped) {
-      if (existingTitles.has(movie.title)) {
+      const existingMovie = existingMap.get(movie.title);
+
+      if (existingMovie) {
+        // 영어 제목이 새로 수집됐고 기존에 비어있으면 업데이트
+        if (movie.englishTitle && !existingMovie.englishTitle) {
+          const { error: updErr } = await supabase
+            .from('movies')
+            .update({ englishTitle: movie.englishTitle })
+            .eq('id', existingMovie.id);
+          if (updErr) throw new Error(updErr.message);
+          console.log(`  ~ 영어 제목 업데이트: ${movie.title} → ${movie.englishTitle}`);
+        }
         skipped++;
         continue;
       }
@@ -74,13 +86,16 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
       });
 
       if (error) throw new Error(error.message);
-      existingTitles.add(movie.title);
+      existingMap.set(movie.title, { id: '', title: movie.title, englishTitle: movie.englishTitle });
       addedTitles.push(movie.title);
       added++;
       console.log(`  + 저장: ${movie.title}`);
     }
 
-    console.log(`[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개\n`);
+    const movieScrapeElapsed = Date.now() - movieScrapeStart;
+    const msm = Math.floor(movieScrapeElapsed / 60000);
+    const mss = Math.floor((movieScrapeElapsed % 60000) / 1000);
+    console.log(`[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${msm}분 ${mss}초)\n`);
 
     if (addedTitles.length > 0) {
       const displayTitles = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
