@@ -118,7 +118,11 @@ function todayStr(): string {
 const filteredSchedules = computed(() =>
   schedulesStore.schedules.filter((s) => {
     const matchDate = !selectedDate.value || s.date === selectedDate.value;
-    const matchChain = selectedChain.value === '극장 전체' || s.chain === selectedChain.value;
+    const matchChain =
+      selectedChain.value === '극장 전체' ||
+      (selectedChain.value === '그 외 극장'
+        ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
+        : s.chain === selectedChain.value);
     return matchDate && matchChain;
   }),
 );

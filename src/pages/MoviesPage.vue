@@ -241,7 +241,12 @@
               v-model="scheduleDialogDate"
               :available-dates="scheduleDialogAvailableDates"
             />
-            <ScheduleList :schedules="scheduleDialogFiltered" sort-model="theater" />
+            <TheaterFilter
+              v-model:chain-model="scheduleDialogChain"
+              v-model:region-model="scheduleDialogRegion"
+              v-model:sort-model="scheduleDialogSort"
+            />
+            <ScheduleList :schedules="scheduleDialogFiltered" :sort-model="scheduleDialogSort" />
           </template>
         </q-card-section>
       </q-card>
@@ -300,6 +305,7 @@ import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
 import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
+import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import type {
   ScrapeResult,
@@ -438,6 +444,9 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
 const scheduleDialog = ref(false);
 const scheduleDialogMovie = ref<Movie | null>(null);
 const scheduleDialogDate = ref('');
+const scheduleDialogChain = ref('극장 전체');
+const scheduleDialogRegion = ref('서울');
+const scheduleDialogSort = ref<SortType>('theater');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
 
@@ -446,12 +455,23 @@ const scheduleDialogAvailableDates = computed(() => [
 ]);
 
 const scheduleDialogFiltered = computed(() =>
-  scheduleDialogSchedules.value.filter((s) => s.date === scheduleDialogDate.value),
+  scheduleDialogSchedules.value.filter((s) => {
+    const matchDate = s.date === scheduleDialogDate.value;
+    const matchChain =
+      scheduleDialogChain.value === '극장 전체' ||
+      (scheduleDialogChain.value === '그 외 극장'
+        ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
+        : s.chain === scheduleDialogChain.value);
+    return matchDate && matchChain;
+  }),
 );
 
 async function openScheduleDialog(movie: Movie) {
   scheduleDialogMovie.value = movie;
   scheduleDialogDate.value = '';
+  scheduleDialogChain.value = '극장 전체';
+  scheduleDialogRegion.value = '서울';
+  scheduleDialogSort.value = 'theater';
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;

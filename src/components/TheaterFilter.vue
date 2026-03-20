@@ -102,7 +102,7 @@ const CHAINS = [
   { value: 'CGV', label: 'CGV' },
   { value: '롯데시네마', label: '롯데시네마' },
   { value: '메가박스', label: '메가박스' },
-  { value: '씨네Q', label: '씨네Q' },
+  { value: '그 외 극장', label: '그 외 극장' },
 ];
 
 const REGIONS = [
@@ -133,5 +133,7 @@ const regionLabel = computed(() => {
   return `${props.regionModel} 지역`;
 });
 
-const sortLabel = computed(() => SORTS.find((s) => s.value === props.sortModel)?.label ?? '영화관 순');
+const sortLabel = computed(
+  () => SORTS.find((s) => s.value === props.sortModel)?.label ?? '영화관 순',
+);
 </script>
