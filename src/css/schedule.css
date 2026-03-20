@@ -117,9 +117,15 @@
 /* 시간 행 */
 .showtime-btn-time-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0;
   line-height: 1;
+}
+
+.showtime-new-badge {
+  font-size: 9px !important;
+  padding: 1px 3px !important;
+  line-height: 1.2 !important;
 }
 
 .showtime-btn-start {

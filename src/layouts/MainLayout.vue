@@ -1,6 +1,5 @@
 <template>
   <q-layout view="hHh lpR fFf">
-
     <!-- 헤더 -->
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
@@ -39,13 +38,7 @@
     </q-header>
 
     <!-- 모바일 드로어 -->
-    <q-drawer
-      v-model="drawerOpen"
-      side="right"
-      overlay
-      bordered
-      :width="220"
-    >
+    <q-drawer v-model="drawerOpen" side="right" overlay bordered :width="220">
       <q-list class="q-pt-md">
         <q-item-label header class="text-weight-bold text-grey-7">메뉴</q-item-label>
         <q-item
@@ -68,7 +61,6 @@
     <q-page-container>
       <router-view />
     </q-page-container>
-
   </q-layout>
 </template>
 
@@ -79,7 +71,7 @@ import 'src/css/layout.css';
 const drawerOpen = ref(false);
 
 const navItems = [
-  { to: '/', label: '영화 관리', icon: 'movie' },
+  { to: '/', label: '현재 상영 영화', icon: 'movie' },
   { to: '/users', label: '사용자 관리', icon: 'people' },
 ];
 </script>

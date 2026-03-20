@@ -36,6 +36,7 @@
               >
                 <div class="showtime-btn-time-row">
                   <span class="showtime-btn-start">{{ s.startTime }}</span><span class="showtime-btn-end">~{{ s.endTime }}</span>
+                  <q-badge v-if="s.lastUpdatedAt?.slice(0, 10) === today && (props.movieCreatedAt?.slice(0, 10) ?? '') < today" color="red" label="NEW" class="q-ml-xs showtime-new-badge" />
                 </div>
                 <span class="showtime-btn-hall">{{ s.screenType || '2D' }}</span>
               </button>
@@ -55,6 +56,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+
+const today = new Date().toISOString().slice(0, 10);
 import type { Schedule } from 'src/types';
 import type { SortType } from 'components/TheaterFilter.vue';
 import 'src/css/schedule.css';
@@ -69,6 +72,7 @@ interface TheaterGroup {
 const props = defineProps<{
   schedules: Schedule[];
   sortModel: SortType;
+  movieCreatedAt?: string | undefined;
 }>();
 
 const grouped = computed(() => {
