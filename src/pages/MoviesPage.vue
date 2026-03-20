@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md">
-      <div class="text-h5 col">영화 관리</div>
+      <div class="text-h5 col">현재 상영 영화</div>
       <q-btn
         color="indigo"
         icon="api"
@@ -59,7 +59,12 @@
           <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
             props.row.title
           }}</span>
-          <q-badge v-if="props.row.createdAt?.slice(0, 10) === today" color="red" label="NEW" class="q-ml-xs" />
+          <q-badge
+            v-if="props.row.createdAt?.slice(0, 10) === today"
+            color="red"
+            label="NEW"
+            class="q-ml-xs"
+          />
         </q-td>
       </template>
 
@@ -246,7 +251,7 @@
               v-model:region-model="scheduleDialogRegion"
               v-model:sort-model="scheduleDialogSort"
             />
-            <ScheduleList :schedules="scheduleDialogFiltered" :sort-model="scheduleDialogSort" />
+            <ScheduleList :schedules="scheduleDialogFiltered" :sort-model="scheduleDialogSort" :movie-created-at="scheduleDialogMovie?.createdAt" />
           </template>
         </q-card-section>
       </q-card>
@@ -321,8 +326,8 @@ const columns: QTableColumn[] = [
   { name: 'no', label: 'No', field: 'id', align: 'center' },
   { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
   { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
+  { name: 'englishTitle', label: '영어 제목', field: 'englishTitle', align: 'left' },
   { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
-  { name: 'naverMovieId', label: '네이버 ID', field: 'naverMovieId', align: 'left' },
   {
     name: 'createdAt',
     label: '등록일',
@@ -332,6 +337,7 @@ const columns: QTableColumn[] = [
     format: (val: string) => (val ? val.substring(0, 10).replace(/-/g, '/') : '-'),
   },
   { name: 'scheduleCount', label: '스케줄', field: 'id', align: 'center' },
+  { name: 'naverMovieId', label: '네이버 ID', field: 'naverMovieId', align: 'left' },
   { name: 'actions', label: '관리', field: 'actions', align: 'center' },
 ];
 

@@ -66,6 +66,7 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
 
       const { error } = await supabase.from('movies').insert({
         title: movie.title,
+        englishTitle: movie.englishTitle || '',
         naverMovieId: movie.naverMovieId || '',
         poster: movie.poster || '',
         releaseDate: movie.releaseDate || '',

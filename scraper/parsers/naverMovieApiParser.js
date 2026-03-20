@@ -11,16 +11,19 @@ const SEARCH_HEADERS = {
   Referer: 'https://www.naver.com/',
 };
 
-async function fetchNaverMovieIdBySearch(title) {
+async function fetchNaverMovieInfoBySearch(title) {
   const params = new URLSearchParams({ where: 'nexearch', pkid: '68', query: title });
   try {
     const res = await fetch(`${NAVER_SEARCH_URL}?${params}`, { headers: SEARCH_HEADERS });
-    if (!res.ok) return '';
+    if (!res.ok) return { naverMovieId: '', englishTitle: '' };
     const html = await res.text();
     const $ = cheerio.load(html);
-    return $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
+    const naverMovieId = $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
+    const txts = $('.sub_title .txt');
+    const englishTitle = txts.length >= 2 ? $(txts[1]).text().trim() : '';
+    return { naverMovieId, englishTitle };
   } catch {
-    return '';
+    return { naverMovieId: '', englishTitle: '' };
   }
 }
 
@@ -74,7 +77,7 @@ function parseItems(items) {
         }
       });
 
-      movies.push({ title, naverMovieId, poster, releaseDate });
+      movies.push({ title, naverMovieId, englishTitle: '', poster, releaseDate });
     });
   }
   return movies;
@@ -106,20 +109,19 @@ export async function scrapeMoviesViaApi() {
 
   console.log(`[MovieAPI] 총 ${total}개 중 ${unique.length}개 파싱 완료 (중복 ${movies.length - unique.length}개 제거)`);
 
-  // naverMovieId 미수집 항목 → 검색 페이지에서 data-cid 보완
-  const missing = unique.filter((m) => !m.naverMovieId);
-  if (missing.length > 0) {
-    console.log(`[MovieAPI] naverMovieId 미수집 ${missing.length}개 — 검색 페이지에서 보완 시도...`);
-    for (const movie of missing) {
-      const cid = await fetchNaverMovieIdBySearch(movie.title);
-      if (cid) {
-        movie.naverMovieId = cid;
-        console.log(`  + "${movie.title}" → ${cid}`);
-      } else {
-        console.warn(`  ! "${movie.title}" — naverMovieId 찾지 못함`);
-      }
-      await new Promise((r) => setTimeout(r, 500));
+  // 전체 영화 검색 페이지에서 영어 제목 수집 + naverMovieId 미수집 보완
+  console.log(`[MovieAPI] 검색 페이지에서 영어 제목 수집 시작...`);
+  for (const movie of unique) {
+    const { naverMovieId, englishTitle } = await fetchNaverMovieInfoBySearch(movie.title);
+    if (!movie.naverMovieId && naverMovieId) {
+      movie.naverMovieId = naverMovieId;
+      console.log(`  + "${movie.title}" naverMovieId 보완 → ${naverMovieId}`);
     }
+    if (englishTitle) {
+      movie.englishTitle = englishTitle;
+      console.log(`  + "${movie.title}" 영어 제목 → ${englishTitle}`);
+    }
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   return unique;
