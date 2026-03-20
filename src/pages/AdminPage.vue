@@ -90,9 +90,14 @@
             class="q-ml-xs"
           />
           <q-badge
-            v-if="schedulesStore.newScheduleMovieIds.has(props.row.id) && new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) < today"
+            v-if="
+              schedulesStore.newScheduleMovieIds.has(props.row.id) &&
+              new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
+                .toISOString()
+                .slice(0, 10) < today
+            "
             color="teal"
-            label="SC NEW"
+            label="UPDATE"
             class="q-ml-xs"
           />
         </q-td>
@@ -265,7 +270,9 @@
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">
             {{ scheduleDialogMovie?.title }}
-            <span v-if="scheduleDialogMovie?.englishTitle" class="text-subtitle1 text-grey-6">({{ scheduleDialogMovie.englishTitle }})</span>
+            <span v-if="scheduleDialogMovie?.englishTitle" class="text-subtitle1 text-grey-6"
+              >({{ scheduleDialogMovie.englishTitle }})</span
+            >
           </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
@@ -284,7 +291,11 @@
               v-model:region-model="scheduleDialogRegion"
               v-model:sort-model="scheduleDialogSort"
             />
-            <ScheduleList :schedules="scheduleDialogFiltered" :sort-model="scheduleDialogSort" :movie-created-at="scheduleDialogMovie?.createdAt" />
+            <ScheduleList
+              :schedules="scheduleDialogFiltered"
+              :sort-model="scheduleDialogSort"
+              :movie-created-at="scheduleDialogMovie?.createdAt"
+            />
           </template>
         </q-card-section>
       </q-card>
@@ -376,13 +387,13 @@ const columns: QTableColumn[] = [
 
 const searchTitle = ref('');
 
-type BadgeFilter = 'all' | 'new' | 'scNew' | 'both';
+type BadgeFilter = 'all' | 'new' | 'update' | 'both';
 const badgeFilter = ref<BadgeFilter>('all');
 const badgeFilterOptions: { label: string; value: BadgeFilter }[] = [
   { label: '전체', value: 'all' },
   { label: 'NEW', value: 'new' },
-  { label: 'SC NEW', value: 'scNew' },
-  { label: 'NEW + SC NEW', value: 'both' },
+  { label: 'UPDATE', value: 'update' },
+  { label: 'NEW + UPDATE', value: 'both' },
 ];
 const badgeFilterLabel = computed(
   () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '전체',
@@ -392,20 +403,28 @@ const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const q = searchTitle.value.trim();
   const base = q
-    ? store.movies.filter((m) => m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()))
+    ? store.movies.filter(
+        (m) =>
+          m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()),
+      )
     : [...store.movies];
 
   const isNew = (m: (typeof base)[0]) =>
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) === today;
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) ===
+    today;
   const isScNew = (m: (typeof base)[0]) =>
     schedulesStore.newScheduleMovieIds.has(m.id) &&
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) < today;
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) <
+      today;
 
   const filtered =
-    badgeFilter.value === 'new' ? base.filter(isNew)
-    : badgeFilter.value === 'scNew' ? base.filter(isScNew)
-    : badgeFilter.value === 'both' ? base.filter((m) => isNew(m) || isScNew(m))
-    : base;
+    badgeFilter.value === 'new'
+      ? base.filter(isNew)
+      : badgeFilter.value === 'update'
+        ? base.filter(isScNew)
+        : badgeFilter.value === 'both'
+          ? base.filter((m) => isNew(m) || isScNew(m))
+          : base;
 
   return filtered.sort((a, b) => {
     const createdDiff = (b.createdAt ?? '')
