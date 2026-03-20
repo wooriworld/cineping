@@ -27,6 +27,7 @@
 
         <!-- 모바일 메뉴 버튼 -->
         <q-btn
+          v-if="isLocalhost"
           class="lt-md"
           flat
           round
@@ -70,8 +71,15 @@ import 'src/css/layout.css';
 
 const drawerOpen = ref(false);
 
+const isLocalhost = window.location.hostname === 'localhost';
+
 const navItems = [
   { to: '/', label: '현재 상영 영화', icon: 'movie' },
-  { to: '/users', label: '사용자 관리', icon: 'people' },
+  ...(isLocalhost
+    ? [
+        { to: '/admin', label: '어드민', icon: 'admin_panel_settings' },
+        { to: '/users', label: '사용자 관리', icon: 'people' },
+      ]
+    : []),
 ];
 </script>
