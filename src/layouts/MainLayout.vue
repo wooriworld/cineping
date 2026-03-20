@@ -79,8 +79,7 @@ import 'src/css/layout.css';
 const drawerOpen = ref(false);
 
 const navItems = [
-  { to: '/', label: '스케줄 조회', icon: 'search' },
-  { to: '/movies', label: '영화 관리', icon: 'movie' },
+  { to: '/', label: '영화 관리', icon: 'movie' },
   { to: '/users', label: '사용자 관리', icon: 'people' },
 ];
 </script>
