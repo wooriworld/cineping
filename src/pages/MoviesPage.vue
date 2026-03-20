@@ -28,17 +28,41 @@
       {{ store.error }}
     </q-banner>
 
-    <q-input
-      v-model="searchTitle"
-      outlined
-      dense
-      clearable
-      placeholder="영화 제목 검색"
-      class="q-mb-md"
-      style="max-width: 300px"
-    >
-      <template #prepend><q-icon name="search" /></template>
-    </q-input>
+    <div class="row items-center q-gutter-sm q-mb-md">
+      <q-input
+        v-model="searchTitle"
+        outlined
+        dense
+        clearable
+        placeholder="영화 제목 검색"
+        style="max-width: 300px"
+      >
+        <template #prepend><q-icon name="search" /></template>
+      </q-input>
+
+      <q-btn-dropdown
+        :label="badgeFilterLabel"
+        outline
+        dense
+        no-caps
+        color="grey-7"
+        icon="filter_list"
+      >
+        <q-list dense>
+          <q-item
+            v-for="opt in badgeFilterOptions"
+            :key="opt.value"
+            v-close-popup
+            clickable
+            :active="badgeFilter === opt.value"
+            active-class="text-primary"
+            @click="badgeFilter = opt.value"
+          >
+            <q-item-section>{{ opt.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
 
     <q-table
       :rows="filteredMovies"
@@ -351,6 +375,19 @@ const columns: QTableColumn[] = [
 ];
 
 const searchTitle = ref('');
+
+type BadgeFilter = 'all' | 'new' | 'scNew' | 'both';
+const badgeFilter = ref<BadgeFilter>('all');
+const badgeFilterOptions: { label: string; value: BadgeFilter }[] = [
+  { label: '전체', value: 'all' },
+  { label: 'NEW', value: 'new' },
+  { label: 'SC NEW', value: 'scNew' },
+  { label: 'NEW + SC NEW', value: 'both' },
+];
+const badgeFilterLabel = computed(
+  () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '전체',
+);
+
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const q = searchTitle.value.trim();
@@ -358,7 +395,19 @@ const filteredMovies = computed(() => {
     ? store.movies.filter((m) => m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()))
     : [...store.movies];
 
-  return base.sort((a, b) => {
+  const isNew = (m: (typeof base)[0]) =>
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) === today;
+  const isScNew = (m: (typeof base)[0]) =>
+    schedulesStore.newScheduleMovieIds.has(m.id) &&
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) < today;
+
+  const filtered =
+    badgeFilter.value === 'new' ? base.filter(isNew)
+    : badgeFilter.value === 'scNew' ? base.filter(isScNew)
+    : badgeFilter.value === 'both' ? base.filter((m) => isNew(m) || isScNew(m))
+    : base;
+
+  return filtered.sort((a, b) => {
     const createdDiff = (b.createdAt ?? '')
       .slice(0, 10)
       .localeCompare((a.createdAt ?? '').slice(0, 10));
