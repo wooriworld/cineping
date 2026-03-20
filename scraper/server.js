@@ -112,31 +112,89 @@ app.post('/api/scrape/schedules', async (_req, res) => {
 
     let schedulesAdded = 0;
     const errors = [];
-    const CHUNK = 500;
+    const CHUNK = 100;
     const DELAY_MS = 1500; // 영화 간 딜레이 (레이트 리밋 방지)
+    const updatedMovies = []; // 신규 스케줄이 추가된 영화 추적
+    const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
 
     for (const movie of movies) {
       const movieStart = Date.now();
       try {
         const scraped = await scrapeMovieSchedulesViaApi(movie);
 
-        // 기존 스케줄 전체 삭제
-        const { error: delErr } = await supabase.from('schedules').delete().eq('movieId', movie.id);
-        if (delErr) throw new Error(delErr.message);
+        const { data: existing, error: exErr } = await supabase
+          .from('schedules')
+          .select('*')
+          .eq('movieId', movie.id)
+          .limit(10000);
+        if (exErr) throw new Error(exErr.message);
 
-        // 신규 저장 (500개 단위)
-        for (let i = 0; i < scraped.length; i += CHUNK) {
+        const existingMap = new Map(existing.map((s) => [scheduleKey(s), s]));
+        const scrapedKeySet = new Set(scraped.map(scheduleKey));
+
+        const toAdd = [];
+        const toUpdate = [];
+
+        for (const s of scraped) {
+          const key = scheduleKey(s);
+          const ex = existingMap.get(key);
+          if (!ex) {
+            toAdd.push(s);
+          } else if (
+            s.endTime !== ex.endTime ||
+            s.screenType !== ex.screenType ||
+            s.bookingUrl !== ex.bookingUrl ||
+            s.chain !== ex.chain
+          ) {
+            toUpdate.push({
+              id: ex.id,
+              data: {
+                endTime: s.endTime,
+                screenType: s.screenType,
+                bookingUrl: s.bookingUrl,
+                chain: s.chain,
+                lastUpdatedAt: s.lastUpdatedAt,
+              },
+            });
+          }
+        }
+
+        const toDeleteIds = existing
+          .filter((s) => !scrapedKeySet.has(scheduleKey(s)))
+          .map((s) => s.id);
+
+        // 삭제
+        if (toDeleteIds.length > 0) {
+          const { error: delErr } = await supabase.from('schedules').delete().in('id', toDeleteIds);
+          if (delErr) throw new Error(delErr.message);
+        }
+
+        // 수정
+        for (const { id, data } of toUpdate) {
+          const { error: updErr } = await supabase.from('schedules').update(data).eq('id', id);
+          if (updErr) throw new Error(updErr.message);
+        }
+
+        // 추가
+        for (let i = 0; i < toAdd.length; i += CHUNK) {
           const { error: insErr } = await supabase
             .from('schedules')
-            .insert(scraped.slice(i, i + CHUNK));
+            .insert(toAdd.slice(i, i + CHUNK));
           if (insErr) throw new Error(insErr.message);
         }
-        schedulesAdded += scraped.length;
+
+        schedulesAdded += toAdd.length;
+
+        if (toAdd.length > 0) {
+          updatedMovies.push(movie);
+        }
 
         const elapsed = Date.now() - movieStart;
         const m = Math.floor(elapsed / 60000);
         const s = Math.floor((elapsed % 60000) / 1000);
-        console.log(`  ✓ "${movie.title}" 완료 — 신규 ${scraped.length}개 저장 (${m}분 ${s}초)`);
+        console.log(
+          `  ✓ "${movie.title}" 완료 — 추가 ${toAdd.length}개 / 수정 ${toUpdate.length}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)`,
+        );
       } catch (err) {
         const elapsed = Date.now() - movieStart;
         const m = Math.floor(elapsed / 60000);
@@ -152,6 +210,19 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     const tm = Math.floor(totalElapsed / 60000);
     const ts = Math.floor((totalElapsed % 60000) / 1000);
     console.log(`[스케줄 수집 완료] 총 ${schedulesAdded}개 저장 (소요: ${tm}분 ${ts}초)\n`);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const notifyMovies = updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today);
+
+    if (notifyMovies.length > 0) {
+      const MAX_SHOW = 3;
+      const lines = notifyMovies.slice(0, MAX_SHOW).map((m) => `🎬 [ ${m.title} ]`);
+      if (notifyMovies.length > MAX_SHOW) lines.push(`... 외 ${notifyMovies.length - MAX_SHOW}개`);
+      const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
+      await sendTelegramMessage(message);
+      console.log(`[Telegram 발송] 스케줄 업데이트 ${notifyMovies.length}개 알림 발송`);
+    }
+
     return res.json({ success: true, moviesProcessed: movies.length, schedulesAdded, errors });
   } catch (err) {
     console.error('[스케줄 수집 오류]', err.message);
