@@ -84,7 +84,7 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
         naverMovieId: movie.naverMovieId || '',
         poster: movie.poster || '',
         releaseDate: movie.releaseDate || '',
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString(),
       });
 
       if (error) throw new Error(error.message);

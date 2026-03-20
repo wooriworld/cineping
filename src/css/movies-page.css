@@ -63,11 +63,11 @@
 .movies-filter-chip {
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px;
-  border-radius: 10px;
+  padding: 4px 6px;
+  border-radius: 4px;
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.6;
+  line-height: 1;
 }
 
 .movies-filter-chip--new {
@@ -92,11 +92,12 @@
 .movies-filter-badge-btn {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1;
   cursor: pointer;
   border: 1.5px solid #e0e0e0;
   background: transparent;
@@ -209,6 +210,13 @@
   font-size: 12px;
   color: #2d6a4f;
   font-weight: 600;
+}
+
+/* ── 영화 목록 NEW / UPDATE 상태 뱃지 ── */
+.movies-status-badge {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 4px 6px !important;
 }
 
 /* ── 모바일에서 테이블 컬럼 숨김 ── */

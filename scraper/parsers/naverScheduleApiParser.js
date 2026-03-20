@@ -14,7 +14,7 @@ const FETCH_HEADERS = {
  */
 function getNext7Dates() {
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
+    const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
     d.setDate(d.getDate() + i);
     return d.toISOString().slice(0, 10);
   });
@@ -64,7 +64,7 @@ async function fetchScheduleItems(title, naverMovieId, date) {
  */
 function parseItems(items, movieId) {
   const results = [];
-  const lastUpdatedAt = new Date().toISOString();
+  const lastUpdatedAt = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString();
 
   for (const item of items) {
     const date = item.date ?? '';

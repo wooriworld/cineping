@@ -1,7 +1,6 @@
 <template>
   <div class="date-selector-section">
     <div class="date-selector-inner">
-
       <!-- 날짜 탭 -->
       <div class="date-tabs-row">
         <button
@@ -17,14 +16,16 @@
           @click="$emit('update:modelValue', d.full)"
         >
           <div class="date-btn-label">
+            <span v-if="newDates?.includes(d.full)" class="date-btn-new-badge"></span>
+            <span v-else class="date-btn-new-badge date-btn-new-badge--placeholder" />
             <span class="date-btn-day">{{ d.label }}</span>
             <span class="date-btn-num">{{ d.dateNum }}</span>
             <span v-if="d.isToday" class="date-btn-sub">오늘</span>
             <span v-else-if="d.isTomorrow" class="date-btn-sub">내일</span>
+            <span v-else class="date-btn-sub date-btn-sub--placeholder" />
           </div>
         </button>
       </div>
-
     </div>
   </div>
 </template>
@@ -36,11 +37,12 @@ import 'src/css/date-selector.css';
 const props = defineProps<{
   modelValue: string;
   availableDates: string[];
+  newDates?: string[];
 }>();
 
 defineEmits<{ 'update:modelValue': [value: string] }>();
 
-const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const DAYS = ['Sun', 'Mon', 'The', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const dates = computed(() => {
   const today = new Date();
@@ -55,8 +57,7 @@ const dates = computed(() => {
     const dd = String(d.getDate()).padStart(2, '0');
     const full = `${yyyy}-${mm}-${dd}`;
 
-    const hasSchedule =
-      props.availableDates.length === 0 || props.availableDates.includes(full);
+    const hasSchedule = props.availableDates.length === 0 || props.availableDates.includes(full);
 
     return {
       full,

@@ -80,6 +80,26 @@
   margin-top: 1px;
 }
 
+.date-btn-new-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #e53935;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.date-btn-new-badge--placeholder {
+  background: transparent;
+  visibility: hidden;
+}
+
+.date-btn-sub--placeholder {
+  visibility: hidden;
+}
+
 @media (min-width: 600px) {
   .date-btn-day { font-size: 12px; }
   .date-btn-num { font-size: 18px; }

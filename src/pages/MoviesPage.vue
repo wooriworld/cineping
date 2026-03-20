@@ -97,7 +97,7 @@
               v-if="props.row.createdAt?.slice(0, 10) === today"
               color="red"
               label="NEW"
-              class="q-ml-xs"
+              class="q-ml-xs movies-status-badge"
             />
             <q-badge
               v-if="
@@ -108,7 +108,7 @@
               "
               color="teal"
               label="UPDATE"
-              class="q-ml-xs"
+              class="q-ml-xs movies-status-badge"
             />
           </q-td>
         </template>
@@ -157,6 +157,7 @@
                     "
                     color="red"
                     label="NEW"
+                    class="movies-status-badge"
                   />
                   <q-badge
                     v-if="
@@ -167,6 +168,7 @@
                     "
                     color="teal"
                     label="UPDATE"
+                    class="movies-status-badge"
                   />
                 </div>
                 <div v-if="props.row.englishTitle" class="movies-grid-english-title">
@@ -203,6 +205,7 @@
             <DateSelector
               v-model="scheduleDialogDate"
               :available-dates="scheduleDialogAvailableDates"
+              :new-dates="scheduleDialogNewDates"
             />
             <TheaterFilter
               v-model:chain-model="scheduleDialogChain"
@@ -318,6 +321,28 @@ const scheduleDialogSchedules = ref<Schedule[]>([]);
 const scheduleDialogAvailableDates = computed(() => [
   ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
 ]);
+
+const scheduleDialogNewDates = computed(() => {
+  const movieCreatedAtKST = scheduleDialogMovie.value?.createdAt
+    ? new Date(new Date(scheduleDialogMovie.value.createdAt).getTime() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10)
+    : '';
+  return [
+    ...new Set(
+      scheduleDialogSchedules.value
+        .filter(
+          (s) =>
+            s.lastUpdatedAt &&
+            new Date(new Date(s.lastUpdatedAt).getTime() + 9 * 60 * 60 * 1000)
+              .toISOString()
+              .slice(0, 10) === today &&
+            movieCreatedAtKST < today,
+        )
+        .map((s) => s.date),
+    ),
+  ];
+});
 
 const scheduleDialogFiltered = computed(() =>
   scheduleDialogSchedules.value.filter((s) => {
