@@ -227,7 +227,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     const ts = Math.floor((totalElapsed % 60000) / 1000);
     console.log(`[스케줄 수집 완료] 총 ${schedulesAdded}개 저장 (소요: ${tm}분 ${ts}초)\n`);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const notifyMovies = updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today);
 
     if (notifyMovies.length > 0) {

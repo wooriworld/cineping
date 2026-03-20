@@ -363,7 +363,7 @@ const filteredMovies = computed(() => {
   });
 });
 
-const today = new Date().toISOString().slice(0, 10);
+const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 // ── 삭제 ─────────────────────────────────────────────────────────
 const deleteDialog = ref(false);
@@ -489,7 +489,7 @@ async function openScheduleDialog(movie: Movie) {
     const list = await schedulesStore.getByMovie(movie.id);
     scheduleDialogSchedules.value = list;
     const dates = [...new Set(list.map((s) => s.date))].sort();
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     scheduleDialogDate.value = dates.find((d) => d >= todayStr) ?? '';
   } finally {
     scheduleDialogLoading.value = false;
