@@ -7,7 +7,7 @@ import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
 // ── Telegram 알림 ─────────────────────────────────────────────────
 const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-const MOVIES_URL = 'https://cheadev5831.github.io/cineping/#/movies';
+const MOVIES_URL = 'https://cheadev5831.github.io/cineping';
 
 async function sendTelegramMessage(text) {
   try {
@@ -50,7 +50,9 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
       return res.json({ success: true, added: 0, skipped: 0, total: 0 });
     }
 
-    const { data: existing, error: fetchErr } = await supabase.from('movies').select('id, title, englishTitle');
+    const { data: existing, error: fetchErr } = await supabase
+      .from('movies')
+      .select('id, title, englishTitle');
     if (fetchErr) throw new Error(fetchErr.message);
 
     const existingMap = new Map(existing.map((m) => [m.title, m]));
@@ -86,7 +88,11 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
       });
 
       if (error) throw new Error(error.message);
-      existingMap.set(movie.title, { id: '', title: movie.title, englishTitle: movie.englishTitle });
+      existingMap.set(movie.title, {
+        id: '',
+        title: movie.title,
+        englishTitle: movie.englishTitle,
+      });
       addedTitles.push(movie.title);
       added++;
       console.log(`  + 저장: ${movie.title}`);
@@ -95,7 +101,9 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
     const movieScrapeElapsed = Date.now() - movieScrapeStart;
     const msm = Math.floor(movieScrapeElapsed / 60000);
     const mss = Math.floor((movieScrapeElapsed % 60000) / 1000);
-    console.log(`[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${msm}분 ${mss}초)\n`);
+    console.log(
+      `[저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${msm}분 ${mss}초)\n`,
+    );
 
     if (addedTitles.length > 0) {
       const displayTitles = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
