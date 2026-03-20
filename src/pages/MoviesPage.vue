@@ -65,6 +65,12 @@
             label="NEW"
             class="q-ml-xs"
           />
+          <q-badge
+            v-if="schedulesStore.newScheduleMovieIds.has(props.row.id) && new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) < today"
+            color="teal"
+            label="SC NEW"
+            class="q-ml-xs"
+          />
         </q-td>
       </template>
 
@@ -430,6 +436,7 @@ async function runScheduleScrape() {
     scheduleScrapeResult.value = result;
     scheduleScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
+    void schedulesStore.fetchNewScheduleMovieIds();
   } catch {
     // schedulesStore.error 로 표시됨
   }
@@ -445,6 +452,7 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
     movieScheduleScrapeResult.value = { ...result, title: movie.title };
     movieScheduleScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
+    void schedulesStore.fetchNewScheduleMovieIds();
   } catch {
     // schedulesStore.error 로 표시됨
   }
@@ -499,5 +507,6 @@ async function openScheduleDialog(movie: Movie) {
 onMounted(() => {
   void store.fetchMovies();
   void schedulesStore.fetchScheduleCounts();
+  void schedulesStore.fetchNewScheduleMovieIds();
 });
 </script>

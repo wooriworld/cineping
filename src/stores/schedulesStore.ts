@@ -17,6 +17,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
 
   const schedules = ref<Schedule[]>([]);
   const scheduleCounts = ref<Record<string, number>>({});
+  const newScheduleMovieIds = ref<Set<string>>(new Set());
   const loading = ref(false);
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
@@ -46,6 +47,21 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
         counts[r.movieId] = Number(r.count);
       }
       scheduleCounts.value = counts;
+    } catch (e) {
+      error.value = (e as Error).message;
+    }
+  }
+
+  async function fetchNewScheduleMovieIds() {
+    try {
+      const kstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const kstTodayStartUTC = new Date(`${kstToday}T00:00:00+09:00`).toISOString();
+      const { data, error: err } = await supabase
+        .from('schedules')
+        .select('movieId')
+        .gte('lastUpdatedAt', kstTodayStartUTC);
+      if (err) throw new Error(err.message);
+      newScheduleMovieIds.value = new Set((data ?? []).map((r) => (r as { movieId: string }).movieId));
     } catch (e) {
       error.value = (e as Error).message;
     }
@@ -173,12 +189,14 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   return {
     schedules,
     scheduleCounts,
+    newScheduleMovieIds,
     loading,
     error,
     scrapeLoading,
     apiScrapeLoadingMovies,
     fetchSchedules,
     fetchScheduleCounts,
+    fetchNewScheduleMovieIds,
     fetchByMovie,
     addSchedule,
     editSchedule,
