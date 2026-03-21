@@ -34,6 +34,7 @@
   border: 1px solid #e0e0e0 !important;
   background: transparent;
   cursor: pointer;
+  position: relative;
 }
 
 /* 태블릿 (600px+) */
@@ -82,20 +83,18 @@
   margin-top: 1px;
 }
 
-.date-btn-new-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: #dc2626;
-  color: #fff;
-  line-height: 1;
-  margin-bottom: 1px;
+.date-btn-badge {
+  width: 5px;
+  height: 5px;
+  min-height: unset;
+  min-width: unset;
+  padding: 0;
+  top: 4px;
+  right: 4px;
 }
 
-.date-btn-new-badge--placeholder {
-  background: transparent;
-  visibility: hidden;
+.date-btn-selected .date-btn-badge {
+  background: #fff !important;
 }
 
 .date-btn-sub--placeholder {
