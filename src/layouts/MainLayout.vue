@@ -3,38 +3,39 @@
     <!-- 헤더 -->
     <q-header bordered class="layout-header text-dark">
       <q-toolbar>
-        <!-- 로고 (검색 열리면 숨김) -->
-        <Transition name="logo-fade">
-          <router-link v-if="!searchOpen" to="/" class="cineping-logo">
-            <div class="cineping-logo-icon">
-              <q-icon name="movie" size="18px" color="white" />
-            </div>
-            <span class="cineping-logo-text">cineping</span>
-          </router-link>
-        </Transition>
+        <!-- 로고 -->
+        <router-link
+          to="/"
+          class="cineping-logo"
+          :class="{ 'cineping-logo--collapsed': searchOpen }"
+        >
+          <div class="cineping-logo-icon">
+            <q-icon name="movie" size="18px" color="white" />
+          </div>
+          <span class="cineping-logo-text">cineping</span>
+        </router-link>
 
-        <q-space v-if="!searchOpen" />
+        <!-- 스페이서 -->
+        <div class="header-spacer" :class="{ 'header-spacer--collapsed': searchOpen }" />
 
         <!-- 검색 + 필터 (메인 페이지에서만 표시) -->
         <template v-if="isMoviesPage">
-          <!-- 확장된 검색창 -->
-          <Transition name="search-expand">
-            <div v-if="searchOpen" class="header-search-wrap">
-              <q-input
-                ref="searchInputRef"
-                v-model="searchTitle"
-                outlined
-                dense
-                clearable
-                placeholder="영화 제목 검색"
-                class="header-search-input"
-                @blur="onSearchBlur"
-                @keyup.escape="closeSearch"
-              >
-                <template #prepend><q-icon name="search" /></template>
-              </q-input>
-            </div>
-          </Transition>
+          <!-- 검색창 -->
+          <div class="header-search-wrap" :class="{ 'header-search-wrap--open': searchOpen }">
+            <q-input
+              ref="searchInputRef"
+              v-model="searchTitle"
+              outlined
+              dense
+              clearable
+              placeholder="영화 제목 검색"
+              class="header-search-input"
+              @blur="onSearchBlur"
+              @keyup.escape="closeSearch"
+            >
+              <template #prepend><q-icon name="search" /></template>
+            </q-input>
+          </div>
 
           <!-- 검색 아이콘 버튼 (닫힌 상태) -->
           <q-btn v-if="!searchOpen" flat round @click="openSearch" aria-label="검색">
