@@ -15,7 +15,7 @@ export function useTelegram() {
       await sendTelegramMessage(msg);
     } catch (err) {
       const message = err instanceof Error ? err.message : '알 수 없는 오류';
-      console.log(message);
+      console.error(message);
     } finally {
       isLoading.value = false;
     }

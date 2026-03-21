@@ -264,9 +264,6 @@ const badgeFilterOptions: { label: string; value: BadgeFilter }[] = [
   { label: 'UPDATE', value: 'update' },
   { label: 'NEW + UPDATE', value: 'both' },
 ];
-const _badgeFilterLabel = computed(
-  () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '전체',
-);
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
