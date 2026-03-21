@@ -209,12 +209,12 @@ function isMovieUpdate(m: Movie): boolean {
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts;
   const q = (searchTitle.value ?? '').trim();
-  const base = q
-    ? store.movies.filter(
-        (m) =>
-          m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()),
-      )
-    : [...store.movies];
+  const base = store.movies
+    .filter((m) => (counts[m.id] ?? 0) > 0)
+    .filter(
+      (m) =>
+        !q || m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()),
+    );
 
   const filtered =
     !filterShowNew.value && !filterShowUpdate.value
