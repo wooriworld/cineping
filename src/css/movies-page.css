@@ -12,232 +12,285 @@
 
 .movies-search-input {
   flex: 1 1 auto;
-  max-width: 360px;
 }
 
-@media (max-width: 599px) {
-  .movies-search-input {
-    max-width: 100%;
-  }
+.movies-filter-btn {
+  color: #374151;
+  border-radius: 50% !important;
+  transition: background 0.15s ease;
 }
 
-/* ── 필터 드롭다운 (스케줄 팝업 드롭다운과 동일 스타일) ── */
-.movies-filter-dropdown.q-btn--outline::before {
-  border: none !important;
+.movies-filter-btn:hover {
+  background: rgba(91, 33, 182, 0.06) !important;
 }
 
-.movies-filter-dropdown.q-btn--outline {
-  border: none !important;
-  background: transparent !important;
-  color: #111111 !important;
-  font-weight: 700 !important;
-  font-size: 12px !important;
-  padding: 0px 4px !important;
-  min-height: 24px !important;
-  transition: color 0.15s ease !important;
-}
-
-.movies-filter-dropdown.q-btn--outline:hover {
-  background: transparent !important;
-  color: #111111 !important;
-}
-
-.movies-filter-dropdown .q-btn__content {
-  padding: 0 !important;
-}
-
-.movies-filter-dropdown .q-icon {
-  color: inherit;
-  opacity: 0.6;
-  font-size: 16px !important;
-}
-
-/* ── 필터 버튼 라벨 ── */
-.movies-filter-label-text {
-  font-size: 12px;
-  font-weight: 700;
-  color: #111;
-}
-
-/* 버튼 내 활성 상태 뱃지 칩 */
-.movies-filter-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.movies-filter-chip--new {
-  background: #e53935;
-  color: #fff;
-}
-
-.movies-filter-chip--update {
-  background: #009688;
-  color: #fff;
-}
-
-/* ── 드롭다운 패널 ── */
-.movies-filter-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-}
-
-/* 토글 뱃지 버튼 */
-.movies-filter-badge-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  border: 1.5px solid #e0e0e0;
-  background: transparent;
-  color: #bbb;
-  transition: all 0.15s ease;
-}
-
-.movies-filter-badge-btn:hover {
-  border-color: #ccc;
-  color: #888;
-}
-
-.movies-filter-badge-btn--new.is-active {
-  border-color: #e53935;
-  background: #e53935;
-  color: #fff;
-}
-
-.movies-filter-badge-btn--update.is-active {
-  border-color: #009688;
-  background: #009688;
-  color: #fff;
-}
-
-/* ── 모바일 그리드 카드 (xs grid 모드) ── */
-.movies-grid-item {
-  width: 100%;
-  padding: 4px 0;
-}
-
-.movies-grid-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e8e8e8;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: background 0.12s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.movies-grid-card:active {
-  background: #f5f7f5;
-}
-
-.movies-grid-poster {
-  width: 52px;
-  height: 73px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  overflow: hidden;
-  object-fit: cover;
-}
-
-.movies-grid-poster-empty {
-  width: 52px;
-  height: 73px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  background: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.movies-grid-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.movies-grid-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #111;
-  line-height: 1.4;
-  word-break: keep-all;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.movies-grid-english-title {
-  font-size: 14px;
-  color: #999;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.movies-grid-meta {
+/* ── 활성 필터 칩 ── */
+.movies-active-filters {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.movies-grid-release {
-  font-size: 12px;
-  color: #888;
+.movies-active-filter-label {
+  font-size: 13px;
+  color: #737373;
 }
 
-.movies-grid-schedule {
+.movies-active-chip {
+  padding: 3px 12px;
+  border-radius: 999px;
   font-size: 12px;
-  color: #2d6a4f;
   font-weight: 600;
+  border: 1px solid;
 }
 
-/* ── 영화 목록 NEW / UPDATE 상태 뱃지 ── */
-.movies-status-badge {
+.movies-active-chip--new {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.movies-active-chip--update {
+  background: rgba(245, 158, 11, 0.08);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+/* ── 로딩 ── */
+.movies-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+/* ── 빈 상태 ── */
+.movies-empty {
+  text-align: center;
+  padding: 80px 0;
+  color: #737373;
+  font-size: 14px;
+}
+
+/* ── 영화 그리드 ── */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 600px) {
+  .movie-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .movie-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .movie-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ── 영화 카드 ── */
+.movie-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.movie-card:hover {
+  border-color: rgba(91, 33, 182, 0.4);
+  box-shadow: 0 10px 25px rgba(91, 33, 182, 0.1);
+  transform: scale(1.02);
+}
+
+/* ── 포스터 ── */
+.movie-card-poster {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.movie-card-poster .q-img__image {
+  transition: transform 0.3s ease;
+}
+
+.movie-card:hover .movie-card-poster .q-img__image {
+  transform: scale(1.05);
+}
+
+.movie-card-img-empty {
+  aspect-ratio: 2/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+/* ── 포스터 뱃지 ── */
+.movie-card-badge {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
   font-size: 10px !important;
   font-weight: 700 !important;
-  padding: 4px 6px !important;
+  padding: 3px 7px !important;
+  border-radius: 4px !important;
+  z-index: 1;
 }
 
-/* ── 모바일에서 테이블 컬럼 숨김 ── */
-@media (max-width: 599px) {
-  .movies-table-wrap .q-table th:nth-child(4),
-  .movies-table-wrap .q-table td:nth-child(4) {
-    display: none; /* 영어 제목 */
-  }
-
-  .movies-table-wrap .q-table th:nth-child(5),
-  .movies-table-wrap .q-table td:nth-child(5) {
-    display: none; /* 개봉일 */
-  }
-
-  .movies-table-wrap .q-table th:nth-child(6),
-  .movies-table-wrap .q-table td:nth-child(6) {
-    display: none; /* 등록일 */
-  }
+/* ── 포스터 오버레이 ── */
+.movie-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 45%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-/* ── 다이얼로그 제목 ── */
+.movie-card:hover .movie-card-overlay {
+  opacity: 1;
+}
+
+/* ── 카드 정보 영역 ── */
+.movie-card-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.movie-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a0a0a;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.movie-card:hover .movie-card-title {
+  color: #5b21b6;
+}
+
+.movie-card-en {
+  font-size: 12px;
+  color: #737373;
+  line-height: 1.3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.movie-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #737373;
+  margin-top: 2px;
+}
+
+/* ── 필터 다이얼로그 ── */
+.filter-dialog-card {
+  width: 320px;
+  max-width: 100vw;
+  height: 100%;
+  max-height: 100vh;
+  border-radius: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.filter-dialog-body {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.filter-section-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a0a0a;
+  margin-bottom: 12px;
+}
+
+.filter-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.filter-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.filter-badge--new {
+  background: #dc2626;
+  color: #fff;
+}
+
+.filter-badge--update {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.filter-dialog-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.filter-dialog-footer .q-btn {
+  flex: 1;
+}
+
+/* ── 스케줄 다이얼로그 ── */
+.movies-dialog-poster {
+  width: 48px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 .movies-dialog-title-wrap {
   display: flex;
   flex-direction: column;
@@ -251,9 +304,6 @@
   line-height: 1.3;
 }
 
-/* ── 다이얼로그 내부 ── */
-
-/* 다이얼로그 헤더 */
 .movies-dialog-header {
   position: sticky;
   top: 0;
@@ -262,7 +312,6 @@
   border-bottom: 1px solid #eee;
 }
 
-/* 다이얼로그 본문 — 스크롤 가능 */
 .movies-dialog-body {
   flex: 1 1 0;
   min-height: 0;
@@ -270,9 +319,58 @@
   padding: 0 !important;
 }
 
+/* ── 푸터 ── */
+.movies-footer {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.movies-footer-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.movies-footer-logo-box {
+  background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  padding: 4px;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movies-footer-logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  background: linear-gradient(to right, #5b21b6, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.movies-footer-sub {
+  font-size: 12px;
+  color: #737373;
+  margin: 0;
+}
+
 /* ── 반응형 페이지 패딩 ── */
 @media (max-width: 599px) {
   .movies-page {
     padding: 8px !important;
+  }
+
+  .movie-grid {
+    gap: 10px;
   }
 }

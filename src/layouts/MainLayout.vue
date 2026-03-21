@@ -1,12 +1,14 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <!-- 헤더 -->
-    <q-header elevated class="bg-primary text-white">
+    <q-header bordered class="layout-header text-dark">
       <q-toolbar>
         <!-- 로고 -->
         <router-link to="/" class="cineping-logo">
-          <q-icon name="movie" size="24px" class="q-mr-xs" />
-          <span>cineping</span>
+          <div class="cineping-logo-icon">
+            <q-icon name="movie" size="18px" color="white" />
+          </div>
+          <span class="cineping-logo-text">cineping</span>
         </router-link>
 
         <q-space />
@@ -22,6 +24,7 @@
             :to="item.to"
             :icon="item.icon"
             size="sm"
+            text-color="dark"
           />
         </nav>
 
@@ -32,6 +35,7 @@
           flat
           round
           icon="menu"
+          color="dark"
           @click="drawerOpen = !drawerOpen"
           aria-label="메뉴"
         />

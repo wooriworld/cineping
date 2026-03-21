@@ -65,12 +65,12 @@
 .region-dropdown.q-btn--outline:hover,
 .chain-dropdown.q-btn--outline:hover {
   background: transparent !important;
-  color: #111111 !important;
+  color: #5b21b6 !important;
 }
 
 .sort-dropdown.q-btn--outline:hover {
   background: transparent !important;
-  color: #111111 !important;
+  color: #5b21b6 !important;
 }
 
 /* 버튼 내부 콘텐츠 패딩 제거 */
@@ -94,9 +94,9 @@
   font-size: 16px !important;
 }
 
-/* 선택된 드롭다운 항목 (체인 단일선택) */
+/* 선택된 드롭다운 항목 */
 .chain-item-active {
-  color: #111111 !important;
+  color: #5b21b6 !important;
   font-weight: 700 !important;
-  background: #f0f5f2 !important;
+  background: #f3f0ff !important;
 }

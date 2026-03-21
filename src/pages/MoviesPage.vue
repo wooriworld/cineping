@@ -4,190 +4,159 @@
       {{ store.error }}
     </q-banner>
 
+    <!-- 검색 + 필터 툴바 -->
     <div class="movies-toolbar">
       <q-input
         v-model="searchTitle"
         outlined
         dense
         clearable
-        placeholder="Search for movie titles..."
+        placeholder="영화 제목으로 검색하세요..."
         class="movies-search-input"
       >
         <template #prepend><q-icon name="search" /></template>
       </q-input>
 
-      <q-btn outline dense no-caps class="movies-filter-dropdown">
-        <span v-if="badgeFilter === 'all'" class="movies-filter-label-text">Filter</span>
-        <template v-else>
-          <span
-            v-if="badgeFilter === 'new' || badgeFilter === 'both'"
-            class="movies-filter-chip movies-filter-chip--new"
-            >NEW</span
-          >
-          <span
-            v-if="badgeFilter === 'update' || badgeFilter === 'both'"
-            class="movies-filter-chip movies-filter-chip--update"
-            :class="{ 'q-ml-xs': badgeFilter === 'both' }"
-            >UPDATE</span
-          >
-        </template>
-        <q-icon name="arrow_drop_down" size="xs" />
-
-        <q-menu>
-          <div class="movies-filter-panel">
-            <button
-              class="movies-filter-badge-btn movies-filter-badge-btn--new"
-              :class="{ 'is-active': badgeFilter === 'new' || badgeFilter === 'both' }"
-              @click="
-                badgeFilter =
-                  badgeFilter === 'new' || badgeFilter === 'both'
-                    ? badgeFilter === 'both'
-                      ? 'update'
-                      : 'all'
-                    : badgeFilter === 'update'
-                      ? 'both'
-                      : 'new'
-              "
-            >
-              NEW
-            </button>
-            <button
-              class="movies-filter-badge-btn movies-filter-badge-btn--update"
-              :class="{ 'is-active': badgeFilter === 'update' || badgeFilter === 'both' }"
-              @click="
-                badgeFilter =
-                  badgeFilter === 'update' || badgeFilter === 'both'
-                    ? badgeFilter === 'both'
-                      ? 'new'
-                      : 'all'
-                    : badgeFilter === 'new'
-                      ? 'both'
-                      : 'update'
-              "
-            >
-              UPDATE
-            </button>
-          </div>
-        </q-menu>
+      <q-btn flat round class="movies-filter-btn" @click="filterDialog = true" aria-label="필터">
+        <q-icon name="tune" size="22px" />
+        <q-badge
+          v-if="filterShowNew || filterShowUpdate"
+          color="primary"
+          floating
+          rounded
+        />
       </q-btn>
     </div>
 
-    <div class="movies-table-wrap">
-      <q-table
-        :rows="filteredMovies"
-        :columns="columns"
-        row-key="id"
-        :loading="store.loading"
-        :rows-per-page-options="[10, 20, 30, 0]"
-        :pagination="{ rowsPerPage: 10 }"
-        flat
-        bordered
-        :grid="$q.screen.xs"
-      >
-        <template #body-cell-no="props">
-          <q-td align="center">{{ props.rowIndex + 1 }}</q-td>
-        </template>
+    <!-- 활성 필터 칩 -->
+    <div v-if="filterShowNew || filterShowUpdate" class="movies-active-filters">
+      <span class="movies-active-filter-label">필터:</span>
+      <span v-if="filterShowNew" class="movies-active-chip movies-active-chip--new">NEW</span>
+      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update">UPDATE</span>
+    </div>
 
-        <template #body-cell-title="props">
-          <q-td>
-            <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
-              props.row.title
-            }}</span>
-            <q-badge
-              v-if="props.row.createdAt?.slice(0, 10) === today"
-              color="red"
-              label="NEW"
-              class="q-ml-xs movies-status-badge"
-            />
-            <q-badge
-              v-if="
-                schedulesStore.newScheduleMovieIds.has(props.row.id) &&
-                new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
-                  .toISOString()
-                  .slice(0, 10) < today
-              "
-              color="teal"
-              label="UPDATE"
-              class="q-ml-xs movies-status-badge"
-            />
-          </q-td>
-        </template>
+    <!-- 로딩 -->
+    <div v-if="store.loading" class="movies-loading">
+      <q-spinner size="40px" color="primary" />
+    </div>
 
-        <template #body-cell-scheduleCount="props">
-          <q-td align="center">
-            {{ schedulesStore.scheduleCounts[props.row.id] || 0 }}
-          </q-td>
-        </template>
-
-        <template #body-cell-poster="{ value }">
-          <q-td>
+    <!-- 영화 그리드 -->
+    <template v-else>
+      <div v-if="filteredMovies.length > 0" class="movie-grid">
+        <div
+          v-for="movie in filteredMovies"
+          :key="movie.id"
+          class="movie-card"
+          @click="openScheduleDialog(movie)"
+        >
+          <!-- 포스터 -->
+          <div class="movie-card-poster">
             <q-img
-              v-if="value"
-              :src="value"
-              width="40px"
-              height="56px"
+              v-if="movie.poster"
+              :src="movie.poster"
+              :ratio="2 / 3"
               fit="cover"
-              class="rounded-borders"
             />
-            <q-icon v-else name="image_not_supported" size="sm" color="grey" />
-          </q-td>
-        </template>
+            <div v-else class="movie-card-img-empty">
+              <q-icon name="image_not_supported" size="36px" color="grey-4" />
+            </div>
+            <q-badge
+              v-if="isMovieNew(movie)"
+              color="negative"
+              label="NEW"
+              class="movie-card-badge"
+            />
+            <q-badge
+              v-else-if="isMovieUpdate(movie)"
+              color="warning"
+              label="UPDATE"
+              class="movie-card-badge"
+            />
+            <div class="movie-card-overlay" />
+          </div>
 
-        <!-- 모바일 그리드 카드 (xs 화면) -->
-        <template #item="props">
-          <div class="movies-grid-item col-12">
-            <div class="movies-grid-card" @click="openScheduleDialog(props.row)">
-              <q-img
-                v-if="props.row.poster"
-                :src="props.row.poster"
-                class="movies-grid-poster"
-                fit="cover"
-              />
-              <div v-else class="movies-grid-poster movies-grid-poster-empty">
-                <q-icon name="image_not_supported" size="sm" color="grey-4" />
-              </div>
-              <div class="movies-grid-info">
-                <div class="movies-grid-title">
-                  <span>{{ props.row.title }}</span>
-                  <q-badge
-                    v-if="
-                      new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
-                        .toISOString()
-                        .slice(0, 10) === today
-                    "
-                    color="red"
-                    label="NEW"
-                    class="movies-status-badge"
-                  />
-                  <q-badge
-                    v-if="
-                      schedulesStore.newScheduleMovieIds.has(props.row.id) &&
-                      new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
-                        .toISOString()
-                        .slice(0, 10) < today
-                    "
-                    color="teal"
-                    label="UPDATE"
-                    class="movies-status-badge"
-                  />
-                </div>
-                <div v-if="props.row.englishTitle" class="movies-grid-english-title">
-                  {{ props.row.englishTitle }}
-                </div>
-                <div class="movies-grid-meta">
-                  <span class="movies-grid-release">{{ props.row.releaseDate || '-' }}</span>
-                </div>
-              </div>
+          <!-- 정보 -->
+          <div class="movie-card-info">
+            <h3 class="movie-card-title">{{ movie.title }}</h3>
+            <p v-if="movie.englishTitle" class="movie-card-en">{{ movie.englishTitle }}</p>
+            <div class="movie-card-meta">
+              <q-icon name="calendar_today" size="11px" />
+              <span>{{ movie.releaseDate || '-' }}</span>
             </div>
           </div>
-        </template>
-      </q-table>
+        </div>
+      </div>
+
+      <!-- 빈 상태 -->
+      <div v-else class="movies-empty">
+        <p>
+          {{ searchTitle ? '검색 결과가 없습니다.' : '필터 조건에 맞는 영화가 없습니다.' }}
+        </p>
+      </div>
+    </template>
+
+    <!-- 푸터 -->
+    <div class="movies-footer">
+      <div class="movies-footer-inner">
+        <div class="movies-footer-logo-box">
+          <q-icon name="movie" size="14px" color="white" />
+        </div>
+        <span class="movies-footer-logo-text">cineping</span>
+      </div>
+      <p class="movies-footer-sub">당신의 영화 스케줄을 한눈에</p>
     </div>
+
+    <!-- 필터 다이얼로그 (오른쪽 슬라이드) -->
+    <q-dialog v-model="filterDialog" position="right" full-height>
+      <q-card class="filter-dialog-card">
+        <div class="filter-dialog-header">
+          <span class="text-h6 text-weight-bold">필터</span>
+          <q-btn flat round dense icon="close" @click="filterDialog = false" />
+        </div>
+
+        <div class="filter-dialog-body">
+          <div>
+            <div class="filter-section-label">영화 상태</div>
+            <label class="filter-checkbox-row">
+              <q-checkbox v-model="filterShowNew" color="negative" />
+              <span class="filter-badge filter-badge--new">NEW</span>
+              <span>신작</span>
+            </label>
+            <label class="filter-checkbox-row">
+              <q-checkbox v-model="filterShowUpdate" color="warning" />
+              <span class="filter-badge filter-badge--update">UPDATE</span>
+              <span>업데이트</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-dialog-footer">
+          <q-btn
+            outline
+            @click="
+              filterShowNew = false;
+              filterShowUpdate = false;
+            "
+          >
+            초기화
+          </q-btn>
+          <q-btn color="primary" @click="filterDialog = false">적용하기</q-btn>
+        </div>
+      </q-card>
+    </q-dialog>
 
     <!-- 스케줄 조회 팝업 -->
     <q-dialog v-model="scheduleDialog" maximized>
       <q-card class="column no-wrap">
-        <q-card-section class="row items-center q-pb-none movies-dialog-header">
+        <q-card-section class="row items-start q-pb-none movies-dialog-header">
+          <q-img
+            v-if="scheduleDialogMovie?.poster"
+            :src="scheduleDialogMovie.poster"
+            style="width: 48px"
+            ratio="0.75"
+            fit="cover"
+            class="movies-dialog-poster q-mr-sm"
+          />
           <div class="movies-dialog-title-wrap">
             <div class="text-h6">{{ scheduleDialogMovie?.title }}</div>
             <div v-if="scheduleDialogMovie?.englishTitle" class="movies-dialog-english-title">
@@ -197,6 +166,7 @@
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
+
         <q-card-section class="movies-dialog-body">
           <div v-if="scheduleDialogLoading" class="text-center q-pa-lg">
             <q-spinner size="40px" color="primary" />
@@ -232,41 +202,34 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
-import type { QTableColumn } from 'quasar';
 
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
-const columns: QTableColumn[] = [
-  { name: 'no', label: 'No', field: 'id', align: 'center' },
-  { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
-  { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
-  { name: 'englishTitle', label: '영어 제목', field: 'englishTitle', align: 'left' },
-  { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
-  {
-    name: 'createdAt',
-    label: '등록일',
-    field: 'createdAt',
-    align: 'left',
-    sortable: true,
-    format: (val: string) => (val ? val.substring(0, 10).replace(/-/g, '/') : '-'),
-  },
-  { name: 'scheduleCount', label: '스케줄', field: 'id', align: 'center' },
-];
-
 const searchTitle = ref('');
+const filterShowNew = ref(false);
+const filterShowUpdate = ref(false);
+const filterDialog = ref(false);
 
-type BadgeFilter = 'all' | 'new' | 'update' | 'both';
-const badgeFilter = ref<BadgeFilter>('all');
-const badgeFilterOptions: { label: string; value: BadgeFilter }[] = [
-  { label: '전체', value: 'all' },
-  { label: 'NEW', value: 'new' },
-  { label: 'UPDATE', value: 'update' },
-  { label: 'NEW + UPDATE', value: 'both' },
-];
+const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+function isMovieNew(m: Movie): boolean {
+  return (
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) ===
+    today
+  );
+}
+
+function isMovieUpdate(m: Movie): boolean {
+  return (
+    schedulesStore.newScheduleMovieIds.has(m.id) &&
+    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) <
+      today
+  );
+}
 
 const filteredMovies = computed(() => {
-  const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
+  const counts = schedulesStore.scheduleCounts;
   const q = searchTitle.value.trim();
   const base = q
     ? store.movies.filter(
@@ -275,22 +238,14 @@ const filteredMovies = computed(() => {
       )
     : [...store.movies];
 
-  const isNew = (m: (typeof base)[0]) =>
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) ===
-    today;
-  const isScNew = (m: (typeof base)[0]) =>
-    schedulesStore.newScheduleMovieIds.has(m.id) &&
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) <
-      today;
-
   const filtered =
-    badgeFilter.value === 'new'
-      ? base.filter(isNew)
-      : badgeFilter.value === 'update'
-        ? base.filter(isScNew)
-        : badgeFilter.value === 'both'
-          ? base.filter((m) => isNew(m) || isScNew(m))
-          : base;
+    !filterShowNew.value && !filterShowUpdate.value
+      ? base
+      : base.filter(
+          (m) =>
+            (filterShowNew.value && isMovieNew(m)) ||
+            (filterShowUpdate.value && isMovieUpdate(m)),
+        );
 
   return filtered.sort((a, b) => {
     const createdDiff = (b.createdAt ?? '')
@@ -302,8 +257,6 @@ const filteredMovies = computed(() => {
     return (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
   });
 });
-
-const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 // ── 스케줄 조회 팝업 ──────────────────────────────────────────────
 const scheduleDialog = ref(false);

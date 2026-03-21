@@ -2,12 +2,12 @@
    레이아웃 공통 스타일
 =========================== */
 
-/* 헤더 — Slate-900 다크 오버라이드 */
-.q-header {
-  background: #0f1a13 !important;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.06),
-    0 2px 8px rgba(0, 0, 0, 0.25) !important;
+/* 헤더 — 반투명 화이트 + 블러 */
+.layout-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: none !important;
 }
 
 /* 모바일 드로어 */
@@ -20,15 +20,32 @@
 .cineping-logo {
   display: flex;
   align-items: center;
-  color: #ffffff;
   text-decoration: none;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  gap: 4px;
+  gap: 8px;
+}
+
+.cineping-logo-icon {
+  background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.cineping-logo-text {
+  background: linear-gradient(to right, #5b21b6, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .cineping-logo:hover {
-  opacity: 0.9;
+  opacity: 0.85;
 }
-
