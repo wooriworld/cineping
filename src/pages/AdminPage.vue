@@ -34,7 +34,7 @@
         outlined
         dense
         clearable
-        placeholder="영화 제목 검색"
+        placeholder="Search for movie titles"
         style="max-width: 300px"
       >
         <template #prepend><q-icon name="search" /></template>
@@ -290,6 +290,7 @@
               v-model:chain-model="scheduleDialogChain"
               v-model:region-model="scheduleDialogRegion"
               v-model:sort-model="scheduleDialogSort"
+              v-model:hall-type-model="scheduleDialogHallType"
             />
             <ScheduleList
               :schedules="scheduleDialogFiltered"
@@ -533,8 +534,24 @@ const scheduleDialogDate = ref('');
 const scheduleDialogChain = ref('극장 전체');
 const scheduleDialogRegion = ref('서울');
 const scheduleDialogSort = ref<SortType>('theater');
+const scheduleDialogHallType = ref('상영관 전체');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
+
+function isRegularHall(screenType: string): boolean {
+  const s = screenType || '';
+  return (
+    /^\d+관$/.test(s) || // N관
+    /^\d+관\(\d+층\)$/.test(s) || // N관(N층)
+    /^\d+관 \d+층$/.test(s) || // N관 N층
+    /^\d+관 \d+층 \(Laser\)$/.test(s) || // N관 N층 (Laser)
+    /^\d+관 \(Laser\)$/.test(s) || // N관 (Laser)
+    /^\d+관 B\d+층$/.test(s) || // N관 BN층
+    /^\d+관 B\d+층 \(Laser\)$/.test(s) || // N관 BN층 (Laser)
+    /^\d+관 본관\d+층$/.test(s) || // N관 본관N층
+    /^\d+관 본관 B\d+층$/.test(s) // N관 본관 BN층
+  );
+}
 
 const scheduleDialogAvailableDates = computed(() => [
   ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
@@ -548,7 +565,12 @@ const scheduleDialogFiltered = computed(() =>
       (scheduleDialogChain.value === '그 외 극장'
         ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
         : s.chain === scheduleDialogChain.value);
-    return matchDate && matchChain;
+    const matchHallType =
+      scheduleDialogHallType.value === '상영관 전체' ||
+      (scheduleDialogHallType.value === '일반관'
+        ? isRegularHall(s.screenType)
+        : !isRegularHall(s.screenType));
+    return matchDate && matchChain && matchHallType;
   }),
 );
 
@@ -558,6 +580,7 @@ async function openScheduleDialog(movie: Movie) {
   scheduleDialogChain.value = '극장 전체';
   scheduleDialogRegion.value = '서울';
   scheduleDialogSort.value = 'theater';
+  scheduleDialogHallType.value = '상영관 전체';
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;

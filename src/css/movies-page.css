@@ -331,6 +331,7 @@
   z-index: 1;
   background: #fff;
   border-bottom: 1px solid #eee;
+  padding: 8px 8px;
 }
 
 .movies-dialog-body {

@@ -26,6 +26,11 @@
   min-width: 0;
 }
 
+/* 상영관 드롭다운 */
+.halltype-dropdown {
+  min-width: 0;
+}
+
 /* 정렬 드롭다운 (우측) */
 .sort-dropdown {
   min-width: 0;
@@ -35,12 +40,14 @@
 /* 드롭다운 버튼 — 완전 보더리스, 배경 없음 */
 .region-dropdown.q-btn--outline::before,
 .chain-dropdown.q-btn--outline::before,
+.halltype-dropdown.q-btn--outline::before,
 .sort-dropdown.q-btn--outline::before {
   border: none !important;
 }
 
 .region-dropdown.q-btn--outline,
-.chain-dropdown.q-btn--outline {
+.chain-dropdown.q-btn--outline,
+.halltype-dropdown.q-btn--outline {
   border: none !important;
   background: transparent !important;
   color: #111111 !important;
@@ -63,7 +70,8 @@
 }
 
 .region-dropdown.q-btn--outline:hover,
-.chain-dropdown.q-btn--outline:hover {
+.chain-dropdown.q-btn--outline:hover,
+.halltype-dropdown.q-btn--outline:hover {
   background: transparent !important;
   color: #5b21b6 !important;
 }
@@ -76,13 +84,15 @@
 /* 버튼 내부 콘텐츠 패딩 제거 */
 .region-dropdown .q-btn__content,
 .chain-dropdown .q-btn__content,
+.halltype-dropdown .q-btn__content,
 .sort-dropdown .q-btn__content {
   padding: 0 !important;
 }
 
 /* 드롭다운 화살표 아이콘 */
 .region-dropdown .q-icon,
-.chain-dropdown .q-icon {
+.chain-dropdown .q-icon,
+.halltype-dropdown .q-icon {
   color: inherit;
   opacity: 0.6;
   font-size: 16px !important;

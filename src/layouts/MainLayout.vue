@@ -28,7 +28,7 @@
               outlined
               dense
               clearable
-              placeholder="영화 제목 검색"
+              placeholder="Search for movie titles"
               class="header-search-input"
               @blur="onSearchBlur"
               @keyup.escape="closeSearch"
@@ -43,14 +43,15 @@
           </q-btn>
 
           <!-- 필터 버튼 -->
-          <q-btn flat round class="movies-filter-btn q-ml-xs" @click="filterDialog = true" aria-label="필터">
+          <q-btn
+            flat
+            round
+            class="movies-filter-btn q-ml-xs"
+            @click="filterDialog = true"
+            aria-label="필터"
+          >
             <q-icon name="tune" size="22px" />
-            <q-badge
-              v-if="filterShowNew || filterShowUpdate"
-              color="primary"
-              floating
-              rounded
-            />
+            <q-badge v-if="filterShowNew || filterShowUpdate" color="primary" floating rounded />
           </q-btn>
         </template>
 
@@ -68,7 +69,6 @@
             text-color="dark"
           />
         </nav>
-
       </q-toolbar>
     </q-header>
 

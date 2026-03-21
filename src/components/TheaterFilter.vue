@@ -51,6 +51,31 @@
         </q-list>
       </q-btn-dropdown>
 
+      <!-- 상영관 드롭다운 -->
+      <q-btn-dropdown
+        :label="hallTypeModel"
+        outline
+        dense
+        no-caps
+        menu-anchor="bottom left"
+        menu-self="top left"
+        class="halltype-dropdown"
+      >
+        <q-list dense>
+          <q-item
+            v-for="h in HALL_TYPES"
+            :key="h.value"
+            v-close-popup
+            clickable
+            :active="hallTypeModel === h.value"
+            active-class="chain-item-active"
+            @click="$emit('update:hallTypeModel', h.value)"
+          >
+            <q-item-section>{{ h.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+
       <!-- 정렬 드롭다운 (우측 정렬) -->
       <q-btn-dropdown
         :label="sortLabel"
@@ -89,12 +114,14 @@ const props = defineProps<{
   chainModel: string;
   regionModel: string;
   sortModel: SortType;
+  hallTypeModel: string;
 }>();
 
 defineEmits<{
   'update:chainModel': [value: string];
   'update:regionModel': [value: string];
   'update:sortModel': [value: SortType];
+  'update:hallTypeModel': [value: string];
 }>();
 
 const CHAINS = [
@@ -121,6 +148,12 @@ const REGIONS = [
   { value: '부산', label: '부산' },
   { value: '울산', label: '울산' },
   { value: '제주', label: '제주' },
+];
+
+const HALL_TYPES = [
+  { value: '상영관 전체', label: '상영관 전체' },
+  { value: '일반관', label: '일반관' },
+  { value: '특별관', label: '특별관' },
 ];
 
 const SORTS = [

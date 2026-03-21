@@ -8,7 +8,9 @@
     <div v-if="filterShowNew || filterShowUpdate" class="movies-active-filters">
       <span class="movies-active-filter-label">필터:</span>
       <span v-if="filterShowNew" class="movies-active-chip movies-active-chip--new">NEW</span>
-      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update">UPDATE</span>
+      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update"
+        >UPDATE</span
+      >
     </div>
 
     <!-- 로딩 -->
@@ -27,12 +29,7 @@
         >
           <!-- 포스터 -->
           <div class="movie-card-poster">
-            <q-img
-              v-if="movie.poster"
-              :src="movie.poster"
-              :ratio="2 / 3"
-              fit="cover"
-            />
+            <q-img v-if="movie.poster" :src="movie.poster" :ratio="2 / 3" fit="cover" />
             <div v-else class="movie-card-img-empty">
               <q-icon name="image_not_supported" size="36px" color="grey-4" />
             </div>
@@ -86,22 +83,22 @@
     <q-dialog v-model="filterDialog" position="right" full-height>
       <q-card class="filter-dialog-card">
         <div class="filter-dialog-header">
-          <span class="text-h6 text-weight-bold">필터</span>
+          <span class="text-h6 text-weight-bold">Filter</span>
           <q-btn flat round dense icon="close" @click="filterDialog = false" />
         </div>
 
         <div class="filter-dialog-body">
           <div>
-            <div class="filter-section-label">영화 상태</div>
+            <div class="filter-section-label">Listing Updates</div>
             <label class="filter-checkbox-row">
               <q-checkbox v-model="filterShowNew" color="negative" />
               <span class="filter-badge filter-badge--new">NEW</span>
-              <span>신작</span>
+              <span>Movie</span>
             </label>
             <label class="filter-checkbox-row">
               <q-checkbox v-model="filterShowUpdate" color="warning" />
               <span class="filter-badge filter-badge--update">UPDATE</span>
-              <span>업데이트</span>
+              <span>Schedule</span>
             </label>
           </div>
         </div>
@@ -114,9 +111,9 @@
               filterShowUpdate = false;
             "
           >
-            초기화
+            Reset
           </q-btn>
-          <q-btn color="primary" @click="filterDialog = false">적용하기</q-btn>
+          <q-btn color="primary" @click="filterDialog = false">Apply</q-btn>
         </div>
       </q-card>
     </q-dialog>
@@ -139,7 +136,14 @@
               {{ scheduleDialogMovie.englishTitle }}
             </div>
           </div>
-          <q-btn icon="close" flat round dense v-close-popup class="q-ml-sm movies-dialog-close-btn" />
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            v-close-popup
+            class="q-ml-sm movies-dialog-close-btn"
+          />
         </q-card-section>
 
         <q-card-section class="movies-dialog-body">
@@ -156,6 +160,7 @@
               v-model:chain-model="scheduleDialogChain"
               v-model:region-model="scheduleDialogRegion"
               v-model:sort-model="scheduleDialogSort"
+              v-model:hall-type-model="scheduleDialogHallType"
             />
             <ScheduleList
               :schedules="scheduleDialogFiltered"
@@ -216,8 +221,7 @@ const filteredMovies = computed(() => {
       ? base
       : base.filter(
           (m) =>
-            (filterShowNew.value && isMovieNew(m)) ||
-            (filterShowUpdate.value && isMovieUpdate(m)),
+            (filterShowNew.value && isMovieNew(m)) || (filterShowUpdate.value && isMovieUpdate(m)),
         );
 
   return filtered.sort((a, b) => {
@@ -238,8 +242,21 @@ const scheduleDialogDate = ref('');
 const scheduleDialogChain = ref('극장 전체');
 const scheduleDialogRegion = ref('서울');
 const scheduleDialogSort = ref<SortType>('theater');
+const scheduleDialogHallType = ref('상영관 전체');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
+
+function isRegularHall(screenType: string): boolean {
+  const s = screenType || '';
+  return (
+    /^\d+관$/.test(s) || // N관
+    /^\d+관\(\d+층\)$/.test(s) || // N관(N층)
+    /^\d+관 \d+층$/.test(s) || // N관 N층
+    /^\d+관 \d+층 \(Laser\)$/.test(s) || // N관 N층 (Laser)
+    /^\d+관 \(Laser\)$/.test(s) || // N관 (Laser)
+    /^\d+관 B\d+층$/.test(s) // N관 BN층
+  );
+}
 
 const scheduleDialogAvailableDates = computed<string[]>(() => [
   ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
@@ -275,7 +292,12 @@ const scheduleDialogFiltered = computed(() =>
       (scheduleDialogChain.value === '그 외 극장'
         ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
         : s.chain === scheduleDialogChain.value);
-    return matchDate && matchChain;
+    const matchHallType =
+      scheduleDialogHallType.value === '상영관 전체' ||
+      (scheduleDialogHallType.value === '일반관'
+        ? isRegularHall(s.screenType)
+        : !isRegularHall(s.screenType));
+    return matchDate && matchChain && matchHallType;
   }),
 );
 
@@ -285,6 +307,7 @@ async function openScheduleDialog(movie: Movie) {
   scheduleDialogChain.value = '극장 전체';
   scheduleDialogRegion.value = '서울';
   scheduleDialogSort.value = 'theater';
+  scheduleDialogHallType.value = '상영관 전체';
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;
