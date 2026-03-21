@@ -76,9 +76,17 @@ const props = defineProps<{
 }>();
 
 const grouped = computed(() => {
+  const nowTime = new Date(Date.now() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(11, 16); // "HH:MM"
+
+  const visible = props.schedules.filter(
+    (s) => s.date !== today || s.startTime >= nowTime,
+  );
+
   const map: Record<string, TheaterGroup> = {};
 
-  for (const s of props.schedules) {
+  for (const s of visible) {
     if (!map[s.theater]) {
       map[s.theater] = { name: s.theater, chain: s.chain, halls: {}, earliestTime: s.startTime };
     }

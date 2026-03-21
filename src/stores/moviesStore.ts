@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useSupabase } from 'src/composables/useSupabase';
 import type { Movie } from 'src/types';
-import { scrapeNaverMoviesViaApi, type ScrapeResult } from 'src/services/scraperService';
+import { scrapeNaverMoviesViaApi, scrapeAll as scrapeAllService, type ScrapeResult, type ScrapeAllResult } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
 
@@ -13,6 +13,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const apiScrapeLoading = ref(false);
+  const allScrapeLoading = ref(false);
 
   async function fetchMovies() {
     loading.value = true;
@@ -55,5 +56,20 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  return { movies, loading, error, apiScrapeLoading, fetchMovies, deleteMovie, scrapeFromNaverViaApi };
+  async function scrapeAll(): Promise<ScrapeAllResult> {
+    allScrapeLoading.value = true;
+    error.value = null;
+    try {
+      const result = await scrapeAllService();
+      await fetchMovies();
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      allScrapeLoading.value = false;
+    }
+  }
+
+  return { movies, loading, error, apiScrapeLoading, allScrapeLoading, fetchMovies, deleteMovie, scrapeFromNaverViaApi, scrapeAll };
 });

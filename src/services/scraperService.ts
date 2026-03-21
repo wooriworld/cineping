@@ -45,3 +45,18 @@ export interface ScrapeMovieScheduleResult {
 export function scrapeNaverScheduleForMovieViaApi(movieId: string): Promise<ScrapeMovieScheduleResult> {
   return postScraper<ScrapeMovieScheduleResult>(`/api/scrape/schedules-api/${movieId}`);
 }
+
+export interface ScrapeAllResult {
+  success: boolean;
+  movieAdded: number;
+  movieSkipped: number;
+  movieTotal: number;
+  moviesProcessed: number;
+  schedulesAdded: number;
+  errors: string[];
+  elapsedMs: number;
+}
+
+export function scrapeAll(): Promise<ScrapeAllResult> {
+  return postScraper<ScrapeAllResult>('/api/scrape/all');
+}

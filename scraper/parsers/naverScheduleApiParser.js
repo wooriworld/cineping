@@ -50,6 +50,10 @@ async function fetchScheduleItems(title, naverMovieId, date) {
     clearTimeout(timer);
   }
 
+  if (!res.ok) {
+    throw new Error(`NAVER API ${res.status} ${res.statusText}`);
+  }
+
   const text = await res.text();
 
   // JSONP 언래핑: cb({...})
