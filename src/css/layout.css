@@ -16,6 +16,47 @@
   border-left: 1px solid #e2e8f0;
 }
 
+/* 헤더 검색 */
+.header-search-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header-search-input {
+  width: 100%;
+}
+
+/* 검색창 슬라이드 애니메이션 */
+.search-expand-enter-active {
+  transition: max-width 0.3s ease, opacity 0.2s ease;
+}
+.search-expand-leave-active {
+  transition: max-width 0.25s ease, opacity 0.15s ease;
+}
+.search-expand-enter-from,
+.search-expand-leave-to {
+  max-width: 0;
+  opacity: 0;
+}
+.search-expand-enter-to,
+.search-expand-leave-from {
+  max-width: 100vw;
+  opacity: 1;
+}
+
+/* 로고 페이드 */
+.logo-fade-enter-active {
+  transition: opacity 0.2s ease 0.1s;
+}
+.logo-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.logo-fade-enter-from,
+.logo-fade-leave-to {
+  opacity: 0;
+}
+
 /* cineping 로고 */
 .cineping-logo {
   display: flex;

@@ -401,7 +401,7 @@ const badgeFilterLabel = computed(
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
-  const q = searchTitle.value.trim();
+  const q = (searchTitle.value ?? '').trim();
   const base = q
     ? store.movies.filter(
         (m) =>

@@ -4,30 +4,6 @@
       {{ store.error }}
     </q-banner>
 
-    <!-- 검색 + 필터 툴바 -->
-    <div class="movies-toolbar">
-      <q-input
-        v-model="searchTitle"
-        outlined
-        dense
-        clearable
-        placeholder="영화 제목으로 검색하세요..."
-        class="movies-search-input"
-      >
-        <template #prepend><q-icon name="search" /></template>
-      </q-input>
-
-      <q-btn flat round class="movies-filter-btn" @click="filterDialog = true" aria-label="필터">
-        <q-icon name="tune" size="22px" />
-        <q-badge
-          v-if="filterShowNew || filterShowUpdate"
-          color="primary"
-          floating
-          rounded
-        />
-      </q-btn>
-    </div>
-
     <!-- 활성 필터 칩 -->
     <div v-if="filterShowNew || filterShowUpdate" class="movies-active-filters">
       <span class="movies-active-filter-label">필터:</span>
@@ -148,7 +124,7 @@
     <!-- 스케줄 조회 팝업 -->
     <q-dialog v-model="scheduleDialog" maximized>
       <q-card class="column no-wrap">
-        <q-card-section class="row items-start q-pb-none movies-dialog-header">
+        <q-card-section class="row items-start no-wrap q-pb-none movies-dialog-header">
           <q-img
             v-if="scheduleDialogMovie?.poster"
             :src="scheduleDialogMovie.poster"
@@ -158,13 +134,12 @@
             class="movies-dialog-poster q-mr-sm"
           />
           <div class="movies-dialog-title-wrap">
-            <div class="text-h6">{{ scheduleDialogMovie?.title }}</div>
+            <div class="text-h6 movies-dialog-title">{{ scheduleDialogMovie?.title }}</div>
             <div v-if="scheduleDialogMovie?.englishTitle" class="movies-dialog-english-title">
               {{ scheduleDialogMovie.englishTitle }}
             </div>
           </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup class="q-ml-sm movies-dialog-close-btn" />
         </q-card-section>
 
         <q-card-section class="movies-dialog-body">
@@ -202,14 +177,12 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
+import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
-const searchTitle = ref('');
-const filterShowNew = ref(false);
-const filterShowUpdate = ref(false);
-const filterDialog = ref(false);
+const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -230,7 +203,7 @@ function isMovieUpdate(m: Movie): boolean {
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts;
-  const q = searchTitle.value.trim();
+  const q = (searchTitle.value ?? '').trim();
   const base = q
     ? store.movies.filter(
         (m) =>
@@ -268,11 +241,11 @@ const scheduleDialogSort = ref<SortType>('theater');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
 
-const scheduleDialogAvailableDates = computed(() => [
+const scheduleDialogAvailableDates = computed<string[]>(() => [
   ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
 ]);
 
-const scheduleDialogNewDates = computed(() => {
+const scheduleDialogNewDates = computed<string[]>(() => {
   const movieCreatedAtKST = scheduleDialogMovie.value?.createdAt
     ? new Date(new Date(scheduleDialogMovie.value.createdAt).getTime() + 9 * 60 * 60 * 1000)
         .toISOString()

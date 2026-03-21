@@ -3,18 +3,58 @@
     <!-- 헤더 -->
     <q-header bordered class="layout-header text-dark">
       <q-toolbar>
-        <!-- 로고 -->
-        <router-link to="/" class="cineping-logo">
-          <div class="cineping-logo-icon">
-            <q-icon name="movie" size="18px" color="white" />
-          </div>
-          <span class="cineping-logo-text">cineping</span>
-        </router-link>
+        <!-- 로고 (검색 열리면 숨김) -->
+        <Transition name="logo-fade">
+          <router-link v-if="!searchOpen" to="/" class="cineping-logo">
+            <div class="cineping-logo-icon">
+              <q-icon name="movie" size="18px" color="white" />
+            </div>
+            <span class="cineping-logo-text">cineping</span>
+          </router-link>
+        </Transition>
 
-        <q-space />
+        <q-space v-if="!searchOpen" />
+
+        <!-- 검색 + 필터 (메인 페이지에서만 표시) -->
+        <template v-if="isMoviesPage">
+          <!-- 확장된 검색창 -->
+          <Transition name="search-expand">
+            <div v-if="searchOpen" class="header-search-wrap">
+              <q-input
+                ref="searchInputRef"
+                v-model="searchTitle"
+                outlined
+                dense
+                clearable
+                placeholder="영화 제목 검색"
+                class="header-search-input"
+                @blur="onSearchBlur"
+                @keyup.escape="closeSearch"
+              >
+                <template #prepend><q-icon name="search" /></template>
+              </q-input>
+            </div>
+          </Transition>
+
+          <!-- 검색 아이콘 버튼 (닫힌 상태) -->
+          <q-btn v-if="!searchOpen" flat round @click="openSearch" aria-label="검색">
+            <q-icon name="search" size="22px" />
+          </q-btn>
+
+          <!-- 필터 버튼 -->
+          <q-btn flat round class="movies-filter-btn q-ml-xs" @click="filterDialog = true" aria-label="필터">
+            <q-icon name="tune" size="22px" />
+            <q-badge
+              v-if="filterShowNew || filterShowUpdate"
+              color="primary"
+              floating
+              rounded
+            />
+          </q-btn>
+        </template>
 
         <!-- 데스크탑 네비게이션 -->
-        <nav class="gt-sm row items-center q-gutter-sm">
+        <nav class="gt-sm row items-center q-gutter-sm q-ml-sm">
           <q-btn
             v-for="item in navItems"
             :key="item.to"
@@ -28,39 +68,8 @@
           />
         </nav>
 
-        <!-- 모바일 메뉴 버튼 -->
-        <q-btn
-          v-if="isLocalhost"
-          class="lt-md"
-          flat
-          round
-          icon="menu"
-          color="dark"
-          @click="drawerOpen = !drawerOpen"
-          aria-label="메뉴"
-        />
       </q-toolbar>
     </q-header>
-
-    <!-- 모바일 드로어 -->
-    <q-drawer v-model="drawerOpen" side="right" overlay bordered :width="220">
-      <q-list class="q-pt-md">
-        <q-item-label header class="text-weight-bold text-grey-7">메뉴</q-item-label>
-        <q-item
-          v-for="item in navItems"
-          :key="item.to"
-          clickable
-          :to="item.to"
-          active-class="text-primary"
-          @click="drawerOpen = false"
-        >
-          <q-item-section avatar>
-            <q-icon :name="item.icon" />
-          </q-item-section>
-          <q-item-section>{{ item.label }}</q-item-section>
-        </q-item>
-      </q-list>
-    </q-drawer>
 
     <!-- 본문 -->
     <q-page-container>
@@ -70,10 +79,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
+import { useMoviesFilter } from 'src/composables/useMoviesFilter';
+import type { QInput } from 'quasar';
 import 'src/css/layout.css';
+import 'src/css/movies-page.css';
 
-const drawerOpen = ref(false);
+const route = useRoute();
+const isMoviesPage = computed(() => route.path === '/');
+const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
+
+const searchOpen = ref(false);
+const searchInputRef = ref<InstanceType<typeof QInput> | null>(null);
+
+async function openSearch() {
+  searchOpen.value = true;
+  await nextTick();
+  searchInputRef.value?.focus();
+}
+
+function closeSearch() {
+  searchOpen.value = false;
+  searchTitle.value = '';
+}
+
+function onSearchBlur() {
+  if (!searchTitle.value) closeSearch();
+}
 
 const isLocalhost = window.location.hostname === 'localhost';
 

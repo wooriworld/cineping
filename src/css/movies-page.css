@@ -295,7 +295,18 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
   min-width: 0;
+}
+
+.movies-dialog-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movies-dialog-close-btn {
+  align-self: flex-start;
 }
 
 .movies-dialog-english-title {
