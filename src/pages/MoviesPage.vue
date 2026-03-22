@@ -176,6 +176,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
 import type { Movie, Schedule } from 'src/types';
@@ -184,6 +185,7 @@ import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 
+const route = useRoute();
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
@@ -208,6 +210,18 @@ function isMovieUpdate(m: Movie): boolean {
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts;
+  const idParam = route.query.id;
+  const idFilter = idParam
+    ? (Array.isArray(idParam) ? idParam : [idParam])
+        .flatMap((v) => (v ?? '').split(','))
+        .filter(Boolean)
+    : [];
+
+  if (idFilter.length > 0) {
+    const idSet = new Set(idFilter);
+    return store.movies.filter((m) => idSet.has(m.naverMovieId) && (counts[m.id] ?? 0) > 0);
+  }
+
   const q = (searchTitle.value ?? '').trim();
   const base = store.movies
     .filter((m) => (counts[m.id] ?? 0) > 0)
