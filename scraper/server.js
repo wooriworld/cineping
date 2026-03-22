@@ -7,7 +7,8 @@ import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
 // ── Telegram 알림 ─────────────────────────────────────────────────
 const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-const MOVIES_URL = 'https://cheadev5831.github.io/cineping';
+const MOVIES_URL = 'https://cheadev5831.github.io/cineping/#';
+
 
 async function sendTelegramMessage(text) {
   try {
@@ -57,6 +58,7 @@ async function _runMovieScrape() {
   let added = 0;
   let skipped = 0;
   const addedTitles = [];
+  const addedNaverMovieIds = [];
 
   for (const movie of scraped) {
     const existingMovie = existingMap.get(movie.title);
@@ -86,6 +88,7 @@ async function _runMovieScrape() {
 
     existingMap.set(movie.title, { id: '', title: movie.title, englishTitle: movie.englishTitle });
     addedTitles.push(movie.title);
+    if (movie.naverMovieId) addedNaverMovieIds.push(movie.naverMovieId);
     added++;
     console.log(`  + 저장: ${movie.title}`);
   }
@@ -97,7 +100,7 @@ async function _runMovieScrape() {
     `[영화 저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${m}분 ${s}초)\n`,
   );
 
-  return { added, skipped, total: scraped.length, addedTitles };
+  return { added, skipped, total: scraped.length, addedTitles, addedNaverMovieIds };
 }
 
 // ── 내부 헬퍼: 스케줄 수집 ────────────────────────────────────────
@@ -231,12 +234,16 @@ async function _runScheduleScrape(movies) {
 // ── API 기반 영화 수집 엔드포인트 ─────────────────────────────────
 app.post('/api/scrape/movies-api', async (_req, res) => {
   try {
-    const { added, skipped, total, addedTitles } = await _runMovieScrape();
+    const { added, skipped, total, addedTitles, addedNaverMovieIds } = await _runMovieScrape();
 
     if (addedTitles.length > 0) {
       const displayTitles = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
       if (addedTitles.length > 3) displayTitles.push(`    ...외 ${addedTitles.length - 3}개`);
-      const message = `🔥🔥 신규 영화 업데이트 ${addedTitles.length}건\n\n${displayTitles.join('\n')}\n\n🔗 바로가기:\n${MOVIES_URL}`;
+      const url =
+        addedNaverMovieIds.length > 0
+          ? `${MOVIES_URL}?id=${addedNaverMovieIds.join(',')}`
+          : MOVIES_URL;
+      const message = `🔥🔥 신규 영화 업데이트 ${addedTitles.length}건\n\n${displayTitles.join('\n')}\n\n🔗 바로가기:\n${url}`;
       await sendTelegramMessage(message);
       console.log(`[Telegram 발송] ${addedTitles.length}개 신규 영화 알림 발송`);
     }
@@ -266,7 +273,9 @@ app.post('/api/scrape/schedules', async (_req, res) => {
       const MAX_SHOW = 3;
       const lines = notifyMovies.slice(0, MAX_SHOW).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyMovies.length > MAX_SHOW) lines.push(`... 외 ${notifyMovies.length - MAX_SHOW}개`);
-      const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
+      const naverIds = notifyMovies.map((m) => m.naverMovieId).filter(Boolean);
+      const url = naverIds.length > 0 ? `${MOVIES_URL}?id=${naverIds.join(',')}` : MOVIES_URL;
+      const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log(`[Telegram 발송] 스케줄 업데이트 ${notifyMovies.length}개 알림 발송`);
     }
@@ -289,6 +298,7 @@ app.post('/api/scrape/all', async (_req, res) => {
       skipped: movieSkipped,
       total: movieTotal,
       addedTitles,
+      addedNaverMovieIds,
     } = await _runMovieScrape();
 
     // 2. 전체 영화 조회 (신규 추가된 영화 포함)
@@ -321,7 +331,14 @@ app.post('/api/scrape/all', async (_req, res) => {
     }
 
     if (parts.length > 0) {
-      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
+      const allNaverIds = [
+        ...new Set([
+          ...addedNaverMovieIds,
+          ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
+        ]),
+      ];
+      const url = allNaverIds.length > 0 ? `${MOVIES_URL}?id=${allNaverIds.join(',')}` : MOVIES_URL;
+      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');
     }

@@ -4,7 +4,12 @@ import { scrapeMovieSchedulesViaApi } from './parsers/naverScheduleApiParser.js'
 import { scrapeMoviesViaApi } from './parsers/naverMovieApiParser.js';
 
 // ── 환경변수 검증 ──────────────────────────────────────────────────
-const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'];
+const required = [
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'TELEGRAM_BOT_TOKEN',
+  'TELEGRAM_CHAT_ID',
+];
 for (const key of required) {
   if (!process.env[key]) {
     console.error(`[오류] 환경변수 ${key} 가 설정되지 않았습니다.`);
@@ -14,7 +19,8 @@ for (const key of required) {
 
 // ── Telegram 알림 ─────────────────────────────────────────────────
 const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-const MOVIES_URL = 'https://cheadev5831.github.io/cineping';
+const MOVIES_URL = 'https://cheadev5831.github.io/cineping/#';
+
 
 async function sendTelegramMessage(text) {
   try {
@@ -46,13 +52,16 @@ async function runMovieScrape() {
     return { added: 0, skipped: 0, total: 0, addedTitles: [] };
   }
 
-  const { data: existing, error: fetchErr } = await supabase.from('movies').select('id, title, englishTitle');
+  const { data: existing, error: fetchErr } = await supabase
+    .from('movies')
+    .select('id, title, englishTitle');
   if (fetchErr) throw new Error(fetchErr.message);
 
   const existingMap = new Map(existing.map((m) => [m.title, m]));
   let added = 0;
   let skipped = 0;
   const addedTitles = [];
+  const addedNaverMovieIds = [];
 
   for (const movie of scraped) {
     const existingMovie = existingMap.get(movie.title);
@@ -82,6 +91,7 @@ async function runMovieScrape() {
 
     existingMap.set(movie.title, { id: '', title: movie.title, englishTitle: movie.englishTitle });
     addedTitles.push(movie.title);
+    if (movie.naverMovieId) addedNaverMovieIds.push(movie.naverMovieId);
     added++;
     console.log(`  + 저장: ${movie.title}`);
   }
@@ -89,9 +99,11 @@ async function runMovieScrape() {
   const elapsed = Date.now() - start;
   const m = Math.floor(elapsed / 60000);
   const s = Math.floor((elapsed % 60000) / 1000);
-  console.log(`[영화 저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${m}분 ${s}초)\n`);
+  console.log(
+    `[영화 저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${m}분 ${s}초)\n`,
+  );
 
-  return { added, skipped, total: scraped.length, addedTitles };
+  return { added, skipped, total: scraped.length, addedTitles, addedNaverMovieIds };
 }
 
 // ── 스케줄 수집 ────────────────────────────────────────────────────
@@ -207,7 +219,13 @@ async function main() {
 
   try {
     // 1. 영화 수집
-    const { added: movieAdded, skipped: movieSkipped, total: movieTotal, addedTitles } = await runMovieScrape();
+    const {
+      added: movieAdded,
+      skipped: movieSkipped,
+      total: _movieTotal,
+      addedTitles,
+      addedNaverMovieIds,
+    } = await runMovieScrape();
 
     // 2. 전체 영화 조회 (신규 추가된 영화 포함)
     const { data: movies, error: fetchErr } = await supabase
@@ -239,7 +257,14 @@ async function main() {
     }
 
     if (parts.length > 0) {
-      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
+      const allNaverIds = [
+        ...new Set([
+          ...addedNaverMovieIds,
+          ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
+        ]),
+      ];
+      const url = allNaverIds.length > 0 ? `${MOVIES_URL}?id=${allNaverIds.join(',')}` : MOVIES_URL;
+      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');
     }
@@ -247,7 +272,9 @@ async function main() {
     const totalElapsed = Date.now() - allStart;
     const tm = Math.floor(totalElapsed / 60000);
     const ts = Math.floor((totalElapsed % 60000) / 1000);
-    console.log(`[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 (총 소요: ${tm}분 ${ts}초)`);
+    console.log(
+      `[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 (총 소요: ${tm}분 ${ts}초)`,
+    );
 
     if (errors.length > 0) {
       console.warn(`[경고] 실패한 영화 ${errors.length}개:`);
