@@ -93,7 +93,9 @@ async function _runMovieScrape() {
   const elapsed = Date.now() - start;
   const m = Math.floor(elapsed / 60000);
   const s = Math.floor((elapsed % 60000) / 1000);
-  console.log(`[영화 저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${m}분 ${s}초)\n`);
+  console.log(
+    `[영화 저장 완료] 추가: ${added}개 / 중복 스킵: ${skipped}개 (소요: ${m}분 ${s}초)\n`,
+  );
 
   return { added, skipped, total: scraped.length, addedTitles };
 }
@@ -122,7 +124,9 @@ async function _runScheduleScrape(movies) {
         .eq('movieId', movie.id)
         .limit(10000);
       if (exErr) {
-        console.error(`  [Supabase SELECT 오류] code=${exErr.code} message=${exErr.message} details=${exErr.details} hint=${exErr.hint}`);
+        console.error(
+          `  [Supabase SELECT 오류] code=${exErr.code} message=${exErr.message} details=${exErr.details} hint=${exErr.hint}`,
+        );
         throw new Error(exErr.message);
       }
 
@@ -166,7 +170,9 @@ async function _runScheduleScrape(movies) {
           .delete()
           .in('id', toDeleteIds.slice(i, i + CHUNK));
         if (delErr) {
-          console.error(`  [Supabase DELETE 오류] code=${delErr.code} message=${delErr.message} details=${delErr.details} hint=${delErr.hint}`);
+          console.error(
+            `  [Supabase DELETE 오류] code=${delErr.code} message=${delErr.message} details=${delErr.details} hint=${delErr.hint}`,
+          );
           throw new Error(delErr.message);
         }
       }
@@ -174,7 +180,9 @@ async function _runScheduleScrape(movies) {
       for (const { id, data } of toUpdate) {
         const { error: updErr } = await supabase.from('schedules').update(data).eq('id', id);
         if (updErr) {
-          console.error(`  [Supabase UPDATE 오류] id=${id} code=${updErr.code} message=${updErr.message} details=${updErr.details} hint=${updErr.hint}`);
+          console.error(
+            `  [Supabase UPDATE 오류] id=${id} code=${updErr.code} message=${updErr.message} details=${updErr.details} hint=${updErr.hint}`,
+          );
           console.error(`  [Supabase UPDATE 오류] data=`, JSON.stringify(data));
           throw new Error(updErr.message);
         }
@@ -184,7 +192,9 @@ async function _runScheduleScrape(movies) {
         const chunk = toAdd.slice(i, i + CHUNK);
         const { error: insErr } = await supabase.from('schedules').insert(chunk);
         if (insErr) {
-          console.error(`  [Supabase INSERT 오류] chunk[${i}~${i + chunk.length}] code=${insErr.code} message=${insErr.message} details=${insErr.details} hint=${insErr.hint}`);
+          console.error(
+            `  [Supabase INSERT 오류] chunk[${i}~${i + chunk.length}] code=${insErr.code} message=${insErr.message} details=${insErr.details} hint=${insErr.hint}`,
+          );
           console.error(`  [Supabase INSERT 오류] 첫 번째 레코드=`, JSON.stringify(chunk[0]));
           throw new Error(insErr.message);
         }
@@ -274,7 +284,12 @@ app.post('/api/scrape/all', async (_req, res) => {
     const allStart = Date.now();
 
     // 1. 영화 수집
-    const { added: movieAdded, skipped: movieSkipped, total: movieTotal, addedTitles } = await _runMovieScrape();
+    const {
+      added: movieAdded,
+      skipped: movieSkipped,
+      total: movieTotal,
+      addedTitles,
+    } = await _runMovieScrape();
 
     // 2. 전체 영화 조회 (신규 추가된 영화 포함)
     const { data: movies, error: fetchErr } = await supabase
@@ -288,7 +303,9 @@ app.post('/api/scrape/all', async (_req, res) => {
 
     // 4. 통합 텔레그램 알림
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const notifyScheduleMovies = updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today);
+    const notifyScheduleMovies = updatedMovies.filter(
+      (m) => (m.createdAt ?? '').slice(0, 10) < today,
+    );
     const parts = [];
 
     if (addedTitles.length > 0) {
@@ -298,12 +315,13 @@ app.post('/api/scrape/all', async (_req, res) => {
     }
     if (notifyScheduleMovies.length > 0) {
       const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
-      if (notifyScheduleMovies.length > 3) lines.push(`... 외 ${notifyScheduleMovies.length - 3}개`);
+      if (notifyScheduleMovies.length > 3)
+        lines.push(`... 외 ${notifyScheduleMovies.length - 3}개`);
       parts.push(`스케줄 업데이트 ${notifyScheduleMovies.length}건\n${lines.join('\n')}`);
     }
 
     if (parts.length > 0) {
-      const message = `🔥🔥 전체 수집 완료\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
+      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${MOVIES_URL}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');
     }
