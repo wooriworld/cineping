@@ -192,19 +192,16 @@ const schedulesStore = useSchedulesStore();
 const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const nowTimeKST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(11, 16);
 
 function isMovieNew(m: Movie): boolean {
-  return (
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) ===
-    today
-  );
+  return (m.createdAt ?? '').slice(0, 10) === today;
 }
 
 function isMovieUpdate(m: Movie): boolean {
   return (
     schedulesStore.newScheduleMovieIds.has(m.id) &&
-    new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) <
-      today
+    (m.createdAt ?? '').slice(0, 10) < today
   );
 }
 
@@ -273,7 +270,11 @@ function isRegularHall(screenType: string): boolean {
 }
 
 const scheduleDialogAvailableDates = computed<string[]>(() => [
-  ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
+  ...new Set(
+    scheduleDialogSchedules.value
+      .filter((s) => s.date !== today || s.startTime >= nowTimeKST)
+      .map((s) => s.date),
+  ),
 ]);
 
 const scheduleDialogNewDates = computed<string[]>(() => {
@@ -328,9 +329,14 @@ async function openScheduleDialog(movie: Movie) {
   try {
     const list = await schedulesStore.getByMovie(movie.id);
     scheduleDialogSchedules.value = list;
-    const dates = [...new Set(list.map((s) => s.date))].sort();
-    const todayStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    scheduleDialogDate.value = dates.find((d) => d >= todayStr) ?? '';
+    const dates = [
+      ...new Set(
+        list
+          .filter((s) => s.date !== today || s.startTime >= nowTimeKST)
+          .map((s) => s.date),
+      ),
+    ].sort();
+    scheduleDialogDate.value = dates.find((d) => d >= today) ?? '';
   } finally {
     scheduleDialogLoading.value = false;
   }
