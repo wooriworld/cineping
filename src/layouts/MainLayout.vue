@@ -4,16 +4,17 @@
     <q-header bordered class="layout-header text-dark">
       <q-toolbar>
         <!-- 로고 -->
-        <router-link
-          to="/"
+        <a
+          href="#"
           class="cineping-logo"
           :class="{ 'cineping-logo--collapsed': searchOpen }"
+          @click.prevent="goHome"
         >
           <div class="cineping-logo-icon">
             <q-icon name="movie" size="18px" color="white" />
           </div>
           <span class="cineping-logo-text">cineping</span>
-        </router-link>
+        </a>
 
         <!-- 스페이서 -->
         <div class="header-spacer" :class="{ 'header-spacer--collapsed': searchOpen }" />
@@ -81,15 +82,23 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 import type { QInput } from 'quasar';
 import 'src/css/layout.css';
 import 'src/css/movies-page.css';
 
 const route = useRoute();
+const router = useRouter();
 const isMoviesPage = computed(() => route.path === '/');
 const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
+
+function goHome() {
+  searchTitle.value = '';
+  filterShowNew.value = false;
+  filterShowUpdate.value = false;
+  void router.push({ path: '/', query: {} });
+}
 
 const searchOpen = ref(false);
 const searchInputRef = ref<InstanceType<typeof QInput> | null>(null);

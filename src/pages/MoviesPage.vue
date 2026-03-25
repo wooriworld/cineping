@@ -175,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
@@ -351,14 +351,17 @@ async function openScheduleDialog(movie: Movie) {
   }
 }
 
-onMounted(async () => {
+watch(
+  () => route.query.t,
+  async (t) => {
+    tokenIds.value = t && typeof t === 'string' ? await resolveUrlToken(t) : [];
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
   void store.fetchMovies();
   void schedulesStore.fetchScheduleCounts();
   void schedulesStore.fetchNewScheduleMovieIds();
-
-  const t = route.query.t;
-  if (t && typeof t === 'string') {
-    tokenIds.value = await resolveUrlToken(t);
-  }
 });
 </script>
