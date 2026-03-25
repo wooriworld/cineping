@@ -184,6 +184,7 @@ import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
+import { resolveUrlToken } from 'src/services/urlTokenService';
 
 const route = useRoute();
 const store = useMoviesStore();
@@ -192,6 +193,9 @@ const schedulesStore = useSchedulesStore();
 const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+// ?t= 토큰으로 조회한 naverMovieIds
+const tokenIds = ref<string[]>([]);
 const nowTimeKST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(11, 16);
 
 function isMovieNew(m: Movie): boolean {
@@ -207,12 +211,17 @@ function isMovieUpdate(m: Movie): boolean {
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts;
+
+  // ?t= 토큰 우선, 없으면 ?id= (하위 호환)
   const idParam = route.query.id;
-  const idFilter = idParam
-    ? (Array.isArray(idParam) ? idParam : [idParam])
-        .flatMap((v) => (v ?? '').split(','))
-        .filter(Boolean)
-    : [];
+  const idFilter =
+    tokenIds.value.length > 0
+      ? tokenIds.value
+      : idParam
+        ? (Array.isArray(idParam) ? idParam : [idParam])
+            .flatMap((v) => (v ?? '').split(','))
+            .filter(Boolean)
+        : [];
 
   if (idFilter.length > 0) {
     const idSet = new Set(idFilter);
@@ -342,9 +351,14 @@ async function openScheduleDialog(movie: Movie) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   void store.fetchMovies();
   void schedulesStore.fetchScheduleCounts();
   void schedulesStore.fetchNewScheduleMovieIds();
+
+  const t = route.query.t;
+  if (t && typeof t === 'string') {
+    tokenIds.value = await resolveUrlToken(t);
+  }
 });
 </script>

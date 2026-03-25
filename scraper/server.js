@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runMovieScrape } from './core/movieScraper.js';
 import { runScheduleScrape } from './core/scheduleScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
+import { createUrlToken } from './core/urlToken.js';
 
 const MOVIES_URL = 'https://wooriworld.github.io/cineping/#';
 
@@ -29,10 +30,8 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
     if (addedTitles.length > 0) {
       const lines = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
       if (addedTitles.length > 3) lines.push(`    ...외 ${addedTitles.length - 3}개`);
-      const url =
-        addedNaverMovieIds.length > 0
-          ? `${MOVIES_URL}?id=${addedNaverMovieIds.join(',')}`
-          : MOVIES_URL;
+      const token = await createUrlToken(supabase, addedNaverMovieIds);
+      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 신규 영화 업데이트 ${addedTitles.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기:\n${url}`;
       await sendTelegramMessage(message);
       console.log(`[Telegram 발송] ${addedTitles.length}개 신규 영화 알림 발송`);
@@ -63,7 +62,8 @@ app.post('/api/scrape/schedules', async (_req, res) => {
       const lines = notifyMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyMovies.length > 3) lines.push(`... 외 ${notifyMovies.length - 3}개`);
       const naverIds = notifyMovies.map((m) => m.naverMovieId).filter(Boolean);
-      const url = naverIds.length > 0 ? `${MOVIES_URL}?id=${naverIds.join(',')}` : MOVIES_URL;
+      const token = await createUrlToken(supabase, naverIds);
+      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log(`[Telegram 발송] 스케줄 업데이트 ${notifyMovies.length}개 알림 발송`);
@@ -121,7 +121,8 @@ app.post('/api/scrape/all', async (_req, res) => {
           ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
         ]),
       ];
-      const url = allNaverIds.length > 0 ? `${MOVIES_URL}?id=${allNaverIds.join(',')}` : MOVIES_URL;
+      const token = await createUrlToken(supabase, allNaverIds);
+      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');

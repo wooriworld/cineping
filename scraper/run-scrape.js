@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runMovieScrape } from './core/movieScraper.js';
 import { runScheduleScrape } from './core/scheduleScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
+import { createUrlToken } from './core/urlToken.js';
 
 // ── 환경변수 검증 ──────────────────────────────────────────────────
 const required = [
@@ -69,7 +70,8 @@ async function main() {
           ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
         ]),
       ];
-      const url = allNaverIds.length > 0 ? `${MOVIES_URL}?id=${allNaverIds.join(',')}` : MOVIES_URL;
+      const token = await createUrlToken(supabase, allNaverIds);
+      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');
