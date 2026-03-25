@@ -19,7 +19,7 @@ for (const key of required) {
 
 // ── Telegram 알림 ─────────────────────────────────────────────────
 const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-const MOVIES_URL = 'https://cheadev5831.github.io/cineping/#';
+const MOVIES_URL = 'https://wooriworld.github.io/cineping/#';
 
 
 async function sendTelegramMessage(text) {
