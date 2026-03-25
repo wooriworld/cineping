@@ -225,7 +225,11 @@ const filteredMovies = computed(() => {
 
   if (idFilter.length > 0) {
     const idSet = new Set(idFilter);
-    return store.movies.filter((m) => idSet.has(m.naverMovieId) && (counts[m.id] ?? 0) > 0);
+    // 토큰 링크로 진입 시 신규 영화(스케줄 미수집 상태)도 표시
+    const requireSchedule = tokenIds.value.length === 0;
+    return store.movies.filter(
+      (m) => idSet.has(m.naverMovieId) && (!requireSchedule || (counts[m.id] ?? 0) > 0),
+    );
   }
 
   const q = (searchTitle.value ?? '').trim();
