@@ -179,7 +179,7 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
 });
 
 // ── 서버 시작 ─────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`\n[Cineping Scraper Server] 포트 ${PORT} 실행 중`);
   console.log(`  영화 스크래핑 : POST http://localhost:${PORT}/api/scrape/movies-api`);
