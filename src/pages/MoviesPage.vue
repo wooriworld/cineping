@@ -225,7 +225,18 @@ const filteredMovies = computed(() => {
 
   if (idFilter.length > 0) {
     const idSet = new Set(idFilter);
-    return store.movies.filter((m) => idSet.has(m.naverMovieId) && (counts[m.id] ?? 0) > 0);
+    return store.movies
+      .filter((m) => idSet.has(m.naverMovieId) && (counts[m.id] ?? 0) > 0)
+      .sort((a, b) => {
+        const aNew = isMovieNew(a) ? 0 : 1;
+        const bNew = isMovieNew(b) ? 0 : 1;
+        if (aNew !== bNew) return aNew - bNew;
+        const createdDiff = (b.createdAt ?? '').slice(0, 10).localeCompare((a.createdAt ?? '').slice(0, 10));
+        if (createdDiff !== 0) return createdDiff;
+        const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
+        if (countDiff !== 0) return countDiff;
+        return (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
+      });
   }
 
   const q = (searchTitle.value ?? '').trim();
