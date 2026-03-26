@@ -87,13 +87,15 @@ export async function runScheduleScrape(supabase, movies) {
         }
       }
 
-      for (const { id, data } of toUpdate) {
-        const { error: updErr } = await supabase.from('schedules').update(data).eq('id', id);
+      const upsertData = toUpdate.map(({ id, data }) => ({ id, ...data }));
+      for (let i = 0; i < upsertData.length; i += CHUNK) {
+        const { error: updErr } = await supabase
+          .from('schedules')
+          .upsert(upsertData.slice(i, i + CHUNK));
         if (updErr) {
           console.error(
-            `  [Supabase UPDATE 오류] id=${id} code=${updErr.code} message=${updErr.message} details=${updErr.details} hint=${updErr.hint}`,
+            `  [Supabase UPSERT 오류] code=${updErr.code} message=${updErr.message} details=${updErr.details} hint=${updErr.hint}`,
           );
-          console.error(`  [Supabase UPDATE 오류] data=`, JSON.stringify(data));
           throw new Error(updErr.message);
         }
       }
