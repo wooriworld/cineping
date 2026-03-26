@@ -1,7 +1,8 @@
 import { scrapeMovieSchedulesViaApi } from '../parsers/naverScheduleApiParser.js';
 
 const CHUNK = 100;
-const DELAY_MS = 1500;
+const CONCURRENCY = 2; // 동시 처리 영화 수 (2 × 7일 = 14 동시 요청)
+const BATCH_DELAY_MS = 1000; // 배치 간 딜레이
 
 const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
 
@@ -22,7 +23,7 @@ export async function runScheduleScrape(supabase, movies) {
   const errors = [];
   const updatedMovies = [];
 
-  for (const movie of movies) {
+  async function processMovie(movie) {
     const movieStart = Date.now();
     try {
       const scraped = await scrapeMovieSchedulesViaApi(movie);
@@ -128,7 +129,15 @@ export async function runScheduleScrape(supabase, movies) {
       console.error(`  [오류] ${msg} (${m}분 ${s}초)`);
       errors.push(msg);
     }
-    await new Promise((r) => setTimeout(r, DELAY_MS));
+  }
+
+  // CONCURRENCY개씩 묶어 병렬 처리
+  for (let i = 0; i < movies.length; i += CONCURRENCY) {
+    const batch = movies.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map((movie) => processMovie(movie)));
+    if (i + CONCURRENCY < movies.length) {
+      await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
+    }
   }
 
   const elapsed = Date.now() - start;
