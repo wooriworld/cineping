@@ -8,19 +8,21 @@ import { scrapeMoviesViaApi } from '../parsers/naverMovieApiParser.js';
 export async function runMovieScrape(supabase) {
   const start = Date.now();
   console.log('\n[API 영화 수집 시작]');
-  const scraped = await scrapeMoviesViaApi();
+
+  // DB 기존 영화 먼저 조회 → 영어 제목 수집 스킵에 활용
+  const { data: existing, error: fetchErr } = await supabase
+    .from('movies')
+    .select('id, title, englishTitle');
+  if (fetchErr) throw new Error(fetchErr.message);
+
+  const scraped = await scrapeMoviesViaApi(existing ?? []);
   console.log(`[크롤링 완료] ${scraped.length}개 영화 파싱`);
 
   if (scraped.length === 0) {
     return { added: 0, skipped: 0, total: 0, addedTitles: [], addedNaverMovieIds: [] };
   }
 
-  const { data: existing, error: fetchErr } = await supabase
-    .from('movies')
-    .select('id, title, englishTitle');
-  if (fetchErr) throw new Error(fetchErr.message);
-
-  const existingMap = new Map(existing.map((m) => [m.title, m]));
+  const existingMap = new Map((existing ?? []).map((m) => [m.title, m]));
   let added = 0;
   let skipped = 0;
   const addedTitles = [];

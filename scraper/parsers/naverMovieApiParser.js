@@ -84,7 +84,7 @@ function parseItems(items) {
   return movies;
 }
 
-export async function scrapeMoviesViaApi() {
+export async function scrapeMoviesViaApi(existingMovies = []) {
   const first = await fetchPage(1, DISPLAY);
   const total = parseInt(String(first.total), 10) || 0;
   const movies = parseItems(first.items);
@@ -110,9 +110,20 @@ export async function scrapeMoviesViaApi() {
 
   console.log(`[MovieAPI] 총 ${total}개 중 ${unique.length}개 파싱 완료 (중복 ${movies.length - unique.length}개 제거)`);
 
-  // 전체 영화 검색 페이지에서 영어 제목 수집 + naverMovieId 미수집 보완
-  console.log(`[MovieAPI] 검색 페이지에서 영어 제목 수집 시작...`);
-  for (const movie of unique) {
+  // DB에 이미 영어 제목이 있는 영화는 검색 스킵
+  const existingMap = new Map(existingMovies.map((m) => [m.title, m]));
+  const toFetch = unique.filter((movie) => {
+    const ex = existingMap.get(movie.title);
+    if (ex?.englishTitle) {
+      movie.englishTitle = ex.englishTitle;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`[MovieAPI] 영어 제목 수집: ${toFetch.length}개 (${unique.length - toFetch.length}개 스킵)`);
+
+  for (const movie of toFetch) {
     const { naverMovieId, englishTitle } = await fetchNaverMovieInfoBySearch(movie.title);
     if (!movie.naverMovieId && naverMovieId) {
       movie.naverMovieId = naverMovieId;
