@@ -55,11 +55,10 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   async function fetchNewScheduleMovieIds() {
     try {
       const kstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const kstTodayStartUTC = new Date(`${kstToday}T00:00:00+09:00`).toISOString();
       const { data, error: err } = await supabase
         .from('schedules')
         .select('movieId')
-        .gte('lastUpdatedAt', kstTodayStartUTC);
+        .gte('lastUpdatedAt', `${kstToday}T00:00:00.000Z`);
       if (err) throw new Error(err.message);
       newScheduleMovieIds.value = new Set((data ?? []).map((r) => (r as { movieId: string }).movieId));
     } catch (e) {

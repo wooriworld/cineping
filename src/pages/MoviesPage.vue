@@ -298,20 +298,14 @@ const scheduleDialogAvailableDates = computed<string[]>(() => [
 ]);
 
 const scheduleDialogNewDates = computed<string[]>(() => {
-  const movieCreatedAtKST = scheduleDialogMovie.value?.createdAt
-    ? new Date(new Date(scheduleDialogMovie.value.createdAt).getTime() + 9 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10)
-    : '';
+  const movieCreatedAtKST = (scheduleDialogMovie.value?.createdAt ?? '').slice(0, 10);
   return [
     ...new Set(
       scheduleDialogSchedules.value
         .filter(
           (s) =>
             s.lastUpdatedAt &&
-            new Date(new Date(s.lastUpdatedAt).getTime() + 9 * 60 * 60 * 1000)
-              .toISOString()
-              .slice(0, 10) === today &&
+            s.lastUpdatedAt.slice(0, 10) === today &&
             movieCreatedAtKST < today,
         )
         .map((s) => s.date),
