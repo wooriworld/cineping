@@ -108,6 +108,7 @@ export async function runEmucineScrape(supabase) {
 
   let added = 0, updated = 0, skipped = 0;
   const addedTitles = [];
+  const addedSourceIds = [];
   const titleMap = new Map(); // ocrTitle → dbTitle
   const movieIdMap = new Map(); // dbTitle → movieId
 
@@ -141,15 +142,18 @@ export async function runEmucineScrape(supabase) {
       if (englishTitle) console.log(`  + 네이버 영어제목: "${englishTitle}"`);
       await new Promise((r) => setTimeout(r, 500));
 
+      const sourceId = String(Math.floor(100000 + Math.random() * 900000));
+
       const { data: inserted, error: insErr } = await supabase
         .from('movies')
-        .insert({ title, englishTitle, poster, hasEnglishSubtitle: true, source: 'EMUCINE', releaseDate, createdAt: nowKst.toISOString() })
+        .insert({ title, englishTitle, poster, sourceId, hasEnglishSubtitle: true, source: 'EMUCINE', releaseDate, createdAt: nowKst.toISOString() })
         .select('id')
         .single();
       if (insErr) throw new Error(insErr.message);
       movieIdMap.set(title, inserted.id);
       console.log(`  + 신규 저장: "${title}"${englishTitle ? ` (${englishTitle})` : ''}`);
       addedTitles.push(title);
+      addedSourceIds.push(sourceId);
       added++;
     }
   }
@@ -212,5 +216,5 @@ export async function runEmucineScrape(supabase) {
     `[에무시네마 수집 완료] 영화 추가: ${added}개 / 업데이트: ${updated}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 (소요: ${m}분 ${s}초)\n`,
   );
 
-  return { added, updated, skipped, schedulesAdded, addedTitles, errors };
+  return { added, updated, skipped, schedulesAdded, addedTitles, addedSourceIds, errors };
 }

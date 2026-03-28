@@ -100,7 +100,10 @@ app.post('/api/scrape/all', async (_req, res) => {
     // 4. KOFA 수집
     const kofaResult = await runKofaScrape(supabase);
 
-    // 5. 통합 텔레그램 알림
+    // 5. 에무시네마 수집
+    const emucineResult = await runEmucineScrape(supabase);
+
+    // 6. 통합 텔레그램 알림
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const notifyScheduleMovies = [
       ...updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today),
@@ -108,8 +111,8 @@ app.post('/api/scrape/all', async (_req, res) => {
     ];
     const parts = [];
 
-    // 신규 영화 (네이버 + KOFA 취합)
-    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles];
+    // 신규 영화 (네이버 + KOFA + 에무시네마 취합)
+    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
     if (allAddedTitles.length > 0) {
       const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
       if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
@@ -128,6 +131,7 @@ app.post('/api/scrape/all', async (_req, res) => {
         ...new Set([
           ...addedNaverMovieIds,
           ...kofaResult.addedNaverMovieIds,
+          ...emucineResult.addedSourceIds,
           ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
         ]),
       ];
@@ -157,6 +161,11 @@ app.post('/api/scrape/all', async (_req, res) => {
       kofaSchedulesAdded: kofaResult.schedulesAdded,
       kofaSchedulesDeleted: kofaResult.schedulesDeleted,
       kofaErrors: kofaResult.errors,
+      emucineAdded: emucineResult.added,
+      emucineUpdated: emucineResult.updated,
+      emucineSkipped: emucineResult.skipped,
+      emucineSchedulesAdded: emucineResult.schedulesAdded,
+      emucineErrors: emucineResult.errors,
       elapsedMs: totalElapsed,
     });
   } catch (err) {

@@ -60,6 +60,11 @@ export interface ScrapeAllResult {
   kofaSchedulesAdded: number;
   kofaSchedulesDeleted: number;
   kofaErrors: string[];
+  emucineAdded: number;
+  emucineUpdated: number;
+  emucineSkipped: number;
+  emucineSchedulesAdded: number;
+  emucineErrors: string[];
   elapsedMs: number;
 }
 
