@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import { runMovieScrape } from './core/movieScraper.js';
 import { runScheduleScrape } from './core/scheduleScraper.js';
+import { runKofaScrape } from './core/kofaScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
 import { createUrlToken } from './core/urlToken.js';
 
@@ -44,17 +45,23 @@ async function main() {
     // 3. 전체 스케줄 수집
     const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
 
-    // 4. 통합 텔레그램 알림
+    // 4. KOFA 수집
+    const kofaResult = await runKofaScrape(supabase);
+
+    // 5. 통합 텔레그램 알림
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const notifyScheduleMovies = updatedMovies.filter(
-      (m) => (m.createdAt ?? '').slice(0, 10) < today,
-    );
+    const notifyScheduleMovies = [
+      ...updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today),
+      ...kofaResult.updatedMovies,
+    ];
     const parts = [];
 
-    if (addedTitles.length > 0) {
-      const lines = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (addedTitles.length > 3) lines.push(`... 외 ${addedTitles.length - 3}개`);
-      parts.push(`신규 영화 ${addedTitles.length}건\n${lines.join('\n')}`);
+    // 신규 영화 (네이버 + KOFA 취합)
+    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles];
+    if (allAddedTitles.length > 0) {
+      const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
+      if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
+      parts.push(`신규 영화 ${allAddedTitles.length}건\n${lines.join('\n')}`);
     }
     if (notifyScheduleMovies.length > 0) {
       const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
@@ -64,13 +71,14 @@ async function main() {
     }
 
     if (parts.length > 0) {
-      const allNaverIds = [
+      const allSourceIds = [
         ...new Set([
           ...addedNaverMovieIds,
+          ...kofaResult.addedNaverMovieIds,
           ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
         ]),
       ];
-      const token = await createUrlToken(supabase, allNaverIds);
+      const token = await createUrlToken(supabase, allSourceIds);
       const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
       await sendTelegramMessage(message);
@@ -81,7 +89,7 @@ async function main() {
     const tm = Math.floor(totalElapsed / 60000);
     const ts = Math.floor((totalElapsed % 60000) / 1000);
     console.log(
-      `[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 (총 소요: ${tm}분 ${ts}초)`,
+      `[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 / KOFA 추가 ${kofaResult.added}개 (총 소요: ${tm}분 ${ts}초)`,
     );
 
     if (errors.length > 0) {
