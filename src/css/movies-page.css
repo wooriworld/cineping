@@ -68,6 +68,12 @@
   border-color: rgba(245, 158, 11, 0.2);
 }
 
+.movies-active-chip--eng {
+  background: rgba(25, 118, 210, 0.08);
+  color: #1976d2;
+  border-color: rgba(25, 118, 210, 0.2);
+}
+
 /* ── 로딩 ── */
 .movies-loading {
   display: flex;
@@ -149,15 +155,22 @@
 }
 
 /* ── 포스터 뱃지 ── */
-.movie-card-badge {
-  position: absolute !important;
-  top: 8px !important;
-  right: 8px !important;
+.movie-card-badge-wrap {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 1;
+}
+
+.movie-card-badge-item {
   font-size: 10px !important;
   font-weight: 700 !important;
   padding: 3px 7px !important;
   border-radius: 4px !important;
-  z-index: 1;
 }
 
 /* ── 포스터 오버레이 ── */
@@ -278,6 +291,11 @@
 
 .filter-badge--update {
   background: #f59e0b;
+  color: #fff;
+}
+
+.filter-badge--eng {
+  background: #1976d2;
   color: #fff;
 }
 

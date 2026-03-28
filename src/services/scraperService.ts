@@ -60,3 +60,19 @@ export interface ScrapeAllResult {
 export function scrapeAll(): Promise<ScrapeAllResult> {
   return postScraper<ScrapeAllResult>('/api/scrape/all');
 }
+
+export interface ScrapeKofaResult {
+  success: boolean;
+  added: number;
+  updated: number;
+  skipped: number;
+  total: number;
+  schedulesAdded: number;
+  schedulesDeleted: number;
+  schedulesTotal: number;
+  errors: string[];
+}
+
+export function scrapeKofaMovies(): Promise<ScrapeKofaResult> {
+  return postScraper<ScrapeKofaResult>('/api/scrape/kofa-movies');
+}

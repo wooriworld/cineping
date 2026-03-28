@@ -15,7 +15,7 @@
           :disabled="d.disabled"
           @click="$emit('update:modelValue', d.full)"
         >
-          <q-badge v-if="newDates?.includes(d.full)" color="primary" floating rounded class="date-btn-badge" />
+          <q-badge v-if="newDates?.includes(d.full)" floating rounded class="date-btn-badge" style="background: #5b21b6" />
           <div class="date-btn-label">
             <span class="date-btn-day">{{ d.label }}</span>
             <span class="date-btn-num">{{ d.dateNum }}</span>

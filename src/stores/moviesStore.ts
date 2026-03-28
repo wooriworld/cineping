@@ -2,7 +2,14 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useSupabase } from 'src/composables/useSupabase';
 import type { Movie } from 'src/types';
-import { scrapeNaverMoviesViaApi, scrapeAll as scrapeAllService, type ScrapeResult, type ScrapeAllResult } from 'src/services/scraperService';
+import {
+  scrapeNaverMoviesViaApi,
+  scrapeAll as scrapeAllService,
+  scrapeKofaMovies,
+  type ScrapeResult,
+  type ScrapeAllResult,
+  type ScrapeKofaResult,
+} from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
 
@@ -14,6 +21,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   const error = ref<string | null>(null);
   const apiScrapeLoading = ref(false);
   const allScrapeLoading = ref(false);
+  const kofaScrapeLoading = ref(false);
 
   async function fetchMovies() {
     loading.value = true;
@@ -71,5 +79,32 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  return { movies, loading, error, apiScrapeLoading, allScrapeLoading, fetchMovies, deleteMovie, scrapeFromNaverViaApi, scrapeAll };
+  async function scrapeFromKofa(): Promise<ScrapeKofaResult> {
+    kofaScrapeLoading.value = true;
+    error.value = null;
+    try {
+      const result = await scrapeKofaMovies();
+      await fetchMovies();
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      kofaScrapeLoading.value = false;
+    }
+  }
+
+  return {
+    movies,
+    loading,
+    error,
+    apiScrapeLoading,
+    allScrapeLoading,
+    kofaScrapeLoading,
+    fetchMovies,
+    deleteMovie,
+    scrapeFromNaverViaApi,
+    scrapeAll,
+    scrapeFromKofa,
+  };
 });

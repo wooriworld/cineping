@@ -1,4 +1,4 @@
-export type ChainType = 'CGV' | '롯데시네마' | '메가박스' | '씨네Q';
+export type ChainType = 'CGV' | '롯데시네마' | '메가박스' | '씨네Q' | 'KOFA';
 
 export interface Movie {
   id: string;
@@ -8,6 +8,8 @@ export interface Movie {
   poster: string;
   releaseDate: string;
   createdAt: string;
+  hasEnglishSubtitle?: boolean;
+  source?: string;
 }
 
 export interface Schedule {
