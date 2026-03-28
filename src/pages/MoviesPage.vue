@@ -192,7 +192,7 @@ const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialo
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-// ?t= 토큰으로 조회한 naverMovieIds
+// ?t= 토큰으로 조회한 sourceIds
 const tokenIds = ref<string[]>([]);
 const nowTimeKST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(11, 16);
 
@@ -224,7 +224,7 @@ const filteredMovies = computed(() => {
   if (idFilter.length > 0) {
     const idSet = new Set(idFilter);
     return store.movies
-      .filter((m) => idSet.has(m.naverMovieId) && (counts[m.id] ?? 0) > 0)
+      .filter((m) => idSet.has(m.sourceId) && (counts[m.id] ?? 0) > 0)
       .sort((a, b) => {
         const aNew = isMovieNew(a) ? 0 : 1;
         const bNew = isMovieNew(b) ? 0 : 1;

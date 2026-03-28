@@ -15,16 +15,16 @@ async function fetchNaverMovieInfoBySearch(title) {
   const params = new URLSearchParams({ where: 'nexearch', pkid: '68', query: title });
   try {
     const res = await fetch(`${NAVER_SEARCH_URL}?${params}`, { headers: SEARCH_HEADERS });
-    if (!res.ok) return { naverMovieId: '', englishTitle: '' };
+    if (!res.ok) return { sourceId: '', englishTitle: '' };
     const html = await res.text();
     const $ = cheerio.load(html);
-    const naverMovieId = $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
+    const sourceId = $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
     const txts = $('.sub_title .txt');
     const candidate = txts.length >= 2 ? $(txts[1]).text().trim() : '';
     const englishTitle = /[a-zA-Z]/.test(candidate) ? candidate : '';
-    return { naverMovieId, englishTitle };
+    return { sourceId, englishTitle };
   } catch {
-    return { naverMovieId: '', englishTitle: '' };
+    return { sourceId: '', englishTitle: '' };
   }
 }
 
@@ -60,11 +60,11 @@ function parseItems(items) {
 
       const poster = $card.find('a.img_box img').attr('src') ?? '';
 
-      let naverMovieId = '';
+      let sourceId = '';
       $card.find('a[href*="mediaView.nhn"]').each((_, el) => {
         const match = ($(el).attr('href') ?? '').match(/[?&]code=(\d+)/);
         if (match) {
-          naverMovieId = match[1];
+          sourceId = match[1];
           return false;
         }
       });
@@ -78,7 +78,7 @@ function parseItems(items) {
         }
       });
 
-      movies.push({ title, naverMovieId, englishTitle: '', poster, releaseDate });
+      movies.push({ title, sourceId, englishTitle: '', poster, releaseDate });
     });
   }
   return movies;
@@ -102,7 +102,7 @@ export async function scrapeMoviesViaApi(existingMovies = []) {
   // API에서 중복 항목이 내려오는 경우 제거
   const seen = new Set();
   const unique = movies.filter((m) => {
-    const key = m.naverMovieId || m.title;
+    const key = m.sourceId || m.title;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -124,10 +124,10 @@ export async function scrapeMoviesViaApi(existingMovies = []) {
   console.log(`[MovieAPI] 영어 제목 수집: ${toFetch.length}개 (${unique.length - toFetch.length}개 스킵)`);
 
   for (const movie of toFetch) {
-    const { naverMovieId, englishTitle } = await fetchNaverMovieInfoBySearch(movie.title);
-    if (!movie.naverMovieId && naverMovieId) {
-      movie.naverMovieId = naverMovieId;
-      console.log(`  + "${movie.title}" naverMovieId 보완 → ${naverMovieId}`);
+    const { sourceId, englishTitle } = await fetchNaverMovieInfoBySearch(movie.title);
+    if (!movie.sourceId && sourceId) {
+      movie.sourceId = sourceId;
+      console.log(`  + "${movie.title}" sourceId 보완 → ${sourceId}`);
     }
     if (englishTitle) {
       movie.englishTitle = englishTitle;

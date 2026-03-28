@@ -38,7 +38,7 @@ async function main() {
     const { data: movies, error: fetchErr } = await supabase
       .from('movies')
       .select('*')
-      .neq('naverMovieId', '');
+      .neq('sourceId', '');
     if (fetchErr) throw new Error(fetchErr.message);
 
     // 3. 전체 스케줄 수집
@@ -67,7 +67,7 @@ async function main() {
       const allNaverIds = [
         ...new Set([
           ...addedNaverMovieIds,
-          ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
+          ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
         ]),
       ];
       const token = await createUrlToken(supabase, allNaverIds);

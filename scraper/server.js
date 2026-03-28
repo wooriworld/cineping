@@ -51,7 +51,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     const { data: movies, error: fetchErr } = await supabase
       .from('movies')
       .select('*')
-      .neq('naverMovieId', '');
+      .neq('sourceId', '');
     if (fetchErr) throw new Error(fetchErr.message);
 
     const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
@@ -62,7 +62,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
     if (notifyMovies.length > 0) {
       const lines = notifyMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyMovies.length > 3) lines.push(`... 외 ${notifyMovies.length - 3}개`);
-      const naverIds = notifyMovies.map((m) => m.naverMovieId).filter(Boolean);
+      const naverIds = notifyMovies.map((m) => m.sourceId).filter(Boolean);
       const token = await createUrlToken(supabase, naverIds);
       const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
       const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${url}`;
@@ -90,7 +90,7 @@ app.post('/api/scrape/all', async (_req, res) => {
     const { data: movies, error: fetchErr } = await supabase
       .from('movies')
       .select('*')
-      .neq('naverMovieId', '');
+      .neq('sourceId', '');
     if (fetchErr) throw new Error(fetchErr.message);
 
     // 3. 전체 스케줄 수집
@@ -127,7 +127,7 @@ app.post('/api/scrape/all', async (_req, res) => {
         ...new Set([
           ...addedNaverMovieIds,
           ...kofaResult.addedNaverMovieIds,
-          ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
+          ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
         ]),
       ];
       const token = await createUrlToken(supabase, allNaverIds);
@@ -176,8 +176,8 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
 
     const movie = movies[0];
     if (!movie) return res.status(404).json({ success: false, error: '영화를 찾을 수 없습니다.' });
-    if (!movie.naverMovieId)
-      return res.status(400).json({ success: false, error: 'naverMovieId 가 없습니다.' });
+    if (!movie.sourceId)
+      return res.status(400).json({ success: false, error: 'sourceId 가 없습니다.' });
 
     const { schedulesAdded: added, schedulesUpdated: updated, schedulesDeleted: deleted, errors } =
       await runScheduleScrape(supabase, [movie]);

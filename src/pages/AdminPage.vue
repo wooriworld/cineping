@@ -168,12 +168,10 @@
             icon="download"
             color="purple"
             :loading="schedulesStore.apiScrapeLoadingMovies.has(props.row.id)"
-            :disable="!props.row.naverMovieId"
+            :disable="!props.row.sourceId"
             @click="runMovieScheduleScrapeViaApi(props.row)"
           >
-            <q-tooltip>{{
-              props.row.naverMovieId ? '스케줄 수집' : 'naverMovieId 없음'
-            }}</q-tooltip>
+            <q-tooltip>{{ props.row.sourceId ? '스케줄 수집' : 'sourceId 없음' }}</q-tooltip>
           </q-btn>
           <q-btn
             flat
@@ -587,7 +585,7 @@ const columns: QTableColumn[] = [
     format: (val: string) => (val ? val.substring(0, 10).replace(/-/g, '/') : '-'),
   },
   { name: 'scheduleCount', label: '스케줄', field: 'id', align: 'center' },
-  { name: 'naverMovieId', label: '네이버 ID', field: 'naverMovieId', align: 'left' },
+  { name: 'sourceId', label: '수집처ID', field: 'sourceId', align: 'left' },
   { name: 'source', label: '수집처', field: 'source', align: 'center' },
   { name: 'actions', label: '관리', field: 'actions', align: 'center' },
 ];

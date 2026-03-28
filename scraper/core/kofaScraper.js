@@ -69,7 +69,7 @@ export async function runKofaScrape(supabase) {
         const { error: insErr } = await supabase.from('movies').insert({
           title: movie.title,
           englishTitle: movie.englishTitle,
-          naverMovieId: movie.kofaId,
+          sourceId: movie.kofaId,
           poster: movie.poster,
           releaseDate: todayStr,
           hasEnglishSubtitle: true,
@@ -96,7 +96,7 @@ export async function runKofaScrape(supabase) {
   if (scraped.length > 0) {
     const { data: dbMovies, error: dbErr } = await supabase
       .from('movies')
-      .select('id, title, naverMovieId, createdAt');
+      .select('id, title, sourceId, createdAt');
     if (dbErr) throw new Error(dbErr.message);
 
     const movieMap = new Map((dbMovies ?? []).map((m) => [m.title, m]));

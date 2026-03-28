@@ -26,14 +26,14 @@ function getNext7Dates() {
  */
 const FETCH_TIMEOUT_MS = 10_000; // 10초
 
-async function fetchScheduleItems(title, naverMovieId, date) {
+async function fetchScheduleItems(title, sourceId, date) {
   const params = new URLSearchParams({
     where: 'nexearch',
     pkid: '68',
     key: 'MovieAPIforScheduleListKB',
     _callback: 'cb',
     u9: title,
-    u2: naverMovieId,
+    u2: sourceId,
     u3: date,
     u4: '서울특별시',
     u5: '',
@@ -112,7 +112,7 @@ function parseItems(items, movieId) {
  * Playwright 없이 7일 병렬 HTTP 요청
  */
 export async function scrapeMovieSchedulesViaApi(movie) {
-  const { id: movieId, title, naverMovieId } = movie;
+  const { id: movieId, title, sourceId } = movie;
   const dates = getNext7Dates();
 
   console.log(`  [API 스케줄] "${title}" — 7일 병렬 요청...`);
@@ -120,7 +120,7 @@ export async function scrapeMovieSchedulesViaApi(movie) {
   const results = await Promise.all(
     dates.map(async (date) => {
       try {
-        const items = await fetchScheduleItems(title, naverMovieId, date);
+        const items = await fetchScheduleItems(title, sourceId, date);
         const list = parseItems(items, movieId);
         console.log(`  [API 스케줄] "${title}" ${date}: ${list.length}개`);
         return list;

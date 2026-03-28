@@ -47,7 +47,7 @@ export async function runMovieScrape(supabase) {
     const { error } = await supabase.from('movies').insert({
       title: movie.title,
       englishTitle: movie.englishTitle || '',
-      naverMovieId: movie.naverMovieId || '',
+      sourceId: movie.sourceId || '',
       poster: movie.poster || '',
       releaseDate: movie.releaseDate || '',
       source: 'NAVER',
@@ -57,7 +57,7 @@ export async function runMovieScrape(supabase) {
 
     existingMap.set(movie.title, { id: '', title: movie.title, englishTitle: movie.englishTitle });
     addedTitles.push(movie.title);
-    if (movie.naverMovieId) addedNaverMovieIds.push(movie.naverMovieId);
+    if (movie.sourceId) addedNaverMovieIds.push(movie.sourceId);
     added++;
     console.log(`  + 저장: ${movie.title}`);
   }
