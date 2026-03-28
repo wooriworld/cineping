@@ -54,6 +54,12 @@ export interface ScrapeAllResult {
   moviesProcessed: number;
   schedulesAdded: number;
   errors: string[];
+  kofaAdded: number;
+  kofaUpdated: number;
+  kofaSkipped: number;
+  kofaSchedulesAdded: number;
+  kofaSchedulesDeleted: number;
+  kofaErrors: string[];
   elapsedMs: number;
 }
 
@@ -67,6 +73,7 @@ export interface ScrapeKofaResult {
   updated: number;
   skipped: number;
   total: number;
+  addedTitles: string[];
   schedulesAdded: number;
   schedulesDeleted: number;
   schedulesTotal: number;

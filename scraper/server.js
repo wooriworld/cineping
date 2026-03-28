@@ -96,18 +96,25 @@ app.post('/api/scrape/all', async (_req, res) => {
     // 3. 전체 스케줄 수집
     const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
 
-    // 4. 통합 텔레그램 알림
+    // 4. KOFA 수집
+    const kofaResult = await runKofaScrape(supabase);
+
+    // 5. 통합 텔레그램 알림
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const notifyScheduleMovies = updatedMovies.filter(
-      (m) => (m.createdAt ?? '').slice(0, 10) < today,
-    );
+    const notifyScheduleMovies = [
+      ...updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today),
+      ...kofaResult.updatedMovies,
+    ];
     const parts = [];
 
-    if (addedTitles.length > 0) {
-      const lines = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (addedTitles.length > 3) lines.push(`... 외 ${addedTitles.length - 3}개`);
-      parts.push(`신규 영화 ${addedTitles.length}건\n${lines.join('\n')}`);
+    // 신규 영화 (네이버 + KOFA 취합)
+    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles];
+    if (allAddedTitles.length > 0) {
+      const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
+      if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
+      parts.push(`신규 영화 ${allAddedTitles.length}건\n${lines.join('\n')}`);
     }
+    // 스케줄 업데이트
     if (notifyScheduleMovies.length > 0) {
       const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyScheduleMovies.length > 3)
@@ -119,6 +126,7 @@ app.post('/api/scrape/all', async (_req, res) => {
       const allNaverIds = [
         ...new Set([
           ...addedNaverMovieIds,
+          ...kofaResult.addedNaverMovieIds,
           ...notifyScheduleMovies.map((m) => m.naverMovieId).filter(Boolean),
         ]),
       ];
@@ -142,6 +150,12 @@ app.post('/api/scrape/all', async (_req, res) => {
       moviesProcessed: movies.length,
       schedulesAdded,
       errors,
+      kofaAdded: kofaResult.added,
+      kofaUpdated: kofaResult.updated,
+      kofaSkipped: kofaResult.skipped,
+      kofaSchedulesAdded: kofaResult.schedulesAdded,
+      kofaSchedulesDeleted: kofaResult.schedulesDeleted,
+      kofaErrors: kofaResult.errors,
       elapsedMs: totalElapsed,
     });
   } catch (err) {

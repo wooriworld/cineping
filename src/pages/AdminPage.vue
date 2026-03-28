@@ -10,7 +10,7 @@
         :loading="store.allScrapeLoading"
         @click="runAllScrape"
       >
-        <q-tooltip>현재 상영 영화 수집 + 전체 스케줄 수집</q-tooltip>
+        <q-tooltip>현재 상영 영화 수집 + 전체 스케줄 수집 + KOFA 영화 수집</q-tooltip>
       </q-btn>
       <q-btn
         color="indigo"
@@ -344,6 +344,44 @@
                 <q-item-label>오류</q-item-label>
                 <q-item-label
                   v-for="(err, i) in allScrapeResult.errors"
+                  :key="i"
+                  caption
+                  class="text-negative"
+                  >{{ err }}</q-item-label
+                >
+              </q-item-section>
+            </q-item>
+          </q-list>
+          <q-separator class="q-my-sm" />
+          <div class="text-overline text-grey-6 q-mb-xs">KOFA 수집</div>
+          <q-list dense>
+            <q-item>
+              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
+              <q-item-section>
+                <q-item-label>신규 추가</q-item-label>
+                <q-item-label caption>{{ allScrapeResult.kofaAdded }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="update" color="teal" /></q-item-section>
+              <q-item-section>
+                <q-item-label>영어자막 업데이트</q-item-label>
+                <q-item-label caption>{{ allScrapeResult.kofaUpdated }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
+              <q-item-section>
+                <q-item-label>스케줄 추가</q-item-label>
+                <q-item-label caption>{{ allScrapeResult.kofaSchedulesAdded }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item v-if="allScrapeResult.kofaErrors.length > 0">
+              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
+              <q-item-section>
+                <q-item-label>오류</q-item-label>
+                <q-item-label
+                  v-for="(err, i) in allScrapeResult.kofaErrors"
                   :key="i"
                   caption
                   class="text-negative"

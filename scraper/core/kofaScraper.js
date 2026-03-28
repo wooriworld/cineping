@@ -33,6 +33,8 @@ export async function runKofaScrape(supabase) {
   let added = 0;
   let updated = 0;
   let skipped = 0;
+  const addedTitles = [];
+  const addedNaverMovieIds = [];
 
   if (movies.length > 0) {
     const { data: existing, error: fetchErr } = await supabase
@@ -76,6 +78,8 @@ export async function runKofaScrape(supabase) {
         });
         if (insErr) throw new Error(insErr.message);
         console.log(`  + 저장: "${movie.title}" (${movie.englishTitle})`);
+        addedTitles.push(movie.title);
+        addedNaverMovieIds.push(movie.kofaId);
         added++;
       }
     }
@@ -87,14 +91,15 @@ export async function runKofaScrape(supabase) {
   let schedulesAdded = 0;
   let schedulesDeleted = 0;
   const errors = [];
+  const updatedMovies = [];
 
   if (scraped.length > 0) {
     const { data: dbMovies, error: dbErr } = await supabase
       .from('movies')
-      .select('id, title');
+      .select('id, title, naverMovieId, createdAt');
     if (dbErr) throw new Error(dbErr.message);
 
-    const movieMap = new Map((dbMovies ?? []).map((m) => [m.title, m.id]));
+    const movieMap = new Map((dbMovies ?? []).map((m) => [m.title, m]));
     const movieNameMap = new Map((dbMovies ?? []).map((m) => [m.id, m.title]));
 
     const lastUpdatedAt = nowKst.toISOString();
@@ -102,8 +107,9 @@ export async function runKofaScrape(supabase) {
     const schedulesByMovieId = new Map();
     for (const s of scraped) {
       if (s.date > todayStr) continue; // 오늘 이후(미래) 날짜 스킵
-      const movieId = movieMap.get(s.movieTitle);
-      if (!movieId) continue;
+      const movieRow = movieMap.get(s.movieTitle);
+      if (!movieRow) continue;
+      const movieId = movieRow.id;
       if (!schedulesByMovieId.has(movieId)) schedulesByMovieId.set(movieId, []);
       schedulesByMovieId.get(movieId).push({
         movieId,
@@ -155,6 +161,13 @@ export async function runKofaScrape(supabase) {
 
         schedulesAdded += toAdd.length;
         schedulesDeleted += toDeleteIds.length;
+        // 오늘 이전에 등록된 기존 영화에 스케줄이 추가된 경우 업데이트 목록에 추가
+        if (toAdd.length > 0) {
+          const movieRow = [...movieMap.values()].find((m) => m.id === movieId);
+          if (movieRow && (movieRow.createdAt ?? '').slice(0, 10) < todayStr) {
+            updatedMovies.push(movieRow);
+          }
+        }
         console.log(`  ✓ "${movieTitle}" — 추가 ${toAdd.length}개 / 삭제 ${toDeleteIds.length}개`);
       } catch (err) {
         const msg = `${movieTitle}: ${err.message}`;
@@ -171,5 +184,5 @@ export async function runKofaScrape(supabase) {
     `[KOFA 수집 완료] 영화 추가: ${added}개 / 업데이트: ${updated}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 / 삭제: ${schedulesDeleted}개 (소요: ${m}분 ${s}초)\n`,
   );
 
-  return { added, updated, skipped, total: movies.length, schedulesAdded, schedulesDeleted, schedulesTotal: scraped.length, errors };
+  return { added, updated, skipped, total: movies.length, addedTitles, addedNaverMovieIds, updatedMovies, schedulesAdded, schedulesDeleted, schedulesTotal: scraped.length, errors };
 }

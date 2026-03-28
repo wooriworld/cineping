@@ -50,6 +50,7 @@ export async function runMovieScrape(supabase) {
       naverMovieId: movie.naverMovieId || '',
       poster: movie.poster || '',
       releaseDate: movie.releaseDate || '',
+      source: 'NAVER',
       createdAt: new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString(),
     });
     if (error) throw new Error(error.message);
