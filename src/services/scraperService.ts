@@ -83,3 +83,17 @@ export interface ScrapeKofaResult {
 export function scrapeKofaMovies(): Promise<ScrapeKofaResult> {
   return postScraper<ScrapeKofaResult>('/api/scrape/kofa-movies');
 }
+
+export interface ScrapeEmucineResult {
+  success: boolean;
+  added: number;
+  updated: number;
+  skipped: number;
+  schedulesAdded: number;
+  addedTitles: string[];
+  errors: string[];
+}
+
+export function scrapeEmucineMovies(): Promise<ScrapeEmucineResult> {
+  return postScraper<ScrapeEmucineResult>('/api/scrape/emucine-movies');
+}

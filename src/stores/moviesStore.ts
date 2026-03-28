@@ -6,9 +6,11 @@ import {
   scrapeNaverMoviesViaApi,
   scrapeAll as scrapeAllService,
   scrapeKofaMovies,
+  scrapeEmucineMovies,
   type ScrapeResult,
   type ScrapeAllResult,
   type ScrapeKofaResult,
+  type ScrapeEmucineResult,
 } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
@@ -22,6 +24,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   const apiScrapeLoading = ref(false);
   const allScrapeLoading = ref(false);
   const kofaScrapeLoading = ref(false);
+  const emucineScrapeLoading = ref(false);
 
   async function fetchMovies() {
     loading.value = true;
@@ -94,6 +97,19 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
+  async function scrapeFromEmucine(): Promise<ScrapeEmucineResult> {
+    emucineScrapeLoading.value = true;
+    error.value = null;
+    try {
+      return await scrapeEmucineMovies();
+    } catch (e) {
+      error.value = (e as Error).message;
+      throw e;
+    } finally {
+      emucineScrapeLoading.value = false;
+    }
+  }
+
   return {
     movies,
     loading,
@@ -101,10 +117,12 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     apiScrapeLoading,
     allScrapeLoading,
     kofaScrapeLoading,
+    emucineScrapeLoading,
     fetchMovies,
     deleteMovie,
     scrapeFromNaverViaApi,
     scrapeAll,
     scrapeFromKofa,
+    scrapeFromEmucine,
   };
 });

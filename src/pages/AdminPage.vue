@@ -42,6 +42,16 @@
       >
         <q-tooltip>KOFA 시네마테크 영어자막 영화 수집</q-tooltip>
       </q-btn>
+      <q-btn
+        color="deep-purple"
+        icon="theaters"
+        label="에무시네마 영화 수집"
+        class="q-mr-sm"
+        :loading="store.emucineScrapeLoading"
+        @click="runEmucinemaScrape"
+      >
+        <q-tooltip>에무시네마 상영시간표 이미지 OCR 수집</q-tooltip>
+      </q-btn>
     </div>
 
     <q-banner v-if="store.error" class="bg-negative text-white q-mb-md" rounded>
@@ -547,6 +557,69 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <!-- 에무시네마 영화 수집 결과 -->
+    <q-dialog v-model="emucineScrapeDialog">
+      <q-card style="min-width: 280px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">에무시네마 수집 완료</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section v-if="emucineScrapeResult">
+          <div class="text-overline text-grey-6 q-mb-xs">영화</div>
+          <q-list dense>
+            <q-item>
+              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
+              <q-item-section>
+                <q-item-label>신규 추가</q-item-label>
+                <q-item-label caption>{{ emucineScrapeResult.added }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="edit" color="warning" /></q-item-section>
+              <q-item-section>
+                <q-item-label>영어자막 업데이트</q-item-label>
+                <q-item-label caption>{{ emucineScrapeResult.updated }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
+              <q-item-section>
+                <q-item-label>이미 처리됨 (스킵)</q-item-label>
+                <q-item-label caption>{{ emucineScrapeResult.skipped }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+          <q-separator class="q-my-sm" />
+          <div class="text-overline text-grey-6 q-mb-xs">스케줄</div>
+          <q-list dense>
+            <q-item>
+              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
+              <q-item-section>
+                <q-item-label>신규 추가</q-item-label>
+                <q-item-label caption>{{ emucineScrapeResult.schedulesAdded }}개</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item v-if="emucineScrapeResult.errors.length > 0">
+              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
+              <q-item-section>
+                <q-item-label>오류</q-item-label>
+                <q-item-label
+                  v-for="(err, i) in emucineScrapeResult.errors"
+                  :key="i"
+                  caption
+                  class="text-negative"
+                  >{{ err }}</q-item-label
+                >
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn color="primary" label="확인" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -564,6 +637,7 @@ import type {
   ScrapeMovieScheduleResult,
   ScrapeAllResult,
   ScrapeKofaResult,
+  ScrapeEmucineResult,
 } from 'src/services/scraperService';
 import type { QTableColumn } from 'quasar';
 
@@ -732,6 +806,20 @@ async function runKofaScrape() {
     kofaScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
     void schedulesStore.fetchNewScheduleMovieIds();
+  } catch {
+    // store.error 로 표시됨
+  }
+}
+
+// ── 에무시네마 영화 수집 ──────────────────────────────────────────
+const emucineScrapeDialog = ref(false);
+const emucineScrapeResult = ref<ScrapeEmucineResult | null>(null);
+
+async function runEmucinemaScrape() {
+  try {
+    const result = await store.scrapeFromEmucine();
+    emucineScrapeResult.value = result;
+    emucineScrapeDialog.value = true;
   } catch {
     // store.error 로 표시됨
   }

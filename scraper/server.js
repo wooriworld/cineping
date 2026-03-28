@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runMovieScrape } from './core/movieScraper.js';
 import { runScheduleScrape } from './core/scheduleScraper.js';
 import { runKofaScrape } from './core/kofaScraper.js';
+import { runEmucineScrape } from './core/emucineScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
 import { createUrlToken } from './core/urlToken.js';
 
@@ -193,6 +194,17 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
   }
 });
 
+// ── 에무시네마 영화 수집 엔드포인트 ──────────────────────────────
+app.post('/api/scrape/emucine-movies', async (_req, res) => {
+  try {
+    const result = await runEmucineScrape(supabase);
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[에무시네마 수집 오류]', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ── KOFA 영화 수집 엔드포인트 ─────────────────────────────────────
 app.post('/api/scrape/kofa-movies', async (_req, res) => {
   try {
@@ -212,5 +224,6 @@ app.listen(PORT, () => {
   console.log(`  스케줄 수집   : POST http://localhost:${PORT}/api/scrape/schedules`);
   console.log(`  전체 수집     : POST http://localhost:${PORT}/api/scrape/all`);
   console.log(`  KOFA 수집     : POST http://localhost:${PORT}/api/scrape/kofa-movies`);
+  console.log(`  에무시네마 수집: POST http://localhost:${PORT}/api/scrape/emucine-movies`);
   console.log(`  상태 확인     : GET  http://localhost:${PORT}/health\n`);
 });
