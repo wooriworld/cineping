@@ -68,12 +68,6 @@
   border-color: rgba(245, 158, 11, 0.2);
 }
 
-.movies-active-chip--eng {
-  background: rgba(25, 118, 210, 0.08);
-  color: #1976d2;
-  border-color: rgba(25, 118, 210, 0.2);
-}
-
 /* ── 로딩 ── */
 .movies-loading {
   display: flex;
@@ -291,11 +285,6 @@
 
 .filter-badge--update {
   background: #f59e0b;
-  color: #fff;
-}
-
-.filter-badge--eng {
-  background: #1976d2;
   color: #fff;
 }
 

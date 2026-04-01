@@ -8,7 +8,6 @@ export interface Movie {
   poster: string;
   releaseDate: string;
   createdAt: string;
-  hasEnglishSubtitle?: boolean;
   source?: string;
 }
 

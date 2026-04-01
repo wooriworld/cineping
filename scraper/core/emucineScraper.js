@@ -100,7 +100,7 @@ export async function runEmucineScrape(supabase) {
   // ── 2. 영화 제목으로 DB 검색 + 7일치 스케줄 조회 ─────────────────
   const { data: existing, error: fetchErr } = await supabase
     .from('movies')
-    .select('id, title, hasEnglishSubtitle');
+    .select('id, title');
   if (fetchErr) throw new Error(fetchErr.message);
 
   const existingList = existing ?? [];
@@ -120,19 +120,8 @@ export async function runEmucineScrape(supabase) {
       const { movie: ex, matched } = found;
       titleMap.set(title, matched);
       movieIdMap.set(matched, ex.id);
-
-      if (ex.hasEnglishSubtitle) {
-        console.log(`  = 스킵: "${matched}" (이미 hasEnglishSubtitle)`);
-        skipped++;
-      } else {
-        const { error: updErr } = await supabase
-          .from('movies')
-          .update({ hasEnglishSubtitle: true })
-          .eq('id', ex.id);
-        if (updErr) throw new Error(updErr.message);
-        console.log(`  ~ 업데이트: "${matched}" → hasEnglishSubtitle = true`);
-        updated++;
-      }
+      console.log(`  = 스킵: "${matched}" (기존 영화)`);
+      skipped++;
     } else {
       titleMap.set(title, title);
       const dates = engSchedules.filter((s) => s.title === title).map((s) => s.date).sort();
@@ -146,7 +135,7 @@ export async function runEmucineScrape(supabase) {
 
       const { data: inserted, error: insErr } = await supabase
         .from('movies')
-        .insert({ title, englishTitle, poster, sourceId, hasEnglishSubtitle: true, source: 'EMUCINE', releaseDate, createdAt: nowKst.toISOString() })
+        .insert({ title, englishTitle, poster, sourceId, source: 'EMUCINE', releaseDate, createdAt: nowKst.toISOString() })
         .select('id')
         .single();
       if (insErr) throw new Error(insErr.message);

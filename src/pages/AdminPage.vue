@@ -130,12 +130,6 @@
             label="UPDATE"
             class="q-ml-xs"
           />
-          <q-badge
-            v-if="props.row.hasEnglishSubtitle === true"
-            color="primary"
-            label="ENG"
-            class="q-ml-xs"
-          />
         </q-td>
       </template>
 

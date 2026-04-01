@@ -5,7 +5,7 @@ const CHUNK = 100;
 
 /**
  * KOFA 영어자막 영화와 상영 스케줄을 함께 수집해 Supabase에 저장한다.
- * - movies: 기존 영화 hasEnglishSubtitle 업데이트 / 신규 영화 insert
+ * - movies: 기존 영화 확인 / 신규 영화 insert
  * - schedules: KOFA chain diff 방식 (추가/삭제)
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
@@ -39,7 +39,7 @@ export async function runKofaScrape(supabase) {
   if (movies.length > 0) {
     const { data: existing, error: fetchErr } = await supabase
       .from('movies')
-      .select('id, title, hasEnglishSubtitle');
+      .select('id, title');
     if (fetchErr) throw new Error(fetchErr.message);
 
     const existingMap = new Map((existing ?? []).map((m) => [m.title, m]));
@@ -48,17 +48,8 @@ export async function runKofaScrape(supabase) {
       const ex = existingMap.get(movie.title);
 
       if (ex) {
-        if (ex.hasEnglishSubtitle) {
-          skipped++;
-          continue;
-        }
-        const { error: updErr } = await supabase
-          .from('movies')
-          .update({ hasEnglishSubtitle: true })
-          .eq('id', ex.id);
-        if (updErr) throw new Error(updErr.message);
-        console.log(`  ~ 업데이트: "${movie.title}" → hasEnglishSubtitle = true`);
-        updated++;
+        skipped++;
+        continue;
       } else {
         // 오늘 스케줄 없는 신규 영화는 등록하지 않음
         if (!todayScheduleTitles.has(movie.title)) {
@@ -72,7 +63,6 @@ export async function runKofaScrape(supabase) {
           sourceId: movie.kofaId,
           poster: movie.poster,
           releaseDate: todayStr,
-          hasEnglishSubtitle: true,
           source: 'KOFA',
           createdAt: nowKst.toISOString(),
         });

@@ -4,9 +4,8 @@ import { ref } from 'vue';
 const searchTitle = ref('');
 const filterShowNew = ref(false);
 const filterShowUpdate = ref(false);
-const filterShowEng = ref(false);
 const filterDialog = ref(false);
 
 export function useMoviesFilter() {
-  return { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog };
+  return { searchTitle, filterShowNew, filterShowUpdate, filterDialog };
 }

@@ -5,11 +5,10 @@
     </q-banner>
 
     <!-- 활성 필터 칩 -->
-    <div v-if="filterShowNew || filterShowUpdate || filterShowEng" class="movies-active-filters">
+    <div v-if="filterShowNew || filterShowUpdate" class="movies-active-filters">
       <span class="movies-active-filter-label">필터:</span>
       <span v-if="filterShowNew" class="movies-active-chip movies-active-chip--new">NEW</span>
       <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update">UPDATE</span>
-      <span v-if="filterShowEng" class="movies-active-chip movies-active-chip--eng">ENG</span>
     </div>
 
     <!-- 로딩 -->
@@ -35,7 +34,6 @@
             <div class="movie-card-badge-wrap">
               <q-badge v-if="isMovieNew(movie)" color="negative" label="NEW" class="movie-card-badge-item" />
               <q-badge v-else-if="isMovieUpdate(movie)" color="warning" label="UPDATE" class="movie-card-badge-item" />
-              <q-badge v-if="movie.hasEnglishSubtitle" color="primary" label="ENG" class="movie-card-badge-item" />
             </div>
             <div class="movie-card-overlay" />
           </div>
@@ -92,11 +90,6 @@
               <span class="filter-badge filter-badge--update">UPDATE</span>
               <span>Schedule</span>
             </label>
-            <label class="filter-checkbox-row">
-              <q-checkbox v-model="filterShowEng" color="primary" />
-              <span class="filter-badge filter-badge--eng">ENG</span>
-              <span>Subtitle</span>
-            </label>
           </div>
         </div>
 
@@ -106,7 +99,6 @@
             @click="
               filterShowNew = false;
               filterShowUpdate = false;
-              filterShowEng = false;
             "
           >
             Reset
@@ -188,7 +180,7 @@ const route = useRoute();
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
-const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog } = useMoviesFilter();
+const { searchTitle, filterShowNew, filterShowUpdate, filterDialog } = useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -246,13 +238,12 @@ const filteredMovies = computed(() => {
     );
 
   const filtered =
-    !filterShowNew.value && !filterShowUpdate.value && !filterShowEng.value
+    !filterShowNew.value && !filterShowUpdate.value
       ? base
       : base.filter(
           (m) =>
             (filterShowNew.value && isMovieNew(m)) ||
-            (filterShowUpdate.value && isMovieUpdate(m)) ||
-            (filterShowEng.value && m.hasEnglishSubtitle === true),
+            (filterShowUpdate.value && isMovieUpdate(m)),
         );
 
   return filtered.sort((a, b) => {
