@@ -22,6 +22,7 @@ export interface Schedule {
   screenType: string;
   bookingUrl: string;
   lastUpdatedAt: string;
+  hasEnglishSubtitle?: boolean;
 }
 
 export interface AlertConditions {

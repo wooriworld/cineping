@@ -153,6 +153,12 @@
             label="UPDATE"
             class="q-ml-xs"
           />
+          <q-badge
+            v-if="schedulesStore.engScheduleMovieIds.has(props.row.id)"
+            color="primary"
+            label="ENG"
+            class="q-ml-xs"
+          />
         </q-td>
       </template>
 
@@ -781,6 +787,7 @@ async function runAllScrape() {
     allScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
     void schedulesStore.fetchNewScheduleMovieIds();
+    void schedulesStore.fetchEngScheduleMovieIds();
   } catch {
     // store.error 로 표시됨
   }
@@ -811,6 +818,7 @@ async function runKofaScrape() {
     kofaScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
     void schedulesStore.fetchNewScheduleMovieIds();
+    void schedulesStore.fetchEngScheduleMovieIds();
   } catch {
     // store.error 로 표시됨
   }
@@ -841,6 +849,7 @@ async function runScheduleScrape() {
     scheduleScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
     void schedulesStore.fetchNewScheduleMovieIds();
+    void schedulesStore.fetchEngScheduleMovieIds();
   } catch {
     // schedulesStore.error 로 표시됨
   }
@@ -857,6 +866,7 @@ async function runMovieScheduleScrapeViaApi(movie: Movie) {
     movieScheduleScrapeDialog.value = true;
     void schedulesStore.fetchScheduleCounts();
     void schedulesStore.fetchNewScheduleMovieIds();
+    void schedulesStore.fetchEngScheduleMovieIds();
   } catch {
     // schedulesStore.error 로 표시됨
   }
@@ -934,5 +944,6 @@ onMounted(() => {
   void store.fetchMovies();
   void schedulesStore.fetchScheduleCounts();
   void schedulesStore.fetchNewScheduleMovieIds();
+  void schedulesStore.fetchEngScheduleMovieIds();
 });
 </script>

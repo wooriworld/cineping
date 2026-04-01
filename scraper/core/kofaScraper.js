@@ -17,17 +17,18 @@ export async function runKofaScrape(supabase) {
 
   const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const todayStr = nowKst.toISOString().slice(0, 10);
+  const in7days = new Date(nowKst.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   // ── 1. 영화 + 스케줄 파싱 (병렬) ────────────────────────────────
   const [movies, scraped] = await Promise.all([scrapeKofaMovies(), scrapeKofaSchedules()]);
   console.log(`[KOFA] ${movies.length}개 영어자막 영화 파싱 완료`);
   console.log(`[KOFA] ${scraped.length}개 스케줄 파싱 완료`);
 
-  // 오늘 스케줄이 있는 영화 타이틀 셋
-  const todayScheduleTitles = new Set(
-    scraped.filter((s) => s.date === todayStr).map((s) => s.movieTitle),
+  // 이번 주(오늘~7일) 스케줄이 있는 영화 타이틀 셋
+  const weekScheduleTitles = new Set(
+    scraped.filter((s) => s.date >= todayStr && s.date <= in7days).map((s) => s.movieTitle),
   );
-  console.log(`[KOFA] 오늘(${todayStr}) 스케줄 보유 영화: ${todayScheduleTitles.size}개`);
+  console.log(`[KOFA] 이번 주(${todayStr}~${in7days}) 스케줄 보유 영화: ${weekScheduleTitles.size}개`);
 
   // ── 2. 영화 DB 저장 ──────────────────────────────────────────────
   let added = 0;
@@ -51,8 +52,8 @@ export async function runKofaScrape(supabase) {
         continue;
       } else {
         // 오늘 스케줄 없는 신규 영화는 등록하지 않음
-        if (!todayScheduleTitles.has(movie.title)) {
-          console.log(`  - 스킵(오늘 스케줄 없음): "${movie.title}"`);
+        if (!weekScheduleTitles.has(movie.title)) {
+          console.log(`  - 스킵(이번 주 스케줄 없음): "${movie.title}"`);
           skipped++;
           continue;
         }
@@ -95,7 +96,7 @@ export async function runKofaScrape(supabase) {
 
     const schedulesByMovieId = new Map();
     for (const s of scraped) {
-      if (s.date > todayStr) continue; // 오늘 이후(미래) 날짜 스킵
+      if (s.date < todayStr || s.date > in7days) continue; // 오늘~7일 범위 외 스킵
       const movieRow = movieMap.get(s.movieTitle);
       if (!movieRow) continue;
       const movieId = movieRow.id;
@@ -131,7 +132,13 @@ export async function runKofaScrape(supabase) {
           .filter((s) => !newKeySet.has(`${s.date}_${s.startTime}`))
           .map((s) => s.id);
 
-        const toAdd = newSchedules.filter((s) => !existingMap.has(`${s.date}_${s.startTime}`));
+        const toKeepIds = (existing ?? [])
+          .filter((s) => newKeySet.has(`${s.date}_${s.startTime}`))
+          .map((s) => s.id);
+
+        const toAdd = newSchedules
+          .filter((s) => !existingMap.has(`${s.date}_${s.startTime}`))
+          .map((s) => ({ ...s, hasEnglishSubtitle: true }));
 
         for (let i = 0; i < toDeleteIds.length; i += CHUNK) {
           const { error: delErr } = await supabase
@@ -146,6 +153,14 @@ export async function runKofaScrape(supabase) {
             .from('schedules')
             .insert(toAdd.slice(i, i + CHUNK));
           if (insErr) throw new Error(insErr.message);
+        }
+
+        for (let i = 0; i < toKeepIds.length; i += CHUNK) {
+          const { error: updErr } = await supabase
+            .from('schedules')
+            .update({ hasEnglishSubtitle: true })
+            .in('id', toKeepIds.slice(i, i + CHUNK));
+          if (updErr) throw new Error(updErr.message);
         }
 
         schedulesAdded += toAdd.length;
@@ -170,7 +185,7 @@ export async function runKofaScrape(supabase) {
   const m = Math.floor(elapsed / 60000);
   const s = Math.floor((elapsed % 60000) / 1000);
   console.log(
-    `[KOFA 수집 완료] 영화 추가: ${added}개 / 업데이트: ${updated}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 / 삭제: ${schedulesDeleted}개 (소요: ${m}분 ${s}초)\n`,
+    `[KOFA 수집 완료] 영화 추가: ${added}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 / 삭제: ${schedulesDeleted}개 (소요: ${m}분 ${s}초)\n`,
   );
 
   return { added, skipped, total: movies.length, addedTitles, addedNaverMovieIds, updatedMovies, schedulesAdded, schedulesDeleted, schedulesTotal: scraped.length, errors };

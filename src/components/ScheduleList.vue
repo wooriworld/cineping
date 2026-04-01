@@ -37,6 +37,7 @@
                 <div class="showtime-btn-time-row">
                   <span class="showtime-btn-start">{{ s.startTime }}</span><span class="showtime-btn-end">~{{ s.endTime }}</span>
                   <q-badge v-if="s.lastUpdatedAt && (s.lastUpdatedAt).slice(0, 10) === today && (props.movieCreatedAt ?? '').slice(0, 10) < today" color="red" label="NEW" class="q-ml-xs showtime-new-badge" />
+                  <q-badge v-if="s.hasEnglishSubtitle" color="primary" label="ENG" class="q-ml-xs showtime-new-badge" />
                 </div>
                 <span class="showtime-btn-hall">{{ s.screenType || '2D' }}</span>
               </button>
