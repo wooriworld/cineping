@@ -86,6 +86,8 @@ function parseItems(items, movieId) {
         else if (bookingUrl.includes('cgv.co.kr') || theaterName.startsWith('CGV')) chain = 'CGV';
         else if (bookingUrl.includes('lottecinema.co.kr') || theaterName.startsWith('롯데시네마')) chain = '롯데시네마';
         else if (theaterName.startsWith('씨네Q')) chain = '씨네Q';
+        else if (theaterName.startsWith('에무시네마') || bookingUrl.includes('dtryx.com')) chain = 'EMUCINE';
+        else if (theaterName.startsWith('KOFA') || theaterName.startsWith('한국영상자료원')) chain = 'KOFA';
 
         const itemDate = ($(timeEl).attr('data-time') ?? '').slice(0, 10) || date;
         const timeContainer = $(timeEl).find('dd.this_text_time');

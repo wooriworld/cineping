@@ -79,8 +79,8 @@ export async function scrapeEmucineSchedules() {
 다른 설명 없이 JSON만 출력하세요.
 
 [
-  { "date": "2026-03-26", "time": "09:50", "title": "텐", "subtitle": "" },
-  { "date": "2026-03-30", "time": "09:50", "title": "극장의 시간들", "subtitle": "*Eng Subtitles" }
+  { "date": "2026-03-26", "time": "09:50", "title": "텐", "subtitle": "", "hall": "1관" },
+  { "date": "2026-03-30", "time": "09:50", "title": "극장의 시간들", "subtitle": "*Eng Subtitles", "hall": "1관" }
 ]
 
 규칙:
@@ -88,6 +88,7 @@ export async function scrapeEmucineSchedules() {
 - time: HH:MM 형식
 - title: 영화 제목만
 - subtitle: 자막 정보(*Eng Subtitles, *Eng+Kor Subtitles 등), 없으면 빈 문자열
+- hall: 이미지 상단 헤더에 표시된 상영관 (예: "1관", "2관"), 없으면 빈 문자열
 - "시간표 추후 공지" 또는 시간이 없는 칸은 건너뜀`;
 
   const results = [];

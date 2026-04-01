@@ -602,6 +602,13 @@
                 <q-item-label caption>{{ emucineScrapeResult.schedulesAdded }}개</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item>
+              <q-item-section avatar><q-icon name="remove_circle" color="warning" /></q-item-section>
+              <q-item-section>
+                <q-item-label>삭제 (만료)</q-item-label>
+                <q-item-label caption>{{ emucineScrapeResult.schedulesDeleted }}개</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item v-if="emucineScrapeResult.errors.length > 0">
               <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
               <q-item-section>

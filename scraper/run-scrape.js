@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runMovieScrape } from './core/movieScraper.js';
 import { runScheduleScrape } from './core/scheduleScraper.js';
 import { runKofaScrape } from './core/kofaScraper.js';
+import { runEmucineScrape } from './core/emucineScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
 import { createUrlToken } from './core/urlToken.js';
 
@@ -48,7 +49,10 @@ async function main() {
     // 4. KOFA 수집
     const kofaResult = await runKofaScrape(supabase);
 
-    // 5. 통합 텔레그램 알림
+    // 5. 에무시네마 수집
+    const emucineResult = await runEmucineScrape(supabase);
+
+    // 6. 통합 텔레그램 알림
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const notifyScheduleMovies = [
       ...updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today),
@@ -56,8 +60,8 @@ async function main() {
     ];
     const parts = [];
 
-    // 신규 영화 (네이버 + KOFA 취합)
-    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles];
+    // 신규 영화 (네이버 + KOFA + 에무시네마 취합)
+    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
     if (allAddedTitles.length > 0) {
       const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
       if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
@@ -75,6 +79,7 @@ async function main() {
         ...new Set([
           ...addedNaverMovieIds,
           ...kofaResult.addedNaverMovieIds,
+          ...emucineResult.addedSourceIds,
           ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
         ]),
       ];
@@ -89,7 +94,7 @@ async function main() {
     const tm = Math.floor(totalElapsed / 60000);
     const ts = Math.floor((totalElapsed % 60000) / 1000);
     console.log(
-      `[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 / KOFA 추가 ${kofaResult.added}개 (총 소요: ${tm}분 ${ts}초)`,
+      `[전체 수집 완료] 영화 추가 ${movieAdded}개 / 스킵 ${movieSkipped}개 / 스케줄 추가 ${schedulesAdded}개 / KOFA 추가 ${kofaResult.added}개 / 에무시네마 추가 ${emucineResult.added}개 (총 소요: ${tm}분 ${ts}초)`,
     );
 
     if (errors.length > 0) {

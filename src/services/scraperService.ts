@@ -91,6 +91,7 @@ export interface ScrapeEmucineResult {
   added: number;
   skipped: number;
   schedulesAdded: number;
+  schedulesDeleted: number;
   addedTitles: string[];
   errors: string[];
 }
