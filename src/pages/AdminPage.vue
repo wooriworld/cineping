@@ -92,6 +92,29 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
+
+      <q-btn-dropdown
+        :label="sourceFilterLabel"
+        outline
+        dense
+        no-caps
+        color="grey-7"
+        icon="source"
+      >
+        <q-list dense>
+          <q-item
+            v-for="opt in sourceFilterOptions"
+            :key="opt.value"
+            v-close-popup
+            clickable
+            :active="sourceFilter === opt.value"
+            active-class="text-primary"
+            @click="sourceFilter = opt.value"
+          >
+            <q-item-section>{{ opt.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     </div>
 
     <q-table
@@ -651,15 +674,24 @@ const badgeFilterLabel = computed(
   () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '전체',
 );
 
+type SourceFilter = 'all' | 'NAVER' | 'KOFA' | 'EMUCINE';
+const sourceFilter = ref<SourceFilter>('all');
+const sourceFilterOptions: { label: string; value: SourceFilter }[] = [
+  { label: '수집처 전체', value: 'all' },
+  { label: 'NAVER', value: 'NAVER' },
+  { label: 'KOFA', value: 'KOFA' },
+  { label: 'EMUCINE', value: 'EMUCINE' },
+];
+const sourceFilterLabel = computed(
+  () => sourceFilterOptions.find((o) => o.value === sourceFilter.value)?.label ?? '수집처 전체',
+);
+
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const q = (searchTitle.value ?? '').trim();
-  const base = q
-    ? store.movies.filter(
-        (m) =>
-          m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()),
-      )
-    : [...store.movies];
+  const base = store.movies
+    .filter((m) => !q || m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()))
+    .filter((m) => sourceFilter.value === 'all' || m.source === sourceFilter.value);
 
   const isNew = (m: (typeof base)[0]) =>
     new Date(new Date(m.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) ===
