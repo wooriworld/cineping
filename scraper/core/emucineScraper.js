@@ -94,7 +94,7 @@ export async function runEmucineScrape(supabase) {
   console.log(`[에무시네마] Eng 자막 스케줄 ${engSchedules.length}건`);
 
   if (engSchedules.length === 0) {
-    return { added: 0, updated: 0, skipped: 0, schedulesAdded: 0, addedTitles: [], errors };
+    return { added: 0, skipped: 0, schedulesAdded: 0, addedTitles: [], errors };
   }
 
   // ── 2. 영화 제목으로 DB 검색 + 7일치 스케줄 조회 ─────────────────
@@ -106,7 +106,7 @@ export async function runEmucineScrape(supabase) {
   const existingList = existing ?? [];
   const uniqueTitles = [...new Set(engSchedules.map((s) => s.title))];
 
-  let added = 0, updated = 0, skipped = 0;
+  let added = 0, skipped = 0;
   const addedTitles = [];
   const addedSourceIds = [];
   const titleMap = new Map(); // ocrTitle → dbTitle
@@ -205,5 +205,5 @@ export async function runEmucineScrape(supabase) {
     `[에무시네마 수집 완료] 영화 추가: ${added}개 / 업데이트: ${updated}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 (소요: ${m}분 ${s}초)\n`,
   );
 
-  return { added, updated, skipped, schedulesAdded, addedTitles, addedSourceIds, errors };
+  return { added, skipped, schedulesAdded, addedTitles, addedSourceIds, errors };
 }

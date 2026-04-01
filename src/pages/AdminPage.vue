@@ -365,13 +365,6 @@
               </q-item-section>
             </q-item>
             <q-item>
-              <q-item-section avatar><q-icon name="update" color="teal" /></q-item-section>
-              <q-item-section>
-                <q-item-label>영어자막 업데이트</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.kofaUpdated }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
               <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
               <q-item-section>
                 <q-item-label>스케줄 추가</q-item-label>
@@ -500,13 +493,6 @@
               </q-item-section>
             </q-item>
             <q-item>
-              <q-item-section avatar><q-icon name="edit" color="warning" /></q-item-section>
-              <q-item-section>
-                <q-item-label>영어자막 업데이트</q-item-label>
-                <q-item-label caption>{{ kofaScrapeResult.updated }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
               <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
               <q-item-section>
                 <q-item-label>이미 처리됨 (스킵)</q-item-label>
@@ -567,13 +553,6 @@
               <q-item-section>
                 <q-item-label>신규 추가</q-item-label>
                 <q-item-label caption>{{ emucineScrapeResult.added }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="edit" color="warning" /></q-item-section>
-              <q-item-section>
-                <q-item-label>영어자막 업데이트</q-item-label>
-                <q-item-label caption>{{ emucineScrapeResult.updated }}개</q-item-label>
               </q-item-section>
             </q-item>
             <q-item>

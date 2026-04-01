@@ -31,7 +31,6 @@ export async function runKofaScrape(supabase) {
 
   // ── 2. 영화 DB 저장 ──────────────────────────────────────────────
   let added = 0;
-  let updated = 0;
   let skipped = 0;
   const addedTitles = [];
   const addedNaverMovieIds = [];
@@ -174,5 +173,5 @@ export async function runKofaScrape(supabase) {
     `[KOFA 수집 완료] 영화 추가: ${added}개 / 업데이트: ${updated}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 / 삭제: ${schedulesDeleted}개 (소요: ${m}분 ${s}초)\n`,
   );
 
-  return { added, updated, skipped, total: movies.length, addedTitles, addedNaverMovieIds, updatedMovies, schedulesAdded, schedulesDeleted, schedulesTotal: scraped.length, errors };
+  return { added, skipped, total: movies.length, addedTitles, addedNaverMovieIds, updatedMovies, schedulesAdded, schedulesDeleted, schedulesTotal: scraped.length, errors };
 }

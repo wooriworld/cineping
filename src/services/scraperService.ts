@@ -55,13 +55,11 @@ export interface ScrapeAllResult {
   schedulesAdded: number;
   errors: string[];
   kofaAdded: number;
-  kofaUpdated: number;
   kofaSkipped: number;
   kofaSchedulesAdded: number;
   kofaSchedulesDeleted: number;
   kofaErrors: string[];
   emucineAdded: number;
-  emucineUpdated: number;
   emucineSkipped: number;
   emucineSchedulesAdded: number;
   emucineErrors: string[];
@@ -75,7 +73,6 @@ export function scrapeAll(): Promise<ScrapeAllResult> {
 export interface ScrapeKofaResult {
   success: boolean;
   added: number;
-  updated: number;
   skipped: number;
   total: number;
   addedTitles: string[];
@@ -92,7 +89,6 @@ export function scrapeKofaMovies(): Promise<ScrapeKofaResult> {
 export interface ScrapeEmucineResult {
   success: boolean;
   added: number;
-  updated: number;
   skipped: number;
   schedulesAdded: number;
   addedTitles: string[];
