@@ -31,20 +31,28 @@
 
 ### 2.1 스케줄 수집 배치 (Railway Cron)
 
-| 항목      | 내용                                            |
-| --------- | ----------------------------------------------- |
-| 수집 주기 | 매일 9시, 18시 2회 (Railway Cron 스케줄)        |
-| 수집 대상 | 네이버 "현재 상영 영화" 통합 수집               |
-| 수집 방식 | 네이버 스케줄 API HTTP 직접 호출 + cheerio 파싱 |
-| 저장소    | Supabase (PostgreSQL)                           |
+| 항목      | 내용                                                 |
+| --------- | ---------------------------------------------------- |
+| 수집 주기 | 매일 9시, 18시 2회 (Railway Cron 스케줄)             |
+| 수집 대상 | 네이버 현재 상영 영화 / KOFA 시네마테크 / 에무시네마 |
+| 저장소    | Supabase (PostgreSQL)                                |
+
+**소스별 수집 방식**
+
+| 소스       | 방식                                                           |
+| ---------- | -------------------------------------------------------------- |
+| 네이버     | 스케줄 API HTTP 직접 호출 + cheerio 파싱                       |
+| KOFA       | 시네마테크 스케줄 페이지 HTTP 호출 + cheerio HTML 파싱         |
+| 에무시네마 | 상영시간표 이미지 다운로드 → Gemini Vision API OCR → JSON 추출 |
 
 **수집 데이터 항목**
 
 영화 정보
 
 - 영화 제목 (한글), 영어 제목
-- 네이버 영화 ID, 포스터 이미지 URL
-- 개봉일 (YYYY.MM.DD)
+- 소스별 고유 ID, 수집 출처
+- 포스터 이미지 URL
+- 개봉일
 - 등록 시각 (KST)
 
 스케줄 정보
@@ -52,6 +60,7 @@
 - 영화관 체인, 지점명
 - 상영 날짜, 시작 시간, 종료 시간
 - 상영관 타입 (IMAX, 4DX, 일반 등)
+- 영어 자막 여부
 - 예매 링크
 - 마지막 수집 시각 (KST)
 
@@ -100,7 +109,7 @@
 
 - 현재 상영 중인 영화를 그리드 카드로 표시
 - 제목·영문명 통합 검색
-- NEW / UPDATE 배지 필터 드롭다운
+- NEW / UPDATE / ENG 배지 필터
 - 영화 카드 클릭 시 스케줄 상세 팝업
 
 **② 날짜 선택 컴포넌트**
@@ -113,6 +122,7 @@
 
 - 지역 탭: 한국의 각 지역 목록 드롭다운 형태로 중복 선택 가능하게
 - 극장 탭: 한국의 영화관 목록 드롭다운 형태로 "전체"가 디폴트
+- 상영관 탭: 일반관 / 특별관
 - 정렬 기준: 극장순 / 시간순
 
 **④ 스케줄 컴포넌트**
@@ -120,15 +130,14 @@
 - 극장별 카드 단위로 시간표 표시
 - 시간 버튼 가로 스크롤 (스크린타입 함께 표시)
 - 시간 버튼 클릭 시 해당 영화관 예매 페이지로 이동
-- 신규 스케줄에 NEW 배지 표시
+- 신규 스케줄에 NEW 배지, 영어 자막 스케줄에 ENG 배지 표시
 
 **어드민 페이지 **
 
-- 현재 상영 영화 수집 (네이버 API)
-- 전체 스케줄 수집 / 영화별 개별 스케줄 수집
+- 버튼: 전체 수집 / 현재 상영 영화 수집 / 전체 스케줄 수집 / KOFA 영화 수집 / 에무시네마 영화 수집
 - 영화 목록 테이블: 개봉일 desc → 등록일 desc → 스케줄 수 desc 정렬
-- 개봉일 기준 NEW 배지, 스케줄 수 표시
-- 영화 삭제, 영화별 스케줄 전체 삭제
+- 검색: 제목 검색 + 배지 필터 (NEW / UPDATE / ENG) + 수집처 필터 (전체 / NAVER / KOFA / EMUCINE)
+- NEW / UPDATE / ENG 배지 표시, 영화 삭제 및 스케줄 삭제
 
 **사용자 관리 페이지 (/users)**
 
@@ -196,15 +205,15 @@
 
 ### 4.2 배치 / 백엔드
 
-| 항목         | 기술                                                     |
-| ------------ | -------------------------------------------------------- |
-| 런타임       | Node.js                                                  |
-| 서버         | Express (로컬 실행, 수동 트리거)                         |
-| 스크래핑     | 네이버 스케줄 API HTTP 직접 호출 + cheerio               |
-| 스케줄러     | Railway Cron                                             |
-| 데이터베이스 | Supabase (PostgreSQL)                                    |
-| 알림         | Telegram Bot API                                         |
-| 배포         | Railway (scraper/), GitHub Actions → GitHub Pages (웹앱) |
+| 항목         | 기술                                                                        |
+| ------------ | --------------------------------------------------------------------------- |
+| 런타임       | Node.js (ESM)                                                               |
+| 서버         | Express (로컬 실행, 수동 트리거)                                            |
+| 스크래핑     | 네이버·KOFA: HTTP 직접 호출 + cheerio / 에무시네마: Gemini Vision API (OCR) |
+| 스케줄러     | Railway Cron                                                                |
+| 데이터베이스 | Supabase (PostgreSQL)                                                       |
+| 알림         | Telegram Bot API                                                            |
+| 배포         | Railway (scraper/), GitHub Actions → GitHub Pages (웹앱)                    |
 
 ---
 
@@ -217,17 +226,19 @@
   "id": "uuid",
   "title": "왕과 사는 남자",
   "englishTitle": "The King's Man",
-  "naverMovieId": "244329",
+  "sourceId": "244329",
+  "source": "NAVER",
   "poster": "https://...",
-  "releaseDate": "2026.02.04",
+  "releaseDate": "2026-02-04",
   "createdAt": "2026-03-14T00:00:00+09:00"
 }
 ```
 
 > 필드 설명
 >
-> - naverMovieId: 네이버 영화 고유 ID — 스케줄 API 호출 시 사용
-> - releaseDate: 개봉일 (점 구분, YYYY.MM.DD) — 정렬 및 NEW 뱃지 표시용
+> - source: 수집 출처 (`NAVER` / `KOFA` / `EMUCINE`)
+> - sourceId: 소스별 고유 ID (NAVER: 네이버 영화 ID, KOFA: KOFA 영화 ID, EMUCINE: 임의 6자리)
+> - releaseDate: 개봉일 (YYYY-MM-DD) — 정렬 및 NEW 뱃지 표시용
 > - createdAt: KST ISO 8601 — 당일 신규 영화 여부 판별용
 
 ---
@@ -245,13 +256,15 @@
   "endTime": "18:07",
   "screenType": "2D",
   "bookingUrl": "https://...",
+  "hasEnglishSubtitle": false,
   "lastUpdatedAt": "2026-03-14T12:00:00+09:00"
 }
 ```
 
 > 필드 설명
 >
-> - chain: 영화관 체인 ("CGV" / "롯데시네마" / "메가박스" / "씨네Q")
+> - chain: 영화관 체인 (`CGV` / `롯데시네마` / `메가박스` / `씨네Q` / `KOFA` / `EMUCINE`)
+> - hasEnglishSubtitle: 영어 자막 상영 여부 — ENG 배지 표시 기준
 > - unique key: `date + theater + startTime` — diff 비교 및 중복 방지용
 > - lastUpdatedAt: KST ISO 8601 — NEW 배지 표시 기준
 
@@ -271,7 +284,7 @@
 > 필드 설명
 >
 > - token: 8자리 랜덤 문자열 — Telegram 바로가기 URL 쿼리 파라미터(`?t=`)로 사용
-> - ids: 해당 알림에 포함된 naverMovieId 배열 — 웹앱에서 해당 영화만 필터링하여 표시
+> - ids: 해당 알림에 포함된 sourceId 배열 — 웹앱에서 해당 영화만 필터링하여 표시
 
 ---
 
@@ -281,22 +294,29 @@
 1. Railway Cron 트리거 (KST 매일 09:00 / 18:00)
         │
         ▼ run-scrape.js
-2. 네이버 영화 API로 현재 상영 영화 목록 수집
-        │
-3. Supabase movies 테이블과 비교
+2. 네이버 영화 API → 현재 상영 영화 수집
    → 신규 영화 INSERT / 영어 제목 누락 시 UPDATE
         │
-4. Supabase에서 전체 영화 목록 조회
+3. Supabase에서 전체 영화 목록 조회
         │
-5. 영화별 네이버 스케줄 API 순차 호출 (딜레이 1.5초)
+4. 영화별 네이버 스케줄 API 순차 호출 (딜레이 1.5초)
+   → diff 비교 (date + theater + startTime 기준)
+   → 신규: INSERT / 사라진 것: DELETE
         │
-6. 기존 schedules와 diff 비교 (date + theater + startTime 기준)
-   → 신규: INSERT / 변경: UPDATE / 사라진 것: DELETE
+5. KOFA 시네마테크 HTML 파싱
+   → 영어자막 영화·스케줄 수집 → diff 후 저장
+   → hasEnglishSubtitle = true 플래그
+        │
+6. 에무시네마 상영시간표 이미지 다운로드
+   → Gemini Vision API OCR → JSON 추출
+   → Eng 자막 스케줄만 필터링 → diff 후 저장
+   → hasEnglishSubtitle = true 플래그
+   (실패 시 해당 수집만 건너뜀, 전체 배치 중단 없음)
         │
     ┌───┴───┐
  변경 있음   변경 없음
-    │           │
-7. url_tokens 테이블에 토큰 생성 (naverMovieId 배열 저장)
+    │
+7. url_tokens 테이블에 토큰 생성 (sourceId 배열 저장)
         │
 8. Telegram 통합 알림 발송
 ```
@@ -321,7 +341,10 @@
 | 리스크                             | 대응 방안                                                                                                                  |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | 네이버 API 스펙 변경으로 수집 중단 | 파서 모듈 분리 (`naverMovieApiParser`, `naverScheduleApiParser`), 에러 발생 시 해당 파서만 실패 처리 후 텔레그램 알림 발송 |
-| Railway 무료 티어 한도 초과        | 하루 2회 배치 실행(`run-scrape.js`) + Express 서버 상시 대기, 실행 시간·메모리 사용량 모니터링 필요                        |
+| KOFA / 에무시네마 파서 오류        | 소스별 독립 try/catch 처리, 실패 시 해당 수집만 건너뛰고 나머지 배치 정상 진행                                             |
+| Gemini Vision API 장애·할당량 초과 | 에무시네마 수집 실패 시 개별 처리 후 계속 진행, 전체 배치 영향 없음. 무료 할당량 모니터링 필요                             |
+| 에무시네마 이미지 URL 패턴 변경    | 파일명 고정 참조 대신 `img[src^="/about/emuartspace/all/"]` 패턴으로 동적 탐색하여 파일명 변경에 무관                      |
+| Railway 무료 티어 한도 초과        | 하루 2회 배치 실행(`run-scrape.js`), 실행 시간·메모리 사용량 모니터링 필요                                                 |
 | Telegram Bot API 속도 제한         | 영화별 스케줄 수집 간 1.5초 딜레이 적용, 알림은 수집 완료 후 1건으로 통합 발송                                             |
 | Supabase 무료 티어 용량/요청 한도  | 스케줄 diff 방식으로 불필요한 INSERT 최소화, 사라진 스케줄 DELETE로 데이터 적재 방지                                       |
 | 스크래핑 차단 (IP 밴)              | 네이버 공개 API 직접 호출 방식으로 HTML 파싱 의존도 없음, Railway 고정 IP 풀 활용                                          |
