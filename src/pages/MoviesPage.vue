@@ -69,6 +69,11 @@
         <span class="movies-footer-logo-text">cineping</span>
       </div>
       <p class="movies-footer-sub">당신의 영화 스케줄을 한눈에</p>
+      <p class="movies-footer-copyright">© 2026 cineping. All rights reserved.</p>
+      <p class="movies-footer-contact">
+        <q-icon name="mail_outline" size="13px" class="movies-footer-contact-icon" />
+        <a href="mailto:wooriworld82@gmail.com" class="movies-footer-email">wooriworld82@gmail.com</a>
+      </p>
     </div>
 
     <!-- 필터 다이얼로그 (오른쪽 슬라이드) -->
