@@ -48,6 +48,14 @@
   width: 100%;
 }
 
+.header-search-input.q-field--outlined.q-field--focused .q-field__control {
+  border-color: #7c3aed !important;
+}
+
+.header-search-input.q-field--outlined.q-field--focused .q-field__control::after {
+  border-color: #7c3aed !important;
+}
+
 /* cineping 로고 */
 .cineping-logo {
   display: flex;

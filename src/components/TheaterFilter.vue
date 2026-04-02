@@ -135,7 +135,7 @@ const CHAINS = [
 const REGIONS = [
   { value: '지역 선택', label: '지역 선택' },
   { value: '서울', label: '서울' },
-  { value: '경기', label: '경기' },
+  /* { value: '경기', label: '경기' },
   { value: '인천', label: '인천' },
   { value: '강원', label: '강원' },
   { value: '충청', label: '충청' },
@@ -147,7 +147,7 @@ const REGIONS = [
   { value: '대구', label: '대구' },
   { value: '부산', label: '부산' },
   { value: '울산', label: '울산' },
-  { value: '제주', label: '제주' },
+  { value: '제주', label: '제주' },*/
 ];
 
 const HALL_TYPES = [
