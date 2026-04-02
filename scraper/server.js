@@ -31,10 +31,10 @@ app.post('/api/scrape/movies-api', async (_req, res) => {
 
     if (addedTitles.length > 0) {
       const lines = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (addedTitles.length > 3) lines.push(`    ...외 ${addedTitles.length - 3}개`);
+      if (addedTitles.length > 3) lines.push(`    ... and ${addedTitles.length - 3} more`);
       const token = await createUrlToken(supabase, addedNaverMovieIds);
       const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
-      const message = `🔥🔥 신규 영화 업데이트 ${addedTitles.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기:\n${url}`;
+      const message = `🔥🔥 New Movies (${addedTitles.length})\n\n${lines.join('\n')}\n\n🔗 View Details:\n${url}`;
       await sendTelegramMessage(message);
       console.log(`[Telegram 발송] ${addedTitles.length}개 신규 영화 알림 발송`);
     }
@@ -62,7 +62,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
 
     if (notifyMovies.length > 0) {
       const lines = notifyMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
-      if (notifyMovies.length > 3) lines.push(`... 외 ${notifyMovies.length - 3}개`);
+      if (notifyMovies.length > 3) lines.push(`... and ${notifyMovies.length - 3} more`);
       const naverIds = notifyMovies.map((m) => m.sourceId).filter(Boolean);
       const token = await createUrlToken(supabase, naverIds);
       const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
@@ -84,8 +84,13 @@ app.post('/api/scrape/all', async (_req, res) => {
     const allStart = Date.now();
 
     // 1. 영화 수집
-    const { added: movieAdded, skipped: movieSkipped, total: movieTotal, addedTitles, addedNaverMovieIds } =
-      await runMovieScrape(supabase);
+    const {
+      added: movieAdded,
+      skipped: movieSkipped,
+      total: movieTotal,
+      addedTitles,
+      addedNaverMovieIds,
+    } = await runMovieScrape(supabase);
 
     // 2. 전체 영화 조회 (신규 추가된 영화 포함)
     const { data: movies, error: fetchErr } = await supabase
@@ -112,18 +117,22 @@ app.post('/api/scrape/all', async (_req, res) => {
     const parts = [];
 
     // 신규 영화 (네이버 + KOFA + 에무시네마 취합)
-    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
+    const allAddedTitles = [
+      ...addedTitles,
+      ...kofaResult.addedTitles,
+      ...emucineResult.addedTitles,
+    ];
     if (allAddedTitles.length > 0) {
       const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
-      parts.push(`신규 영화 ${allAddedTitles.length}건\n${lines.join('\n')}`);
+      if (allAddedTitles.length > 3) lines.push(`... and ${allAddedTitles.length - 3} more`);
+      parts.push(`New Movies (${allAddedTitles.length})\n${lines.join('\n')}`);
     }
     // 스케줄 업데이트
     if (notifyScheduleMovies.length > 0) {
       const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyScheduleMovies.length > 3)
-        lines.push(`... 외 ${notifyScheduleMovies.length - 3}개`);
-      parts.push(`스케줄 업데이트 ${notifyScheduleMovies.length}건\n${lines.join('\n')}`);
+        lines.push(`... and ${notifyScheduleMovies.length - 3} more`);
+      parts.push(`Showtime Updates (${notifyScheduleMovies.length})\n${lines.join('\n')}`);
     }
 
     if (parts.length > 0) {
@@ -187,8 +196,12 @@ app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
     if (!movie.sourceId)
       return res.status(400).json({ success: false, error: 'sourceId 가 없습니다.' });
 
-    const { schedulesAdded: added, schedulesUpdated: updated, schedulesDeleted: deleted, errors } =
-      await runScheduleScrape(supabase, [movie]);
+    const {
+      schedulesAdded: added,
+      schedulesUpdated: updated,
+      schedulesDeleted: deleted,
+      errors,
+    } = await runScheduleScrape(supabase, [movie]);
 
     if (errors.length > 0) {
       return res.status(500).json({ success: false, error: errors[0] });

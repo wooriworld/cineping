@@ -64,14 +64,14 @@ async function main() {
     const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
     if (allAddedTitles.length > 0) {
       const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (allAddedTitles.length > 3) lines.push(`... 외 ${allAddedTitles.length - 3}개`);
-      parts.push(`신규 영화 ${allAddedTitles.length}건\n${lines.join('\n')}`);
+      if (allAddedTitles.length > 3) lines.push(`... and ${allAddedTitles.length - 3} more`);
+      parts.push(`New Movies (${allAddedTitles.length})\n${lines.join('\n')}`);
     }
     if (notifyScheduleMovies.length > 0) {
       const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
       if (notifyScheduleMovies.length > 3)
-        lines.push(`... 외 ${notifyScheduleMovies.length - 3}개`);
-      parts.push(`스케줄 업데이트 ${notifyScheduleMovies.length}건\n${lines.join('\n')}`);
+        lines.push(`... and ${notifyScheduleMovies.length - 3} more`);
+      parts.push(`Showtime Updates (${notifyScheduleMovies.length})\n${lines.join('\n')}`);
     }
 
     if (parts.length > 0) {
@@ -85,7 +85,7 @@ async function main() {
       ];
       const token = await createUrlToken(supabase, allSourceIds);
       const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
-      const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
+      const message = `🔥🔥 Movie Update Alert\n\n${parts.join('\n\n')}\n\n🔗 View Details\n${url}`;
       await sendTelegramMessage(message);
       console.log('[Telegram 발송] 전체 수집 완료 알림 발송');
     }
