@@ -74,19 +74,20 @@
 **알림 메시지 형식**
 
 ```
-🔥🔥 영화 업데이트 알림
+🔥🔥 Movie Update Alert
 
-신규 영화 N건
+New Movies (N)
 🎬 [ 영화제목1 ]
 🎬 [ 영화제목2 ]
 🎬 [ 영화제목3 ]
-... 외 N개
+... and N more
 
-스케줄 업데이트 N건
+Showtime Updates (N)
 🎬 [ 영화제목1 ]
 🎬 [ 영화제목2 ]
+... and N more
 
-🔗 바로가기
+🔗 View Details
 {서비스 URL}?t={token}
 ```
 
