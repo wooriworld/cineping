@@ -2,18 +2,6 @@
    현재 상영 영화 페이지 (MoviesPage) 스타일
 =========================== */
 
-/* ── 검색/필터 툴바 ── */
-.movies-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.movies-search-input {
-  flex: 1 1 auto;
-}
-
 .movies-filter-btn {
   color: #374151;
   border-radius: 50% !important;

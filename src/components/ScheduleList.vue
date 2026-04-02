@@ -57,11 +57,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-
-const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 import type { Schedule } from 'src/types';
 import type { SortType } from 'components/TheaterFilter.vue';
 import 'src/css/schedule.css';
+
+const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 interface TheaterGroup {
   name: string;
