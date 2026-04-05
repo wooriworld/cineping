@@ -36,7 +36,10 @@ async function fetchScheduleImageUrls() {
  * @returns {{ date: string, time: string, title: string }[]}
  */
 function extractJsonFromResponse(text) {
-  const cleaned = text.replace(/```(?:json)?\n?/g, '').replace(/```/g, '').trim();
+  const cleaned = text
+    .replace(/```(?:json)?\n?/g, '')
+    .replace(/```/g, '')
+    .trim();
   const match = cleaned.match(/\[[\s\S]*\]/);
   if (!match) {
     console.error('[에무시네마] JSON 배열 없음. Gemini 원문:\n', text);
@@ -59,8 +62,6 @@ function extractJsonFromResponse(text) {
  */
 export async function scrapeEmucineSchedules() {
   const imageUrls = await fetchScheduleImageUrls();
-  console.log(`[에무시네마] 상영시간표 이미지 ${imageUrls.length}개 발견`);
-
   if (imageUrls.length === 0) {
     console.warn('[에무시네마] 상영시간표 이미지를 찾지 못했습니다.');
     return [];
@@ -94,7 +95,6 @@ export async function scrapeEmucineSchedules() {
   const results = [];
 
   for (const imageUrl of imageUrls) {
-    console.log(`\n[에무시네마] Gemini 분석 중: ${imageUrl}`);
     try {
       const imgRes = await fetch(imageUrl, { headers: FETCH_HEADERS });
       if (!imgRes.ok) throw new Error(`이미지 다운로드 실패 HTTP ${imgRes.status}`);
@@ -104,7 +104,6 @@ export async function scrapeEmucineSchedules() {
       // 50KB 미만은 로고/배너로 간주하고 스킵
       const MIN_SIZE = 50 * 1024;
       if (imgBuffer.byteLength < MIN_SIZE) {
-        console.log(`[에무시네마] 스킵 (${Math.round(imgBuffer.byteLength / 1024)}KB — 상영시간표 아님): ${imageUrl}`);
         continue;
       }
 
@@ -117,7 +116,9 @@ export async function scrapeEmucineSchedules() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: base64 } }] }],
+            contents: [
+              { parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: base64 } }] },
+            ],
           }),
         },
       );
@@ -128,19 +129,6 @@ export async function scrapeEmucineSchedules() {
       const geminiData = await geminiRes.json();
       const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       const schedules = extractJsonFromResponse(responseText);
-
-      // 로그 출력 (Eng 자막 + 오늘 이후 항목만)
-      const todayLog = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const engSchedules = schedules.filter(
-        (s) => (s.subtitle ?? '').includes('Eng') && s.date >= todayLog,
-      );
-      console.log(`\n  상영날짜     | 상영시간 | 제목`);
-      console.log(`  -------------|----------|----------------------------`);
-      for (const s of engSchedules) {
-        console.log(`  ${s.date} | ${s.time.padEnd(5)}  | ${s.title}`);
-      }
-      console.log(`  → 전체 ${schedules.length}건 중 Eng 자막(오늘 이후) ${engSchedules.length}건`);
-
       results.push({ imageUrl, schedules });
     } catch (err) {
       console.error(`[에무시네마] Gemini 오류 (${imageUrl}):`, err.message);

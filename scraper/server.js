@@ -157,7 +157,7 @@ app.post('/api/scrape/all', async (_req, res) => {
 });
 
 // ── 에무시네마 영화 수집 엔드포인트 ──────────────────────────────
-app.post('/api/scrape/emucine-movies', async (_req, res) => {
+app.post('/api/scrape/emucine-api', async (_req, res) => {
   try {
     const result = await runEmucineScrape(supabase);
     return res.json({ success: true, ...result });
@@ -185,6 +185,6 @@ app.listen(PORT, () => {
   console.log(`  전체 수집 : [POST] http://localhost:${PORT}/api/scrape/all`);
   console.log(`  Naver 수집 : [POST] http://localhost:${PORT}/api/scrape/naver-api`);
   console.log(`  KOFA 수집 : [POST] http://localhost:${PORT}/api/scrape/kofa-api`);
-  console.log(`  에무시네마 수집 : [POST] http://localhost:${PORT}/api/scrape/emucine-movies`);
+  console.log(`  에무시네마 수집 : [POST] http://localhost:${PORT}/api/scrape/emucine-api`);
   console.log(`  상태 확인 : [GET]  http://localhost:${PORT}/health\n`);
 });

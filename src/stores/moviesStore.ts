@@ -8,7 +8,6 @@ import {
   scrapeKofaMovies,
   scrapeEmucineMovies,
   type ScrapeAllResult,
-  type ScrapeEmucineResult,
 } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
@@ -91,11 +90,11 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  async function scrapeFromEmucine(): Promise<ScrapeEmucineResult> {
+  async function scrapeFromEmucine(): Promise<void> {
     emucineScrapeLoading.value = true;
     error.value = null;
     try {
-      return await scrapeEmucineMovies();
+      await scrapeEmucineMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;

@@ -363,72 +363,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <!-- 에무시네마 영화 수집 결과 -->
-    <q-dialog v-model="emucineScrapeDialog">
-      <q-card style="min-width: 280px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">에무시네마 수집 완료</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="emucineScrapeResult">
-          <div class="text-overline text-grey-6 q-mb-xs">영화</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ emucineScrapeResult.added }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
-              <q-item-section>
-                <q-item-label>이미 처리됨 (스킵)</q-item-label>
-                <q-item-label caption>{{ emucineScrapeResult.skipped }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <q-separator class="q-my-sm" />
-          <div class="text-overline text-grey-6 q-mb-xs">스케줄</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ emucineScrapeResult.schedulesAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar
-                ><q-icon name="remove_circle" color="warning"
-              /></q-item-section>
-              <q-item-section>
-                <q-item-label>삭제 (만료)</q-item-label>
-                <q-item-label caption>{{ emucineScrapeResult.schedulesDeleted }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="emucineScrapeResult.errors.length > 0">
-              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>오류</q-item-label>
-                <q-item-label
-                  v-for="(err, i) in emucineScrapeResult.errors"
-                  :key="i"
-                  caption
-                  class="text-negative"
-                  >{{ err }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
@@ -440,7 +374,7 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
-import type { ScrapeAllResult, ScrapeEmucineResult } from 'src/services/scraperService';
+import type { ScrapeAllResult } from 'src/services/scraperService';
 import type { QTableColumn } from 'quasar';
 
 const store = useMoviesStore();
@@ -615,14 +549,9 @@ async function runKofaScrape() {
 }
 
 // ── 에무시네마 영화 수집 ──────────────────────────────────────────
-const emucineScrapeDialog = ref(false);
-const emucineScrapeResult = ref<ScrapeEmucineResult | null>(null);
-
 async function runEmucinemaScrape() {
   try {
-    const result = await store.scrapeFromEmucine();
-    emucineScrapeResult.value = result;
-    emucineScrapeDialog.value = true;
+    await store.scrapeFromEmucine();
   } catch {
     // store.error 로 표시됨
   }

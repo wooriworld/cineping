@@ -1,12 +1,14 @@
 import * as cheerio from 'cheerio';
 import { scrapeEmucineSchedules } from '../parsers/emucineParser.js';
 
+const LOG = '[에무시네마 수집]';
 const EMU_BOOKING_URL =
   'https://www.dtryx.com/reserve/movie.do?cgid=FE8EF4D2-F22D-4802-A39A-D58F23A29C1E&CinemaCd=000069';
 
 const NAVER_SEARCH_HEADERS = {
   'Accept-Language': 'ko-KR,ko;q=0.9',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   Accept: 'text/html,application/xhtml+xml',
   Referer: 'https://www.naver.com/',
 };
@@ -14,7 +16,9 @@ const NAVER_SEARCH_HEADERS = {
 async function fetchNaverMovieInfo(title) {
   const params = new URLSearchParams({ where: 'nexearch', pkid: '68', query: title });
   try {
-    const res = await fetch(`https://search.naver.com/search.naver?${params}`, { headers: NAVER_SEARCH_HEADERS });
+    const res = await fetch(`https://search.naver.com/search.naver?${params}`, {
+      headers: NAVER_SEARCH_HEADERS,
+    });
     if (!res.ok) return { englishTitle: '', poster: '' };
     const html = await res.text();
     const $ = cheerio.load(html);
@@ -30,7 +34,8 @@ async function fetchNaverMovieInfo(title) {
 const CHUNK = 100;
 
 function levenshtein(a, b) {
-  const m = a.length, n = b.length;
+  const m = a.length,
+    n = b.length;
   if (m === 0) return n;
   if (n === 0) return m;
   const dp = Array.from({ length: m + 1 }, (_, i) =>
@@ -60,7 +65,6 @@ function findMovieFuzzy(title, movieList) {
       best = m;
     }
   }
-  if (best) console.log(`  [퍼지매칭] "${title}" → "${best.title}" (거리: ${bestDist})`);
   return best ? { movie: best, matched: best.title } : null;
 }
 
@@ -76,7 +80,7 @@ function findMovieFuzzy(title, movieList) {
  */
 export async function runEmucineScrape(supabase) {
   const start = Date.now();
-  console.log('\n[에무시네마 수집 시작]');
+  console.log(`\n${LOG} 시작`);
 
   const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const todayStr = nowKst.toISOString().slice(0, 10);
@@ -91,22 +95,21 @@ export async function runEmucineScrape(supabase) {
     .flatMap((r) => r.schedules)
     .filter((s) => (s.subtitle ?? '').includes('Eng') && s.date >= todayStr);
 
-  console.log(`[에무시네마] Eng 자막 스케줄 ${engSchedules.length}건`);
+  console.log(`${LOG} 대상 ${engSchedules.length}개`);
 
   if (engSchedules.length === 0) {
     return { added: 0, skipped: 0, schedulesAdded: 0, addedTitles: [], errors };
   }
 
   // ── 2. 영화 제목으로 DB 검색 + 7일치 스케줄 조회 ─────────────────
-  const { data: existing, error: fetchErr } = await supabase
-    .from('movies')
-    .select('id, title');
+  const { data: existing, error: fetchErr } = await supabase.from('movies').select('id, title');
   if (fetchErr) throw new Error(fetchErr.message);
 
   const existingList = existing ?? [];
   const uniqueTitles = [...new Set(engSchedules.map((s) => s.title))];
 
-  let added = 0, skipped = 0;
+  let added = 0,
+    skipped = 0;
   const addedTitles = [];
   const addedSourceIds = [];
   const titleMap = new Map(); // ocrTitle → dbTitle
@@ -120,27 +123,35 @@ export async function runEmucineScrape(supabase) {
       const { movie: ex, matched } = found;
       titleMap.set(title, matched);
       movieIdMap.set(matched, ex.id);
-      console.log(`  = 스킵: "${matched}" (기존 영화)`);
       skipped++;
     } else {
       titleMap.set(title, title);
-      const dates = engSchedules.filter((s) => s.title === title).map((s) => s.date).sort();
+      const dates = engSchedules
+        .filter((s) => s.title === title)
+        .map((s) => s.date)
+        .sort();
       const releaseDate = dates[0] ?? todayStr;
 
       const { englishTitle, poster } = await fetchNaverMovieInfo(title);
-      if (englishTitle) console.log(`  + 네이버 영어제목: "${englishTitle}"`);
       await new Promise((r) => setTimeout(r, 500));
 
       const sourceId = String(Math.floor(100000 + Math.random() * 900000));
 
       const { data: inserted, error: insErr } = await supabase
         .from('movies')
-        .insert({ title, englishTitle, poster, sourceId, source: 'EMUCINE', releaseDate, createdAt: nowKst.toISOString() })
+        .insert({
+          title,
+          englishTitle,
+          poster,
+          sourceId,
+          source: 'EMUCINE',
+          releaseDate,
+          createdAt: nowKst.toISOString(),
+        })
         .select('id')
         .single();
       if (insErr) throw new Error(insErr.message);
       movieIdMap.set(title, inserted.id);
-      console.log(`  + 신규 저장: "${title}"${englishTitle ? ` (${englishTitle})` : ''}`);
       addedTitles.push(title);
       addedSourceIds.push(sourceId);
       added++;
@@ -148,8 +159,6 @@ export async function runEmucineScrape(supabase) {
   }
 
   // ── 3. 스케줄 diff 후 저장 ───────────────────────────────────────
-  console.log('\n[에무시네마 스케줄 저장 시작]');
-
   let schedulesAdded = 0;
   let schedulesDeleted = 0;
   const lastUpdatedAt = nowKst.toISOString();
@@ -175,44 +184,36 @@ export async function runEmucineScrape(supabase) {
         hasEnglishSubtitle: true,
       }));
 
-    // EMUCINE 스케줄만 조회 → 삭제/업데이트 대상 산출
-    const { data: emucineSchedules, error: schErr } = await supabase
-      .from('schedules')
-      .select('id, date, startTime')
-      .eq('movieId', movieId)
-      .eq('chain', 'EMUCINE')
-      .gte('date', todayStr)
-      .lte('date', in7days);
-    if (schErr) throw new Error(schErr.message);
-
-    // 전체 chain 조회 → 중복 추가 방지 + 기존 스케줄 hasEnglishSubtitle 업데이트
+    // 전체 chain 조회 → 삭제 대상 산출 + 중복 추가 방지
     const { data: allSchedules, error: allErr } = await supabase
       .from('schedules')
-      .select('id, date, startTime')
+      .select('id, date, startTime, chain')
       .eq('movieId', movieId)
       .gte('date', todayStr)
       .lte('date', in7days);
     if (allErr) throw new Error(allErr.message);
 
     const newKeySet = new Set(newSchedules.map((s) => `${s.date}_${toHHMM(s.startTime)}`));
-    const allMap = new Map((allSchedules ?? []).map((s) => [`${s.date}_${toHHMM(s.startTime)}`, s]));
+    const allMap = new Map(
+      (allSchedules ?? []).map((s) => [`${s.date}_${toHHMM(s.startTime)}`, s]),
+    );
 
-    console.log(`  [DEBUG] "${dbTitle}" emucineSchedules:`, (emucineSchedules ?? []).map((s) => `${s.date}_${s.startTime}`));
-    console.log(`  [DEBUG] "${dbTitle}" existingToUpdateIds 후보:`, (emucineSchedules ?? []).filter((s) => newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`)).map((s) => s.id));
-
-    const toDeleteIds = (emucineSchedules ?? [])
-      .filter((s) => !newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
+    const toDeleteIds = (allSchedules ?? [])
+      .filter((s) => s.chain === 'EMUCINE' && !newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
       .map((s) => s.id);
 
     // EMUCINE chain 중 수집 목록에 있는 기존 스케줄 → hasEnglishSubtitle = true
-    const existingToUpdateIds = (emucineSchedules ?? [])
-      .filter((s) => newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
+    const existingToUpdateIds = (allSchedules ?? [])
+      .filter((s) => s.chain === 'EMUCINE' && newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
       .map((s) => s.id);
 
     const toAdd = newSchedules.filter((s) => !allMap.has(`${s.date}_${toHHMM(s.startTime)}`));
 
     for (let i = 0; i < toDeleteIds.length; i += CHUNK) {
-      const { error: delErr } = await supabase.from('schedules').delete().in('id', toDeleteIds.slice(i, i + CHUNK));
+      const { error: delErr } = await supabase
+        .from('schedules')
+        .delete()
+        .in('id', toDeleteIds.slice(i, i + CHUNK));
       if (delErr) throw new Error(delErr.message);
     }
 
@@ -222,21 +223,23 @@ export async function runEmucineScrape(supabase) {
     }
 
     for (let i = 0; i < existingToUpdateIds.length; i += CHUNK) {
-      const { error: updErr } = await supabase.from('schedules').update({ hasEnglishSubtitle: true }).in('id', existingToUpdateIds.slice(i, i + CHUNK));
+      const { error: updErr } = await supabase
+        .from('schedules')
+        .update({ hasEnglishSubtitle: true })
+        .in('id', existingToUpdateIds.slice(i, i + CHUNK));
       if (updErr) throw new Error(updErr.message);
     }
 
     schedulesAdded += toAdd.length;
     schedulesDeleted += toDeleteIds.length;
-    console.log(`  ✓ "${dbTitle}" — 추가 ${toAdd.length}개 / 삭제 ${toDeleteIds.length}개`);
   }
 
   const elapsed = Date.now() - start;
   const m = Math.floor(elapsed / 60000);
   const s = Math.floor((elapsed % 60000) / 1000);
   console.log(
-    `[에무시네마 수집 완료] 영화 추가: ${added}개 / 스킵: ${skipped}개 | 스케줄 추가: ${schedulesAdded}개 / 삭제: ${schedulesDeleted}개 (소요: ${m}분 ${s}초)\n`,
+    `${LOG} 영화 추가 ${added}개 / 스킵 ${skipped}개 | 스케줄 추가 ${schedulesAdded}개 / 삭제 ${schedulesDeleted}개`,
   );
-
-  return { added, skipped, schedulesAdded, addedTitles, addedSourceIds, errors };
+  console.log(`${LOG} 소요 ${m}분 ${s}초`);
+  return { added, skipped, schedulesAdded, schedulesDeleted, addedTitles, addedSourceIds, errors };
 }

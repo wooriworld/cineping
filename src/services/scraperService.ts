@@ -73,5 +73,5 @@ export interface ScrapeEmucineResult {
 }
 
 export function scrapeEmucineMovies(): Promise<ScrapeEmucineResult> {
-  return postScraper<ScrapeEmucineResult>('/api/scrape/emucine-movies');
+  return postScraper<ScrapeEmucineResult>('/api/scrape/emucine-api');
 }
