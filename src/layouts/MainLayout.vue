@@ -125,7 +125,6 @@ const navItems = [
   ...(isLocalhost
     ? [
         { to: '/admin', label: '어드민', icon: 'admin_panel_settings' },
-        { to: '/users', label: '사용자 관리', icon: 'people' },
       ]
     : []),
 ];

@@ -31,10 +31,3 @@ export interface AlertConditions {
   modifiedSchedule: boolean;
   preferredChains: ChainType[];
 }
-
-export interface User {
-  uid: string;
-  telegramChatId: string;
-  watchlist: string[];
-  alertConditions: AlertConditions;
-}

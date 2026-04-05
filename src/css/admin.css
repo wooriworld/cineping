@@ -1,0 +1,66 @@
+/* ===========================
+   어드민 페이지 스타일
+=========================== */
+
+/* 검색 입력창 - 드롭다운 버튼과 동일한 스타일 */
+.admin-filter-input {
+  max-width: 260px;
+}
+
+.admin-filter-input .q-field__control {
+  border-color: #616161;
+  min-height: 31px !important;
+  height: 31px;
+}
+
+.admin-filter-input .q-field__control:hover {
+  border-color: #424242;
+}
+
+.admin-filter-input.q-field--focused .q-field__control::after {
+  border-color: #9c27b0 !important;
+}
+
+.admin-filter-input .q-field__prepend,
+.admin-filter-input .q-field__append {
+  height: 31px;
+  color: #616161;
+}
+
+.admin-filter-input .q-field__native {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 31px;
+}
+
+/* 필터 드롭다운 height */
+.admin-filter-dropdown.q-btn-dropdown {
+  min-height: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 수집 버튼 폰트 사이즈 */
+.admin-action-btn {
+  font-size: 12px;
+}
+
+.admin-title-cell {
+  max-width: 280px;
+}
+
+.admin-title-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.admin-title-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+}

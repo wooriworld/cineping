@@ -1,8 +1,6 @@
 import { supabase } from 'src/supabase';
 
-// 테이블별 PK 컬럼명 (기본값 'id', users는 'uid')
-const PK_FIELD: Record<string, string> = { users: 'uid' };
-const pk = (table: string) => PK_FIELD[table] ?? 'id';
+const pk = (_table: string) => 'id';
 
 export function useSupabase() {
   async function getAll<T>(tableName: string): Promise<T[]> {

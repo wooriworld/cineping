@@ -1,67 +1,41 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h5 col">어드민</div>
+    <div class="row items-center q-gutter-sm q-mb-md">
+      <q-btn class="admin-action-btn" color="green-8" icon="cloud_sync" label="전체 수집" @click="runAllScrape" />
+      <q-btn class="admin-action-btn" color="indigo" icon="api" label="Naver 영화 수집" @click="runApiMovieScrape" />
       <q-btn
-        color="green-8"
-        icon="cloud_sync"
-        label="전체 수집"
-        class="q-mr-sm"
-        @click="runAllScrape"
-      >
-      </q-btn>
-      <q-btn
-        color="indigo"
-        icon="api"
-        label="Naver 영화 수집"
-        class="q-mr-sm"
-        @click="runApiMovieScrape"
-      >
-      </q-btn>
-      <q-btn
+        class="admin-action-btn"
         color="deep-orange"
         icon="event_note"
         label="Naver 스케줄 수집"
-        class="q-mr-sm"
         @click="runNaverScheduleScrape"
-      >
-      </q-btn>
+      />
+      <q-btn class="admin-action-btn" color="teal" icon="video_library" label="KOFA 영화 수집" @click="runKofaScrape" />
       <q-btn
-        color="teal"
-        icon="video_library"
-        label="KOFA 영화 수집"
-        class="q-mr-sm"
-        @click="runKofaScrape"
-      >
-      </q-btn>
-      <q-btn
+        class="admin-action-btn"
         color="deep-purple"
         icon="theaters"
         label="에무시네마 영화 수집"
-        class="q-mr-sm"
         @click="runEmucinemaScrape"
-      >
-      </q-btn>
-    </div>
+      />
 
-    <q-banner v-if="store.error" class="bg-negative text-white q-mb-md" rounded>
-      {{ store.error }}
-    </q-banner>
+      <q-space />
 
-    <div class="row items-center q-gutter-sm q-mb-md">
       <q-input
         v-model="searchTitle"
         outlined
         dense
         clearable
-        placeholder="Search for movie titles"
-        style="max-width: 300px"
+        hide-bottom-space
+        placeholder="제목으로 검색하세요"
+        class="admin-filter-input"
       >
         <template #prepend><q-icon name="search" /></template>
       </q-input>
 
       <q-btn-dropdown
         :label="badgeFilterLabel"
+        class="admin-filter-dropdown"
         outline
         dense
         no-caps
@@ -83,7 +57,7 @@
         </q-list>
       </q-btn-dropdown>
 
-      <q-btn-dropdown :label="sourceFilterLabel" outline dense no-caps color="grey-7" icon="source">
+      <q-btn-dropdown :label="sourceFilterLabel" class="admin-filter-dropdown" outline dense no-caps color="grey-7" icon="source">
         <q-list dense>
           <q-item
             v-for="opt in sourceFilterOptions"
@@ -98,7 +72,27 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
+
+      <q-btn-dropdown :label="sortOrderLabel" class="admin-filter-dropdown" outline dense no-caps color="grey-7" icon="sort">
+        <q-list dense>
+          <q-item
+            v-for="opt in sortOrderOptions"
+            :key="opt.value"
+            v-close-popup
+            clickable
+            :active="sortOrder === opt.value"
+            active-class="text-primary"
+            @click="sortOrder = opt.value"
+          >
+            <q-item-section>{{ opt.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     </div>
+
+    <q-banner v-if="store.error" class="bg-negative text-white q-mb-md" rounded>
+      {{ store.error }}
+    </q-banner>
 
     <q-table
       :rows="filteredMovies"
@@ -111,33 +105,43 @@
       bordered
     >
       <template #body-cell-title="props">
-        <q-td>
-          <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
-            props.row.title
-          }}</span>
-          <q-badge
-            v-if="props.row.createdAt?.slice(0, 10) === today"
-            color="red"
-            label="NEW"
-            class="q-ml-xs"
-          />
-          <q-badge
-            v-if="
-              schedulesStore.newScheduleMovieIds.has(props.row.id) &&
-              new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
-                .toISOString()
-                .slice(0, 10) < today
-            "
-            color="teal"
-            label="UPDATE"
-            class="q-ml-xs"
-          />
-          <q-badge
-            v-if="schedulesStore.engScheduleMovieIds.has(props.row.id)"
-            color="primary"
-            label="ENG"
-            class="q-ml-xs"
-          />
+        <q-td class="admin-title-cell">
+          <div class="admin-title-wrap">
+            <span
+              class="cursor-pointer text-primary admin-title-text"
+              @click="openScheduleDialog(props.row)"
+              >{{ props.row.title }}</span
+            >
+            <q-badge
+              v-if="props.row.createdAt?.slice(0, 10) === today"
+              color="red"
+              label="NEW"
+              class="q-ml-xs"
+            />
+            <q-badge
+              v-if="
+                schedulesStore.newScheduleMovieIds.has(props.row.id) &&
+                new Date(new Date(props.row.createdAt).getTime() + 9 * 60 * 60 * 1000)
+                  .toISOString()
+                  .slice(0, 10) < today
+              "
+              color="teal"
+              label="UPDATE"
+              class="q-ml-xs"
+            />
+            <q-badge
+              v-if="schedulesStore.engScheduleMovieIds.has(props.row.id)"
+              color="primary"
+              label="ENG"
+              class="q-ml-xs"
+            />
+          </div>
+        </q-td>
+      </template>
+
+      <template #body-cell-englishTitle="props">
+        <q-td class="admin-title-cell">
+          <span class="admin-title-text">{{ props.row.englishTitle }}</span>
         </q-td>
       </template>
 
@@ -162,7 +166,7 @@
       </template>
 
       <template #body-cell-actions="props">
-        <q-td>
+        <q-td align="center">
           <q-btn
             flat
             round
@@ -227,6 +231,7 @@
 </template>
 
 <script setup lang="ts">
+import 'src/css/admin.css';
 import { computed, ref, onMounted } from 'vue';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
@@ -260,16 +265,16 @@ const columns: QTableColumn[] = [
 
 const searchTitle = ref('');
 
-type BadgeFilter = 'all' | 'new' | 'update' | 'both';
+type BadgeFilter = 'all' | 'new' | 'update' | 'eng';
 const badgeFilter = ref<BadgeFilter>('all');
 const badgeFilterOptions: { label: string; value: BadgeFilter }[] = [
-  { label: '전체', value: 'all' },
+  { label: '구분 전체', value: 'all' },
   { label: 'NEW', value: 'new' },
   { label: 'UPDATE', value: 'update' },
-  { label: 'NEW + UPDATE', value: 'both' },
+  { label: 'ENG', value: 'eng' },
 ];
 const badgeFilterLabel = computed(
-  () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '전체',
+  () => badgeFilterOptions.find((o) => o.value === badgeFilter.value)?.label ?? '구분 전체',
 );
 
 type SourceFilter = 'all' | 'NAVER' | 'KOFA' | 'EMUCINE';
@@ -282,6 +287,18 @@ const sourceFilterOptions: { label: string; value: SourceFilter }[] = [
 ];
 const sourceFilterLabel = computed(
   () => sourceFilterOptions.find((o) => o.value === sourceFilter.value)?.label ?? '수집처 전체',
+);
+
+type SortOrder = 'default' | 'schedules' | 'title' | 'releaseDate';
+const sortOrder = ref<SortOrder>('default');
+const sortOrderOptions: { label: string; value: SortOrder }[] = [
+  { label: '기본 순', value: 'default' },
+  { label: '스케줄 순', value: 'schedules' },
+  { label: '제목 순', value: 'title' },
+  { label: '개봉일 순', value: 'releaseDate' },
+];
+const sortOrderLabel = computed(
+  () => sortOrderOptions.find((o) => o.value === sortOrder.value)?.label ?? '기본 순',
 );
 
 const filteredMovies = computed(() => {
@@ -307,11 +324,23 @@ const filteredMovies = computed(() => {
       ? base.filter(isNew)
       : badgeFilter.value === 'update'
         ? base.filter(isScNew)
-        : badgeFilter.value === 'both'
-          ? base.filter((m) => isNew(m) || isScNew(m))
+        : badgeFilter.value === 'eng'
+          ? base.filter((m) => schedulesStore.engScheduleMovieIds.has(m.id))
           : base;
 
   return filtered.sort((a, b) => {
+    if (sortOrder.value === 'title') {
+      return (a.title ?? '').localeCompare(b.title ?? '');
+    }
+    if (sortOrder.value === 'releaseDate') {
+      return (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
+    }
+    if (sortOrder.value === 'schedules') {
+      const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
+      if (countDiff !== 0) return countDiff;
+      return (a.title ?? '').localeCompare(b.title ?? '');
+    }
+    // 기본 순: 등록일 desc → 스케줄 수 desc → 개봉일 desc
     const createdDiff = (b.createdAt ?? '')
       .slice(0, 10)
       .localeCompare((a.createdAt ?? '').slice(0, 10));
