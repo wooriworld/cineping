@@ -26,9 +26,8 @@ async function postScraper<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-
 export function scrapeNaverMoviesViaApi(): Promise<ScrapeResult> {
-  return postScraper<ScrapeResult>('/api/scrape/movies-api');
+  return postScraper<ScrapeResult>('/api/scrape/naver-api');
 }
 
 export function scrapeNaverSchedules(): Promise<ScrapeScheduleResult> {
@@ -42,7 +41,9 @@ export interface ScrapeMovieScheduleResult {
   deleted: number;
 }
 
-export function scrapeNaverScheduleForMovieViaApi(movieId: string): Promise<ScrapeMovieScheduleResult> {
+export function scrapeNaverScheduleForMovieViaApi(
+  movieId: string,
+): Promise<ScrapeMovieScheduleResult> {
   return postScraper<ScrapeMovieScheduleResult>(`/api/scrape/schedules-api/${movieId}`);
 }
 

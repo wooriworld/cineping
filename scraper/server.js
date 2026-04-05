@@ -24,20 +24,9 @@ app.get('/health', (_req, res) => {
 });
 
 // ── API 기반 영화 수집 엔드포인트 ─────────────────────────────────
-app.post('/api/scrape/movies-api', async (_req, res) => {
+app.post('/api/scrape/naver-api', async (_req, res) => {
   try {
-    const { added, skipped, total, addedTitles, addedNaverMovieIds } =
-      await runMovieScrape(supabase);
-
-    if (addedTitles.length > 0) {
-      const lines = addedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-      if (addedTitles.length > 3) lines.push(`    ... and ${addedTitles.length - 3} more`);
-      const token = await createUrlToken(supabase, addedNaverMovieIds);
-      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
-      const message = `🔥🔥 New Movies (${addedTitles.length})\n\n${lines.join('\n')}\n\n🔗 View Details:\n${url}`;
-      await sendTelegramMessage(message);
-      console.log(`[Telegram 발송] ${addedTitles.length}개 신규 영화 알림 발송`);
-    }
+    const { added, skipped, total } = await runMovieScrape(supabase);
 
     return res.json({ success: true, added, skipped, total });
   } catch (err) {
@@ -240,10 +229,10 @@ app.post('/api/scrape/kofa-movies', async (_req, res) => {
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`\n[Cineping Scraper Server] 포트 ${PORT} 실행 중`);
-  console.log(`  영화 스크래핑 : POST http://localhost:${PORT}/api/scrape/movies-api`);
-  console.log(`  스케줄 수집   : POST http://localhost:${PORT}/api/scrape/schedules`);
-  console.log(`  전체 수집     : POST http://localhost:${PORT}/api/scrape/all`);
-  console.log(`  KOFA 수집     : POST http://localhost:${PORT}/api/scrape/kofa-movies`);
-  console.log(`  에무시네마 수집: POST http://localhost:${PORT}/api/scrape/emucine-movies`);
-  console.log(`  상태 확인     : GET  http://localhost:${PORT}/health\n`);
+  console.log(`  전체 수집 : [POST] http://localhost:${PORT}/api/scrape/all`);
+  console.log(`  Naver 수집 : [POST] http://localhost:${PORT}/api/scrape/naver-api`);
+  console.log(`  Naver 스케줄 수집 : [POST] http://localhost:${PORT}/api/scrape/schedules-api`);
+  console.log(`  KOFA 수집 : [POST] http://localhost:${PORT}/api/scrape/kofa-movies`);
+  console.log(`  에무시네마 수집 : [POST] http://localhost:${PORT}/api/scrape/emucine-movies`);
+  console.log(`  상태 확인 : [GET]  http://localhost:${PORT}/health\n`);
 });

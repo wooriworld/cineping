@@ -10,12 +10,11 @@
         :loading="store.allScrapeLoading"
         @click="runAllScrape"
       >
-        <q-tooltip>현재 상영 영화 수집 + 전체 스케줄 수집 + KOFA 영화 수집</q-tooltip>
       </q-btn>
       <q-btn
         color="indigo"
         icon="api"
-        label="현재 상영 영화 수집"
+        label="Naver 영화 수집"
         class="q-mr-sm"
         :loading="store.apiScrapeLoading"
         @click="runApiMovieScrape"
@@ -93,14 +92,7 @@
         </q-list>
       </q-btn-dropdown>
 
-      <q-btn-dropdown
-        :label="sourceFilterLabel"
-        outline
-        dense
-        no-caps
-        color="grey-7"
-        icon="source"
-      >
+      <q-btn-dropdown :label="sourceFilterLabel" outline dense no-caps color="grey-7" icon="source">
         <q-list dense>
           <q-item
             v-for="opt in sourceFilterOptions"
@@ -289,38 +281,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- 영화 스크래핑 결과 -->
-    <q-dialog v-model="movieScrapeDialog">
-      <q-card style="min-width: 300px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">영화 스크래핑 완료</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="movieScrapeResult">
-          <q-list>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ movieScrapeResult.added }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
-              <q-item-section>
-                <q-item-label>중복 스킵</q-item-label>
-                <q-item-label caption>{{ movieScrapeResult.skipped }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- 전체 수집 결과 -->
     <q-dialog v-model="allScrapeDialog">
       <q-card style="min-width: 320px">
@@ -347,7 +307,7 @@
             <q-item>
               <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
               <q-item-section>
-                <q-item-label>중복 스킵</q-item-label>
+                <q-item-label>스킵</q-item-label>
                 <q-item-label caption>{{ allScrapeResult.movieSkipped }}개</q-item-label>
               </q-item-section>
             </q-item>
@@ -603,7 +563,9 @@
               </q-item-section>
             </q-item>
             <q-item>
-              <q-item-section avatar><q-icon name="remove_circle" color="warning" /></q-item-section>
+              <q-item-section avatar
+                ><q-icon name="remove_circle" color="warning"
+              /></q-item-section>
               <q-item-section>
                 <q-item-label>삭제 (만료)</q-item-label>
                 <q-item-label caption>{{ emucineScrapeResult.schedulesDeleted }}개</q-item-label>
@@ -641,7 +603,6 @@ import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import type {
-  ScrapeResult,
   ScrapeScheduleResult,
   ScrapeMovieScheduleResult,
   ScrapeAllResult,
@@ -703,7 +664,10 @@ const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const q = (searchTitle.value ?? '').trim();
   const base = store.movies
-    .filter((m) => !q || m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()))
+    .filter(
+      (m) =>
+        !q || m.title.includes(q) || (m.englishTitle ?? '').toLowerCase().includes(q.toLowerCase()),
+    )
     .filter((m) => sourceFilter.value === 'all' || m.source === sourceFilter.value);
 
   const isNew = (m: (typeof base)[0]) =>
@@ -801,14 +765,9 @@ async function runAllScrape() {
 }
 
 // ── API 영화 스크래핑 ─────────────────────────────────────────────
-const movieScrapeDialog = ref(false);
-const movieScrapeResult = ref<ScrapeResult | null>(null);
-
 async function runApiMovieScrape() {
   try {
-    const result = await store.scrapeFromNaverViaApi();
-    movieScrapeResult.value = result;
-    movieScrapeDialog.value = true;
+    await store.scrapeFromNaver();
   } catch {
     // store.error 로 표시됨
   }

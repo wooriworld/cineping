@@ -133,13 +133,6 @@ Showtime Updates (N)
 - 시간 버튼 클릭 시 해당 영화관 예매 페이지로 이동
 - 신규 스케줄에 NEW 배지, 영어 자막 스케줄에 ENG 배지 표시
 
-**어드민 페이지 **
-
-- 버튼: 전체 수집 / 현재 상영 영화 수집 / 전체 스케줄 수집 / KOFA 영화 수집 / 에무시네마 영화 수집
-- 영화 목록 테이블: 개봉일 desc → 등록일 desc → 스케줄 수 desc 정렬
-- 검색: 제목 검색 + 배지 필터 (NEW / UPDATE / ENG) + 수집처 필터 (전체 / NAVER / KOFA / EMUCINE)
-- NEW / UPDATE / ENG 배지 표시, 영화 삭제 및 스케줄 삭제
-
 **사용자 관리 페이지 (/users)**
 
 - 사용자 추가 / 수정 / 삭제
@@ -295,7 +288,7 @@ Showtime Updates (N)
 1. Railway Cron 트리거 (KST 매일 09:00 / 18:00)
         │
         ▼ run-scrape.js
-2. 네이버 영화 API → 현재 상영 영화 수집
+2. 네이버 영화 API
    → 신규 영화 INSERT / 영어 제목 누락 시 UPDATE
         │
 3. Supabase에서 전체 영화 목록 조회

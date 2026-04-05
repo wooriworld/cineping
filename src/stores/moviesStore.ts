@@ -7,7 +7,6 @@ import {
   scrapeAll as scrapeAllService,
   scrapeKofaMovies,
   scrapeEmucineMovies,
-  type ScrapeResult,
   type ScrapeAllResult,
   type ScrapeKofaResult,
   type ScrapeEmucineResult,
@@ -52,13 +51,11 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  async function scrapeFromNaverViaApi(): Promise<ScrapeResult> {
+  async function scrapeFromNaver(): Promise<void> {
     apiScrapeLoading.value = true;
     error.value = null;
     try {
-      const result = await scrapeNaverMoviesViaApi();
-      await fetchMovies();
-      return result;
+      await scrapeNaverMoviesViaApi();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
@@ -120,7 +117,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     emucineScrapeLoading,
     fetchMovies,
     deleteMovie,
-    scrapeFromNaverViaApi,
+    scrapeFromNaver,
     scrapeAll,
     scrapeFromKofa,
     scrapeFromEmucine,
