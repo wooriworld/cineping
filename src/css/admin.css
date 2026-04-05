@@ -46,6 +46,11 @@
   font-size: 12px;
 }
 
+/* 제목 링크 색상 */
+.admin-title-link {
+  color: #9c27b0;
+}
+
 .admin-title-cell {
   max-width: 280px;
 }

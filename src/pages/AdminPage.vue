@@ -73,21 +73,6 @@
         </q-list>
       </q-btn-dropdown>
 
-      <q-btn-dropdown :label="sortOrderLabel" class="admin-filter-dropdown" outline dense no-caps color="grey-7" icon="sort">
-        <q-list dense>
-          <q-item
-            v-for="opt in sortOrderOptions"
-            :key="opt.value"
-            v-close-popup
-            clickable
-            :active="sortOrder === opt.value"
-            active-class="text-primary"
-            @click="sortOrder = opt.value"
-          >
-            <q-item-section>{{ opt.label }}</q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
     </div>
 
     <q-banner v-if="store.error" class="bg-negative text-white q-mb-md" rounded>
@@ -108,7 +93,7 @@
         <q-td class="admin-title-cell">
           <div class="admin-title-wrap">
             <span
-              class="cursor-pointer text-primary admin-title-text"
+              class="cursor-pointer admin-title-text admin-title-link"
               @click="openScheduleDialog(props.row)"
               >{{ props.row.title }}</span
             >
@@ -289,17 +274,6 @@ const sourceFilterLabel = computed(
   () => sourceFilterOptions.find((o) => o.value === sourceFilter.value)?.label ?? '수집처 전체',
 );
 
-type SortOrder = 'default' | 'schedules' | 'title' | 'releaseDate';
-const sortOrder = ref<SortOrder>('default');
-const sortOrderOptions: { label: string; value: SortOrder }[] = [
-  { label: '기본 순', value: 'default' },
-  { label: '스케줄 순', value: 'schedules' },
-  { label: '제목 순', value: 'title' },
-  { label: '개봉일 순', value: 'releaseDate' },
-];
-const sortOrderLabel = computed(
-  () => sortOrderOptions.find((o) => o.value === sortOrder.value)?.label ?? '기본 순',
-);
 
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
@@ -329,18 +303,6 @@ const filteredMovies = computed(() => {
           : base;
 
   return filtered.sort((a, b) => {
-    if (sortOrder.value === 'title') {
-      return (a.title ?? '').localeCompare(b.title ?? '');
-    }
-    if (sortOrder.value === 'releaseDate') {
-      return (b.releaseDate ?? '').localeCompare(a.releaseDate ?? '');
-    }
-    if (sortOrder.value === 'schedules') {
-      const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
-      if (countDiff !== 0) return countDiff;
-      return (a.title ?? '').localeCompare(b.title ?? '');
-    }
-    // 기본 순: 등록일 desc → 스케줄 수 desc → 개봉일 desc
     const createdDiff = (b.createdAt ?? '')
       .slice(0, 10)
       .localeCompare((a.createdAt ?? '').slice(0, 10));
