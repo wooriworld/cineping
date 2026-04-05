@@ -22,13 +22,6 @@ create table schedules (
   "lastUpdatedAt" timestamptz
 );
 
-create table users (
-  uid text primary key,
-  "telegramChatId" text,
-  watchlist text[] default '{}',
-  "alertConditions" jsonb
-);
-
 -- ── 인덱스 ───────────────────────────────────────────────────────
 
 create index schedules_movie_id_idx on schedules ("movieId");
@@ -38,4 +31,3 @@ create index schedules_date_idx on schedules (date);
 
 alter table movies disable row level security;
 alter table schedules disable row level security;
-alter table users disable row level security;
