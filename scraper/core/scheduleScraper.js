@@ -13,7 +13,7 @@ const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
  * @param {Array} movies - movies 테이블 레코드 배열
  * @returns {{ schedulesAdded: number, errors: string[], updatedMovies: Array }}
  */
-export async function runScheduleScrape(supabase, movies) {
+export async function runNaverScheduleScrape(supabase, movies) {
   const start = Date.now();
   console.log(`\n${LOG} 시작`);
   console.log(`${LOG} 대상 ${movies.length}개`);

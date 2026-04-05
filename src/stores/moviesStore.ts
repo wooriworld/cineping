@@ -7,7 +7,6 @@ import {
   scrapeAll as scrapeAllService,
   scrapeKofaMovies,
   scrapeEmucineMovies,
-  type ScrapeAllResult,
 } from 'src/services/scraperService';
 
 const COLLECTION = 'movies';
@@ -55,12 +54,10 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  async function scrapeAll(): Promise<ScrapeAllResult> {
+  async function scrapeAll(): Promise<void> {
     error.value = null;
     try {
-      const result = await scrapeAllService();
-      await fetchMovies();
-      return result;
+      await scrapeAllService();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;

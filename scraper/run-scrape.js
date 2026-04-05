@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
-import { runMovieScrape } from './core/movieScraper.js';
-import { runScheduleScrape } from './core/scheduleScraper.js';
+import { runNaverScrape } from './core/movieScraper.js';
+import { runNaverScheduleScrape } from './core/scheduleScraper.js';
 import { runKofaScrape } from './core/kofaScraper.js';
 import { runEmucineScrape } from './core/emucineScraper.js';
 import { sendTelegramMessage } from './core/telegram.js';
@@ -33,8 +33,12 @@ async function main() {
 
   try {
     // 1. 영화 수집
-    const { added: movieAdded, skipped: movieSkipped, addedTitles, addedNaverMovieIds } =
-      await runMovieScrape(supabase);
+    const {
+      added: movieAdded,
+      skipped: movieSkipped,
+      addedTitles,
+      addedNaverMovieIds,
+    } = await runNaverScrape(supabase);
 
     // 2. 전체 영화 조회 (신규 추가된 영화 포함)
     const { data: movies, error: fetchErr } = await supabase
@@ -44,7 +48,10 @@ async function main() {
     if (fetchErr) throw new Error(fetchErr.message);
 
     // 3. 전체 스케줄 수집
-    const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
+    const { schedulesAdded, errors, updatedMovies } = await runNaverScheduleScrape(
+      supabase,
+      movies,
+    );
 
     // 4. KOFA 수집
     const kofaResult = await runKofaScrape(supabase);
@@ -61,7 +68,11 @@ async function main() {
     const parts = [];
 
     // 신규 영화 (네이버 + KOFA + 에무시네마 취합)
-    const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
+    const allAddedTitles = [
+      ...addedTitles,
+      ...kofaResult.addedTitles,
+      ...emucineResult.addedTitles,
+    ];
     if (allAddedTitles.length > 0) {
       const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
       if (allAddedTitles.length > 3) lines.push(`... and ${allAddedTitles.length - 3} more`);

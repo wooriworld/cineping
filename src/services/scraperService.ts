@@ -34,44 +34,14 @@ export function scrapeNaverSchedules(): Promise<ScrapeScheduleResult> {
   return postScraper<ScrapeScheduleResult>('/api/scrape/naver-schedules-api');
 }
 
-export interface ScrapeAllResult {
-  success: boolean;
-  movieAdded: number;
-  movieSkipped: number;
-  movieTotal: number;
-  moviesProcessed: number;
-  schedulesAdded: number;
-  errors: string[];
-  kofaAdded: number;
-  kofaSkipped: number;
-  kofaSchedulesAdded: number;
-  kofaSchedulesDeleted: number;
-  kofaErrors: string[];
-  emucineAdded: number;
-  emucineSkipped: number;
-  emucineSchedulesAdded: number;
-  emucineErrors: string[];
-  elapsedMs: number;
-}
-
-export function scrapeAll(): Promise<ScrapeAllResult> {
-  return postScraper<ScrapeAllResult>('/api/scrape/all');
+export function scrapeAll(): Promise<void> {
+  return postScraper<void>('/api/scrape/all');
 }
 
 export function scrapeKofaMovies(): Promise<void> {
   return postScraper<void>('/api/scrape/kofa-api');
 }
 
-export interface ScrapeEmucineResult {
-  success: boolean;
-  added: number;
-  skipped: number;
-  schedulesAdded: number;
-  schedulesDeleted: number;
-  addedTitles: string[];
-  errors: string[];
-}
-
-export function scrapeEmucineMovies(): Promise<ScrapeEmucineResult> {
-  return postScraper<ScrapeEmucineResult>('/api/scrape/emucine-api');
+export function scrapeEmucineMovies(): Promise<void> {
+  return postScraper<void>('/api/scrape/emucine-api');
 }

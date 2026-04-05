@@ -23,7 +23,7 @@
         icon="event_note"
         label="Naver 스케줄 수집"
         class="q-mr-sm"
-        @click="runScheduleScrape"
+        @click="runNaverScheduleScrape"
       >
       </q-btn>
       <q-btn
@@ -110,8 +110,6 @@
       flat
       bordered
     >
-
-
       <template #body-cell-title="props">
         <q-td>
           <span class="cursor-pointer text-primary" @click="openScheduleDialog(props.row)">{{
@@ -188,106 +186,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- 전체 수집 결과 -->
-    <q-dialog v-model="allScrapeDialog">
-      <q-card style="min-width: 320px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">
-            전체 수집 완료
-            <span v-if="allScrapeResult" class="text-subtitle2 text-grey-6 q-ml-xs">
-              ({{ formatElapsed(allScrapeResult.elapsedMs) }})
-            </span>
-          </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="allScrapeResult">
-          <div class="text-overline text-grey-6 q-mb-xs">영화 수집</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.movieAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
-              <q-item-section>
-                <q-item-label>스킵</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.movieSkipped }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <q-separator class="q-my-sm" />
-          <div class="text-overline text-grey-6 q-mb-xs">스케줄 수집</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="movie" color="deep-orange" /></q-item-section>
-              <q-item-section>
-                <q-item-label>처리 영화</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.moviesProcessed }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>저장된 스케줄</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.schedulesAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="allScrapeResult.errors.length > 0">
-              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>오류</q-item-label>
-                <q-item-label
-                  v-for="(err, i) in allScrapeResult.errors"
-                  :key="i"
-                  caption
-                  class="text-negative"
-                  >{{ err }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <q-separator class="q-my-sm" />
-          <div class="text-overline text-grey-6 q-mb-xs">KOFA 수집</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.kofaAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>스케줄 추가</q-item-label>
-                <q-item-label caption>{{ allScrapeResult.kofaSchedulesAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="allScrapeResult.kofaErrors.length > 0">
-              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>오류</q-item-label>
-                <q-item-label
-                  v-for="(err, i) in allScrapeResult.kofaErrors"
-                  :key="i"
-                  caption
-                  class="text-negative"
-                  >{{ err }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- 스케줄 조회 팝업 -->
     <q-dialog v-model="scheduleDialog" maximized>
       <q-card>
@@ -336,14 +234,13 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
-import type { ScrapeAllResult } from 'src/services/scraperService';
 import type { QTableColumn } from 'quasar';
 
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
 const columns: QTableColumn[] = [
-{ name: 'poster', label: '포스터', field: 'poster', align: 'center' },
+  { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
   { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
   { name: 'englishTitle', label: '영어 제목', field: 'englishTitle', align: 'left' },
   { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
@@ -445,35 +342,30 @@ async function doDelete() {
   }
 }
 
-function formatElapsed(ms: number): string {
-  const m = Math.floor(ms / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return m > 0 ? `${m}분 ${s}초` : `${s}초`;
-}
-
 // ── 전체 수집 ─────────────────────────────────────────────────────
-const allScrapeDialog = ref(false);
-const allScrapeResult = ref<ScrapeAllResult | null>(null);
-
 async function runAllScrape() {
   try {
-    const result = await store.scrapeAll();
-    allScrapeResult.value = result;
-    allScrapeDialog.value = true;
-    void schedulesStore.fetchScheduleCounts();
-    void schedulesStore.fetchNewScheduleMovieIds();
-    void schedulesStore.fetchEngScheduleMovieIds();
+    await store.scrapeAll();
   } catch {
     // store.error 로 표시됨
   }
 }
 
-// ── API 영화 스크래핑 ─────────────────────────────────────────────
+// ── Naver 영화 수집 ─────────────────────────────────────────────
 async function runApiMovieScrape() {
   try {
     await store.scrapeFromNaver();
   } catch {
     // store.error 로 표시됨
+  }
+}
+
+// ── 네이버 스케줄 수집 ─────────────────────────────────────
+async function runNaverScheduleScrape() {
+  try {
+    await schedulesStore.scrapeSchedulesFromNaver();
+  } catch {
+    // schedulesStore.error 로 표시됨
   }
 }
 
@@ -492,15 +384,6 @@ async function runEmucinemaScrape() {
     await store.scrapeFromEmucine();
   } catch {
     // store.error 로 표시됨
-  }
-}
-
-// ── 스케줄 전체 수집 (글로벌) ─────────────────────────────────────
-async function runScheduleScrape() {
-  try {
-    await schedulesStore.scrapeSchedulesFromNaver();
-  } catch {
-    // schedulesStore.error 로 표시됨
   }
 }
 

@@ -7,7 +7,7 @@ const LOG = '[Naver 수집]';
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @returns {{ added: number, skipped: number, total: number, addedTitles: string[], addedNaverMovieIds: string[] }}
  */
-export async function runMovieScrape(supabase) {
+export async function runNaverScrape(supabase) {
   const start = Date.now();
   console.log(`\n${LOG} 시작`);
 
@@ -51,7 +51,7 @@ export async function runMovieScrape(supabase) {
         releaseDate: movie.releaseDate || '',
         source: 'NAVER',
         createdAt,
-      }))
+      })),
     );
     if (error) throw new Error(error.message);
   }
