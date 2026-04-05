@@ -98,7 +98,7 @@ export async function runEmucineScrape(supabase) {
   console.log(`${LOG} 대상 ${engSchedules.length}개`);
 
   if (engSchedules.length === 0) {
-    return { added: 0, skipped: 0, schedulesAdded: 0, addedTitles: [], errors };
+    return { added: 0, skipped: 0, schedulesAdded: 0, addedTitles: [], addedSourceIds: [], errors };
   }
 
   // ── 2. 영화 제목으로 DB 검색 + 7일치 스케줄 조회 ─────────────────
