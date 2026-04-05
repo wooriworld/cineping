@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useSupabase } from 'src/composables/useSupabase';
 import type { Movie } from 'src/types';
 import {
-  scrapeNaverMoviesViaApi,
+  scrapeNaverMovies,
   scrapeAll as scrapeAllService,
   scrapeKofaMovies,
   scrapeEmucineMovies,
@@ -55,7 +55,7 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     apiScrapeLoading.value = true;
     error.value = null;
     try {
-      await scrapeNaverMoviesViaApi();
+      await scrapeNaverMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;

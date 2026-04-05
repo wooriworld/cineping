@@ -36,7 +36,7 @@ app.post('/api/scrape/naver-api', async (_req, res) => {
 });
 
 // ── 스케줄 수집 엔드포인트 (전체) ────────────────────────────────
-app.post('/api/scrape/schedules', async (_req, res) => {
+app.post('/api/scrape/naver-schedules-api', async (_req, res) => {
   try {
     const { data: movies, error: fetchErr } = await supabase
       .from('movies')
@@ -44,21 +44,7 @@ app.post('/api/scrape/schedules', async (_req, res) => {
       .neq('sourceId', '');
     if (fetchErr) throw new Error(fetchErr.message);
 
-    const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
-
-    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const notifyMovies = updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today);
-
-    if (notifyMovies.length > 0) {
-      const lines = notifyMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
-      if (notifyMovies.length > 3) lines.push(`... and ${notifyMovies.length - 3} more`);
-      const naverIds = notifyMovies.map((m) => m.sourceId).filter(Boolean);
-      const token = await createUrlToken(supabase, naverIds);
-      const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
-      const message = `🔥🔥 영화 스케줄 업데이트 ${notifyMovies.length}건\n\n${lines.join('\n')}\n\n🔗 바로가기\n${url}`;
-      await sendTelegramMessage(message);
-      console.log(`[Telegram 발송] 스케줄 업데이트 ${notifyMovies.length}개 알림 발송`);
-    }
+    const { schedulesAdded, errors } = await runScheduleScrape(supabase, movies);
 
     return res.json({ success: true, moviesProcessed: movies.length, schedulesAdded, errors });
   } catch (err) {
@@ -88,7 +74,7 @@ app.post('/api/scrape/all', async (_req, res) => {
       .neq('sourceId', '');
     if (fetchErr) throw new Error(fetchErr.message);
 
-    // 3. 전체 스케줄 수집
+    // 3. Nvaer 스케줄 수집
     const { schedulesAdded, errors, updatedMovies } = await runScheduleScrape(supabase, movies);
 
     // 4. KOFA 수집
@@ -170,39 +156,6 @@ app.post('/api/scrape/all', async (_req, res) => {
   }
 });
 
-// ── 단일 영화 스케줄 수집 엔드포인트 (diff) ──────────────────────
-app.post('/api/scrape/schedules-api/:movieId', async (req, res) => {
-  const { movieId } = req.params;
-  try {
-    const { data: movies, error: fetchErr } = await supabase
-      .from('movies')
-      .select('*')
-      .eq('id', movieId);
-    if (fetchErr) throw new Error(fetchErr.message);
-
-    const movie = movies[0];
-    if (!movie) return res.status(404).json({ success: false, error: '영화를 찾을 수 없습니다.' });
-    if (!movie.sourceId)
-      return res.status(400).json({ success: false, error: 'sourceId 가 없습니다.' });
-
-    const {
-      schedulesAdded: added,
-      schedulesUpdated: updated,
-      schedulesDeleted: deleted,
-      errors,
-    } = await runScheduleScrape(supabase, [movie]);
-
-    if (errors.length > 0) {
-      return res.status(500).json({ success: false, error: errors[0] });
-    }
-
-    return res.json({ success: true, added, updated, deleted });
-  } catch (err) {
-    console.error('[API 스케줄 수집 오류]', err.message);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 // ── 에무시네마 영화 수집 엔드포인트 ──────────────────────────────
 app.post('/api/scrape/emucine-movies', async (_req, res) => {
   try {
@@ -231,7 +184,6 @@ app.listen(PORT, () => {
   console.log(`\n[Cineping Scraper Server] 포트 ${PORT} 실행 중`);
   console.log(`  전체 수집 : [POST] http://localhost:${PORT}/api/scrape/all`);
   console.log(`  Naver 수집 : [POST] http://localhost:${PORT}/api/scrape/naver-api`);
-  console.log(`  Naver 스케줄 수집 : [POST] http://localhost:${PORT}/api/scrape/schedules-api`);
   console.log(`  KOFA 수집 : [POST] http://localhost:${PORT}/api/scrape/kofa-movies`);
   console.log(`  에무시네마 수집 : [POST] http://localhost:${PORT}/api/scrape/emucine-movies`);
   console.log(`  상태 확인 : [GET]  http://localhost:${PORT}/health\n`);

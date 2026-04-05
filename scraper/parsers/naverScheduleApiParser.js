@@ -45,7 +45,10 @@ async function fetchScheduleItems(title, sourceId, date) {
 
   let res;
   try {
-    res = await fetch(`${SCHEDULE_API}?${params}`, { headers: FETCH_HEADERS, signal: controller.signal });
+    res = await fetch(`${SCHEDULE_API}?${params}`, {
+      headers: FETCH_HEADERS,
+      signal: controller.signal,
+    });
   } finally {
     clearTimeout(timer);
   }
@@ -78,31 +81,43 @@ function parseItems(items, movieId) {
       const theaterName = $(theaterEl).find('a.this_link_place').text().trim();
       if (!theaterName) return;
 
-      $(theaterEl).find('li._time_check').each((_, timeEl) => {
-        const bookingUrl = $(timeEl).find('a.area_link').attr('href') ?? '';
+      $(theaterEl)
+        .find('li._time_check')
+        .each((_, timeEl) => {
+          const bookingUrl = $(timeEl).find('a.area_link').attr('href') ?? '';
 
-        let chain = '';
-        if (bookingUrl.includes('megabox.co.kr') || theaterName.startsWith('메가박스')) chain = '메가박스';
-        else if (bookingUrl.includes('cgv.co.kr') || theaterName.startsWith('CGV')) chain = 'CGV';
-        else if (bookingUrl.includes('lottecinema.co.kr') || theaterName.startsWith('롯데시네마')) chain = '롯데시네마';
-        else if (theaterName.startsWith('씨네Q')) chain = '씨네Q';
-        else if (theaterName.startsWith('에무시네마') || bookingUrl.includes('dtryx.com')) chain = 'EMUCINE';
-        else if (theaterName.startsWith('KOFA') || theaterName.startsWith('한국영상자료원')) chain = 'KOFA';
+          let chain = '';
+          if (bookingUrl.includes('megabox.co.kr') || theaterName.startsWith('메가박스'))
+            chain = '메가박스';
+          else if (bookingUrl.includes('cgv.co.kr') || theaterName.startsWith('CGV')) chain = 'CGV';
+          else if (bookingUrl.includes('lottecinema.co.kr') || theaterName.startsWith('롯데시네마'))
+            chain = '롯데시네마';
+          else if (theaterName.startsWith('씨네Q')) chain = '씨네Q';
+          else if (theaterName.startsWith('에무시네마') || bookingUrl.includes('dtryx.com'))
+            chain = 'EMUCINE';
+          else if (theaterName.startsWith('KOFA') || theaterName.startsWith('한국영상자료원'))
+            chain = 'KOFA';
 
-        const itemDate = ($(timeEl).attr('data-time') ?? '').slice(0, 10) || date;
-        const timeContainer = $(timeEl).find('dd.this_text_time');
-        const startTime = timeContainer.find('span.this_point_big').text().trim();
-        const endTime = (timeContainer.text().trim().split('~')[1] ?? '').trim();
-        const screenType = $(timeEl).find('dd.this_text_place').text().trim();
+          const itemDate = ($(timeEl).attr('data-time') ?? '').slice(0, 10) || date;
+          const timeContainer = $(timeEl).find('dd.this_text_time');
+          const startTime = timeContainer.find('span.this_point_big').text().trim();
+          const endTime = (timeContainer.text().trim().split('~')[1] ?? '').trim();
+          const screenType = $(timeEl).find('dd.this_text_place').text().trim();
 
-        if (!startTime) return;
+          if (!startTime) return;
 
-        results.push({
-          chain, theater: theaterName, date: itemDate,
-          startTime, endTime, screenType, bookingUrl,
-          movieId, lastUpdatedAt,
+          results.push({
+            chain,
+            theater: theaterName,
+            date: itemDate,
+            startTime,
+            endTime,
+            screenType,
+            bookingUrl,
+            movieId,
+            lastUpdatedAt,
+          });
         });
-      });
     });
   }
 
@@ -117,24 +132,18 @@ export async function scrapeMovieSchedulesViaApi(movie) {
   const { id: movieId, title, sourceId } = movie;
   const dates = getNext7Dates();
 
-  console.log(`  [API 스케줄] "${title}" — 7일 병렬 요청...`);
-
   const results = await Promise.all(
     dates.map(async (date) => {
       try {
         const items = await fetchScheduleItems(title, sourceId, date);
         const list = parseItems(items, movieId);
-        console.log(`  [API 스케줄] "${title}" ${date}: ${list.length}개`);
         return list;
       } catch (err) {
-        const reason = err.name === 'AbortError' ? '타임아웃(20s)' : err.message;
-        console.warn(`  [API 스케줄] "${title}" ${date} 오류: ${reason}`);
-        return [];
+        console.log(err);
       }
     }),
   );
 
   const allSchedules = results.flat();
-  console.log(`  [API 스케줄] "${title}" 완료 — 총 ${allSchedules.length}개`);
   return allSchedules;
 }

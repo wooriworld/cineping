@@ -3,12 +3,7 @@ import { ref } from 'vue';
 import { useSupabase } from 'src/composables/useSupabase';
 import { supabase } from 'src/supabase';
 import type { Schedule } from 'src/types';
-import {
-  scrapeNaverSchedules,
-  scrapeNaverScheduleForMovieViaApi,
-  type ScrapeScheduleResult,
-  type ScrapeMovieScheduleResult,
-} from 'src/services/scraperService';
+import { scrapeNaverSchedules } from 'src/services/scraperService';
 
 const COLLECTION = 'schedules';
 
@@ -22,7 +17,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const scrapeLoading = ref(false);
-  const apiScrapeLoadingMovies = ref<Set<string>>(new Set());
 
   async function fetchSchedules() {
     loading.value = true;
@@ -175,26 +169,11 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     }
   }
 
-  async function scrapeScheduleForMovieViaApi(movieId: string): Promise<ScrapeMovieScheduleResult> {
-    apiScrapeLoadingMovies.value = new Set([...apiScrapeLoadingMovies.value, movieId]);
-    error.value = null;
-    try {
-      return await scrapeNaverScheduleForMovieViaApi(movieId);
-    } catch (e) {
-      error.value = (e as Error).message;
-      throw e;
-    } finally {
-      const next = new Set(apiScrapeLoadingMovies.value);
-      next.delete(movieId);
-      apiScrapeLoadingMovies.value = next;
-    }
-  }
-
-  async function scrapeSchedulesFromNaver(): Promise<ScrapeScheduleResult> {
+  async function scrapeSchedulesFromNaver(): Promise<void> {
     scrapeLoading.value = true;
     error.value = null;
     try {
-      return await scrapeNaverSchedules();
+      await scrapeNaverSchedules();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
@@ -211,7 +190,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     loading,
     error,
     scrapeLoading,
-    apiScrapeLoadingMovies,
     fetchSchedules,
     fetchScheduleCounts,
     fetchNewScheduleMovieIds,
@@ -223,7 +201,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     getByMovie,
     fetchByMovieCount,
     deleteAllByMovie,
-    scrapeScheduleForMovieViaApi,
     scrapeSchedulesFromNaver,
   };
 });

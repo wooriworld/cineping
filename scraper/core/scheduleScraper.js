@@ -1,5 +1,6 @@
 import { scrapeMovieSchedulesViaApi } from '../parsers/naverScheduleApiParser.js';
 
+const LOG = '[Naver 스케줄 수집]';
 const CHUNK = 100;
 const CONCURRENCY = 2; // 동시 처리 영화 수 (2 × 7일 = 14 동시 요청)
 const BATCH_DELAY_MS = 1000; // 배치 간 딜레이
@@ -14,8 +15,8 @@ const scheduleKey = (s) => `${s.date}_${s.theater}_${s.startTime}`;
  */
 export async function runScheduleScrape(supabase, movies) {
   const start = Date.now();
-  console.log('\n[스케줄 수집 시작]');
-  console.log(`[대상 영화] ${movies.length}개`);
+  console.log(`\n${LOG} 시작`);
+  console.log(`${LOG} 대상 ${movies.length}개`);
 
   let schedulesAdded = 0;
   let schedulesUpdated = 0;
@@ -116,13 +117,6 @@ export async function runScheduleScrape(supabase, movies) {
       schedulesUpdated += toUpdate.length;
       schedulesDeleted += toDeleteIds.length;
       if (toAdd.length > 0) updatedMovies.push(movie);
-
-      const elapsed = Date.now() - movieStart;
-      const m = Math.floor(elapsed / 60000);
-      const s = Math.floor((elapsed % 60000) / 1000);
-      console.log(
-        `  ✓ "${movie.title}" 완료 — 추가 ${toAdd.length}개 / 수정 ${toUpdate.length}개 / 삭제 ${toDeleteIds.length}개 (${m}분 ${s}초)`,
-      );
     } catch (err) {
       const elapsed = Date.now() - movieStart;
       const m = Math.floor(elapsed / 60000);
@@ -145,7 +139,10 @@ export async function runScheduleScrape(supabase, movies) {
   const elapsed = Date.now() - start;
   const tm = Math.floor(elapsed / 60000);
   const ts = Math.floor((elapsed % 60000) / 1000);
-  console.log(`[스케줄 수집 완료] 총 ${schedulesAdded}개 저장 (소요: ${tm}분 ${ts}초)\n`);
+  console.log(
+    `${LOG} 추가 ${schedulesAdded}개 / 스킵 ${schedulesUpdated}개 / 삭제 ${schedulesDeleted}개`,
+  );
+  console.log(`${LOG} 소요: ${tm}분 ${ts}초`);
 
   return { schedulesAdded, schedulesUpdated, schedulesDeleted, errors, updatedMovies };
 }

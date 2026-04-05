@@ -24,7 +24,7 @@
       <q-btn
         color="deep-orange"
         icon="event_note"
-        label="전체 스케줄 수집"
+        label="Naver 스케줄 수집"
         class="q-mr-sm"
         :loading="schedulesStore.scrapeLoading"
         @click="runScheduleScrape"
@@ -186,18 +186,7 @@
           >
             <q-tooltip>스케쥴 삭제</q-tooltip>
           </q-btn>
-          <q-btn
-            flat
-            round
-            dense
-            icon="download"
-            color="purple"
-            :loading="schedulesStore.apiScrapeLoadingMovies.has(props.row.id)"
-            :disable="!props.row.sourceId"
-            @click="runMovieScheduleScrapeViaApi(props.row)"
-          >
-            <q-tooltip>{{ props.row.sourceId ? '스케줄 수집' : 'sourceId 없음' }}</q-tooltip>
-          </q-btn>
+
           <q-btn
             flat
             round
@@ -237,46 +226,6 @@
             :loading="schedulesStore.loading"
             @click="doDeleteSchedules"
           />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- 영화별 스케줄 수집 결과 -->
-    <q-dialog v-model="movieScheduleScrapeDialog">
-      <q-card style="min-width: 280px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">스케줄 수집 완료</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="movieScheduleScrapeResult">
-          <div class="text-body2 q-mb-sm text-grey-7">{{ movieScheduleScrapeResult.title }}</div>
-          <q-list>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>추가</q-item-label>
-                <q-item-label caption>{{ movieScheduleScrapeResult.added }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="edit" color="warning" /></q-item-section>
-              <q-item-section>
-                <q-item-label>수정</q-item-label>
-                <q-item-label caption>{{ movieScheduleScrapeResult.updated }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="delete" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>삭제</q-item-label>
-                <q-item-label caption>{{ movieScheduleScrapeResult.deleted }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -419,50 +368,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- 스케줄 수집 결과 -->
-    <q-dialog v-model="scheduleScrapeDialog">
-      <q-card style="min-width: 320px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">스케줄 수집 완료</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="scheduleScrapeResult">
-          <q-list>
-            <q-item>
-              <q-item-section avatar><q-icon name="movie" color="deep-orange" /></q-item-section>
-              <q-item-section>
-                <q-item-label>처리 영화</q-item-label>
-                <q-item-label caption>{{ scheduleScrapeResult.moviesProcessed }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="event_note" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>저장된 스케줄</q-item-label>
-                <q-item-label caption>{{ scheduleScrapeResult.schedulesAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="scheduleScrapeResult.errors.length > 0">
-              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>오류</q-item-label>
-                <q-item-label
-                  v-for="(err, i) in scheduleScrapeResult.errors"
-                  :key="i"
-                  caption
-                  class="text-negative"
-                  >{{ err }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
     <!-- KOFA 영화 수집 결과 -->
     <q-dialog v-model="kofaScrapeDialog">
       <q-card style="min-width: 280px">
@@ -603,8 +508,6 @@ import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import type {
-  ScrapeScheduleResult,
-  ScrapeMovieScheduleResult,
   ScrapeAllResult,
   ScrapeKofaResult,
   ScrapeEmucineResult,
@@ -805,34 +708,9 @@ async function runEmucinemaScrape() {
 }
 
 // ── 스케줄 전체 수집 (글로벌) ─────────────────────────────────────
-const scheduleScrapeDialog = ref(false);
-const scheduleScrapeResult = ref<ScrapeScheduleResult | null>(null);
-
 async function runScheduleScrape() {
   try {
-    const result = await schedulesStore.scrapeSchedulesFromNaver();
-    scheduleScrapeResult.value = result;
-    scheduleScrapeDialog.value = true;
-    void schedulesStore.fetchScheduleCounts();
-    void schedulesStore.fetchNewScheduleMovieIds();
-    void schedulesStore.fetchEngScheduleMovieIds();
-  } catch {
-    // schedulesStore.error 로 표시됨
-  }
-}
-
-// ── 스케줄 개별 수집 (영화별) ─────────────────────────────────────
-const movieScheduleScrapeDialog = ref(false);
-const movieScheduleScrapeResult = ref<(ScrapeMovieScheduleResult & { title: string }) | null>(null);
-
-async function runMovieScheduleScrapeViaApi(movie: Movie) {
-  try {
-    const result = await schedulesStore.scrapeScheduleForMovieViaApi(movie.id);
-    movieScheduleScrapeResult.value = { ...result, title: movie.title };
-    movieScheduleScrapeDialog.value = true;
-    void schedulesStore.fetchScheduleCounts();
-    void schedulesStore.fetchNewScheduleMovieIds();
-    void schedulesStore.fetchEngScheduleMovieIds();
+    await schedulesStore.scrapeSchedulesFromNaver();
   } catch {
     // schedulesStore.error 로 표시됨
   }
