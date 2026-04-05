@@ -19,7 +19,6 @@
         :loading="store.apiScrapeLoading"
         @click="runApiMovieScrape"
       >
-        <q-tooltip>네이버 API URL로 영화 수집</q-tooltip>
       </q-btn>
       <q-btn
         color="deep-orange"
@@ -29,7 +28,6 @@
         :loading="schedulesStore.scrapeLoading"
         @click="runScheduleScrape"
       >
-        <q-tooltip>DB 영화 전체 상영 스케줄 수집 (7일치)</q-tooltip>
       </q-btn>
       <q-btn
         color="teal"
@@ -39,7 +37,6 @@
         :loading="store.kofaScrapeLoading"
         @click="runKofaScrape"
       >
-        <q-tooltip>KOFA 시네마테크 영어자막 영화 수집</q-tooltip>
       </q-btn>
       <q-btn
         color="deep-purple"
@@ -49,7 +46,6 @@
         :loading="store.emucineScrapeLoading"
         @click="runEmucinemaScrape"
       >
-        <q-tooltip>에무시네마 상영시간표 이미지 OCR 수집</q-tooltip>
       </q-btn>
     </div>
 
@@ -368,69 +364,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- KOFA 영화 수집 결과 -->
-    <q-dialog v-model="kofaScrapeDialog">
-      <q-card style="min-width: 280px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">KOFA 영화 수집 완료</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section v-if="kofaScrapeResult">
-          <div class="text-overline text-grey-6 q-mb-xs">영화</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ kofaScrapeResult.added }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="skip_next" color="grey" /></q-item-section>
-              <q-item-section>
-                <q-item-label>이미 처리됨 (스킵)</q-item-label>
-                <q-item-label caption>{{ kofaScrapeResult.skipped }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <q-separator class="q-my-sm" />
-          <div class="text-overline text-grey-6 q-mb-xs">스케줄</div>
-          <q-list dense>
-            <q-item>
-              <q-item-section avatar><q-icon name="add_circle" color="positive" /></q-item-section>
-              <q-item-section>
-                <q-item-label>신규 추가</q-item-label>
-                <q-item-label caption>{{ kofaScrapeResult.schedulesAdded }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar><q-icon name="delete" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>삭제 (만료)</q-item-label>
-                <q-item-label caption>{{ kofaScrapeResult.schedulesDeleted }}개</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="kofaScrapeResult.errors.length > 0">
-              <q-item-section avatar><q-icon name="warning" color="negative" /></q-item-section>
-              <q-item-section>
-                <q-item-label>오류</q-item-label>
-                <q-item-label
-                  v-for="(err, i) in kofaScrapeResult.errors"
-                  :key="i"
-                  caption
-                  class="text-negative"
-                  >{{ err }}</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn color="primary" label="확인" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
     <!-- 에무시네마 영화 수집 결과 -->
     <q-dialog v-model="emucineScrapeDialog">
       <q-card style="min-width: 280px">
@@ -507,11 +440,7 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
-import type {
-  ScrapeAllResult,
-  ScrapeKofaResult,
-  ScrapeEmucineResult,
-} from 'src/services/scraperService';
+import type { ScrapeAllResult, ScrapeEmucineResult } from 'src/services/scraperService';
 import type { QTableColumn } from 'quasar';
 
 const store = useMoviesStore();
@@ -677,17 +606,9 @@ async function runApiMovieScrape() {
 }
 
 // ── KOFA 영화 수집 ────────────────────────────────────────────────
-const kofaScrapeDialog = ref(false);
-const kofaScrapeResult = ref<ScrapeKofaResult | null>(null);
-
 async function runKofaScrape() {
   try {
-    const result = await store.scrapeFromKofa();
-    kofaScrapeResult.value = result;
-    kofaScrapeDialog.value = true;
-    void schedulesStore.fetchScheduleCounts();
-    void schedulesStore.fetchNewScheduleMovieIds();
-    void schedulesStore.fetchEngScheduleMovieIds();
+    await store.scrapeFromKofa();
   } catch {
     // store.error 로 표시됨
   }

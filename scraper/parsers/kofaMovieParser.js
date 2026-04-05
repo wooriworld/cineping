@@ -145,12 +145,9 @@ export async function scrapeKofaSchedules() {
  */
 export async function scrapeKofaMovies() {
   const movies = await scrapeSchedulePage();
-  console.log(`[KOFA] 스케줄 페이지 파싱 완료: ${movies.length}개`);
-
   const results = [];
   for (const movie of movies) {
     const { englishTitle, poster } = await fetchMovieDetail(movie.moviePath);
-    console.log(`  [KOFA] "${movie.title}" → 영어제목: "${englishTitle}"`);
     const kofaId = movie.moviePath.split('/').pop() ?? '';
     results.push({ title: movie.title, englishTitle, poster, kofaId });
     await new Promise((r) => setTimeout(r, DETAIL_DELAY_MS));

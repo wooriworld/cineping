@@ -168,10 +168,10 @@ app.post('/api/scrape/emucine-movies', async (_req, res) => {
 });
 
 // ── KOFA 영화 수집 엔드포인트 ─────────────────────────────────────
-app.post('/api/scrape/kofa-movies', async (_req, res) => {
+app.post('/api/scrape/kofa-api', async (_req, res) => {
   try {
-    const result = await runKofaScrape(supabase);
-    return res.json({ success: true, ...result });
+    await runKofaScrape(supabase);
+    return res.json({ success: true });
   } catch (err) {
     console.error('[KOFA 영화 수집 오류]', err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -184,7 +184,7 @@ app.listen(PORT, () => {
   console.log(`\n[Cineping Scraper Server] 포트 ${PORT} 실행 중`);
   console.log(`  전체 수집 : [POST] http://localhost:${PORT}/api/scrape/all`);
   console.log(`  Naver 수집 : [POST] http://localhost:${PORT}/api/scrape/naver-api`);
-  console.log(`  KOFA 수집 : [POST] http://localhost:${PORT}/api/scrape/kofa-movies`);
+  console.log(`  KOFA 수집 : [POST] http://localhost:${PORT}/api/scrape/kofa-api`);
   console.log(`  에무시네마 수집 : [POST] http://localhost:${PORT}/api/scrape/emucine-movies`);
   console.log(`  상태 확인 : [GET]  http://localhost:${PORT}/health\n`);
 });

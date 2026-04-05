@@ -58,20 +58,8 @@ export function scrapeAll(): Promise<ScrapeAllResult> {
   return postScraper<ScrapeAllResult>('/api/scrape/all');
 }
 
-export interface ScrapeKofaResult {
-  success: boolean;
-  added: number;
-  skipped: number;
-  total: number;
-  addedTitles: string[];
-  schedulesAdded: number;
-  schedulesDeleted: number;
-  schedulesTotal: number;
-  errors: string[];
-}
-
-export function scrapeKofaMovies(): Promise<ScrapeKofaResult> {
-  return postScraper<ScrapeKofaResult>('/api/scrape/kofa-movies');
+export function scrapeKofaMovies(): Promise<void> {
+  return postScraper<void>('/api/scrape/kofa-api');
 }
 
 export interface ScrapeEmucineResult {

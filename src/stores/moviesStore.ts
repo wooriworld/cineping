@@ -8,7 +8,6 @@ import {
   scrapeKofaMovies,
   scrapeEmucineMovies,
   type ScrapeAllResult,
-  type ScrapeKofaResult,
   type ScrapeEmucineResult,
 } from 'src/services/scraperService';
 
@@ -79,13 +78,11 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     }
   }
 
-  async function scrapeFromKofa(): Promise<ScrapeKofaResult> {
+  async function scrapeFromKofa(): Promise<void> {
     kofaScrapeLoading.value = true;
     error.value = null;
     try {
-      const result = await scrapeKofaMovies();
-      await fetchMovies();
-      return result;
+      await scrapeKofaMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
