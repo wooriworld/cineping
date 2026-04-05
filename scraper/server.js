@@ -6,14 +6,7 @@ import { runNaverScrape } from './core/movieScraper.js';
 import { runNaverScheduleScrape } from './core/scheduleScraper.js';
 import { runKofaScrape } from './core/kofaScraper.js';
 import { runEmucineScrape } from './core/emucineScraper.js';
-import { sendTelegramMessage } from './core/telegram.js';
-import { createUrlToken } from './core/urlToken.js';
-
-const MOVIES_URL = 'https://wooriworld.github.io/cineping/#';
-
-function kstToday() {
-  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
+import { sendUpdateNotification } from './core/notifier.js';
 
 // ── Supabase 초기화 ───────────────────────────────────────────────
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -78,8 +71,8 @@ app.post('/api/scrape/kofa-api', async (_req, res) => {
 // ── 전체 수집 엔드포인트 ─────────────────────────
 app.post('/api/scrape/all', async (_req, res) => {
   try {
-    console.log('[전체 수집] 시작');
     const allStart = Date.now();
+    console.log('[전체 수집] 시작');
 
     // 1. Naver 영화 수집
     const { addedTitles, addedNaverMovieIds } = await runNaverScrape(supabase);
@@ -120,51 +113,6 @@ app.post('/api/scrape/all', async (_req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
-
-async function sendUpdateNotification(
-  supabase,
-  { addedTitles, addedNaverMovieIds, updatedMovies, kofaResult, emucineResult },
-) {
-  const today = kstToday();
-  const notifyScheduleMovies = [
-    ...new Map(
-      [
-        ...updatedMovies.filter((m) => (m.createdAt ?? '').slice(0, 10) < today),
-        ...kofaResult.updatedMovies,
-      ].map((m) => [m.id, m]),
-    ).values(),
-  ];
-  const parts = [];
-
-  const allAddedTitles = [...addedTitles, ...kofaResult.addedTitles, ...emucineResult.addedTitles];
-  if (allAddedTitles.length > 0) {
-    const lines = allAddedTitles.slice(0, 3).map((t) => `🎬 [ ${t} ]`);
-    if (allAddedTitles.length > 3) lines.push(`... and ${allAddedTitles.length - 3} more`);
-    parts.push(`New Movies (${allAddedTitles.length})\n${lines.join('\n')}`);
-  }
-  if (notifyScheduleMovies.length > 0) {
-    const lines = notifyScheduleMovies.slice(0, 3).map((m) => `🎬 [ ${m.title} ]`);
-    if (notifyScheduleMovies.length > 3)
-      lines.push(`... and ${notifyScheduleMovies.length - 3} more`);
-    parts.push(`Showtime Updates (${notifyScheduleMovies.length})\n${lines.join('\n')}`);
-  }
-
-  if (parts.length === 0) return;
-
-  const allNaverIds = [
-    ...new Set([
-      ...addedNaverMovieIds,
-      ...kofaResult.addedNaverMovieIds,
-      ...emucineResult.addedSourceIds,
-      ...notifyScheduleMovies.map((m) => m.sourceId).filter(Boolean),
-    ]),
-  ];
-  const token = await createUrlToken(supabase, allNaverIds);
-  const url = token ? `${MOVIES_URL}?t=${token}` : MOVIES_URL;
-  const message = `🔥🔥 영화 업데이트 알림\n\n${parts.join('\n\n')}\n\n🔗 바로가기\n${url}`;
-  await sendTelegramMessage(message);
-  console.log('\n[Telegram 발송] 알림 발송');
-}
 
 // ── 서버 시작 ─────────────────────────────────────────────────────
 const PORT = 3001;
