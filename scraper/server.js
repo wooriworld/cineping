@@ -6,7 +6,7 @@ import { runNaverScrape } from './core/movieScraper.js';
 import { runNaverScheduleScrape } from './core/scheduleScraper.js';
 import { runKofaScrape } from './core/kofaScraper.js';
 import { runEmucineScrape } from './core/emucineScraper.js';
-import { sendUpdateNotification } from './core/notifier.js';
+import { runPipeline } from './core/pipeline.js';
 
 // ── Supabase 초기화 ───────────────────────────────────────────────
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -71,42 +71,7 @@ app.post('/api/scrape/kofa-api', async (_req, res) => {
 // ── 전체 수집 엔드포인트 ─────────────────────────
 app.post('/api/scrape/all', async (_req, res) => {
   try {
-    const allStart = Date.now();
-    console.log('[전체 수집] 시작');
-
-    // 1. Naver 영화 수집
-    const { addedTitles, addedNaverMovieIds } = await runNaverScrape(supabase);
-
-    // 2. 전체 영화 조회 (신규 추가된 영화 포함)
-    const { data: movies, error: fetchErr } = await supabase
-      .from('movies')
-      .select('*')
-      .neq('sourceId', '');
-    if (fetchErr) throw new Error(fetchErr.message);
-
-    // 3. Naver 스케줄 수집
-    const { updatedMovies } = await runNaverScheduleScrape(supabase, movies);
-
-    // 4. KOFA 수집
-    const kofaResult = await runKofaScrape(supabase);
-
-    // 5. 에무시네마 수집
-    const emucineResult = await runEmucineScrape(supabase);
-
-    // 6. 텔레그램 알림
-    await sendUpdateNotification(supabase, {
-      addedTitles,
-      addedNaverMovieIds,
-      updatedMovies,
-      kofaResult,
-      emucineResult,
-    });
-
-    const totalElapsed = Date.now() - allStart;
-    const tm = Math.floor(totalElapsed / 60000);
-    const ts = Math.floor((totalElapsed % 60000) / 1000);
-    console.log(`[전체 수집] 완료 소요 ${tm}분 ${ts}초\n`);
-
+    await runPipeline(supabase);
     return res.json({ success: true });
   } catch (err) {
     console.error('[전체 수집 오류]', err.message);
