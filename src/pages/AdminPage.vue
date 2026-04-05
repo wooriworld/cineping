@@ -7,7 +7,6 @@
         icon="cloud_sync"
         label="전체 수집"
         class="q-mr-sm"
-        :loading="store.allScrapeLoading"
         @click="runAllScrape"
       >
       </q-btn>
@@ -16,7 +15,6 @@
         icon="api"
         label="Naver 영화 수집"
         class="q-mr-sm"
-        :loading="store.apiScrapeLoading"
         @click="runApiMovieScrape"
       >
       </q-btn>
@@ -25,7 +23,6 @@
         icon="event_note"
         label="Naver 스케줄 수집"
         class="q-mr-sm"
-        :loading="schedulesStore.scrapeLoading"
         @click="runScheduleScrape"
       >
       </q-btn>
@@ -34,7 +31,6 @@
         icon="video_library"
         label="KOFA 영화 수집"
         class="q-mr-sm"
-        :loading="store.kofaScrapeLoading"
         @click="runKofaScrape"
       >
       </q-btn>
@@ -43,7 +39,6 @@
         icon="theaters"
         label="에무시네마 영화 수집"
         class="q-mr-sm"
-        :loading="store.emucineScrapeLoading"
         @click="runEmucinemaScrape"
       >
       </q-btn>
@@ -115,9 +110,7 @@
       flat
       bordered
     >
-      <template #body-cell-no="props">
-        <q-td align="center">{{ props.rowIndex + 1 }}</q-td>
-      </template>
+
 
       <template #body-cell-title="props">
         <q-td>
@@ -176,17 +169,6 @@
             flat
             round
             dense
-            icon="event_busy"
-            color="orange"
-            @click="confirmDeleteSchedules(props.row)"
-          >
-            <q-tooltip>스케쥴 삭제</q-tooltip>
-          </q-btn>
-
-          <q-btn
-            flat
-            round
-            dense
             icon="delete"
             color="negative"
             @click="confirmDelete(props.row.id)"
@@ -202,26 +184,6 @@
         <q-card-actions align="right">
           <q-btn flat label="취소" v-close-popup />
           <q-btn color="negative" label="삭제" :loading="store.loading" @click="doDelete" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- 스케줄 전체 삭제 확인 -->
-    <q-dialog v-model="deleteSchedulesDialog">
-      <q-card>
-        <q-card-section class="text-h6">스케줄 삭제</q-card-section>
-        <q-card-section class="text-body2 q-pt-none">
-          <strong>{{ deleteSchedulesTarget?.title }}</strong
-          >의 스케줄을 모두 삭제하시겠습니까?
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="취소" v-close-popup />
-          <q-btn
-            color="negative"
-            label="삭제"
-            :loading="schedulesStore.loading"
-            @click="doDeleteSchedules"
-          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -381,8 +343,7 @@ const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
 const columns: QTableColumn[] = [
-  { name: 'no', label: 'No', field: 'id', align: 'center' },
-  { name: 'poster', label: '포스터', field: 'poster', align: 'center' },
+{ name: 'poster', label: '포스터', field: 'poster', align: 'center' },
   { name: 'title', label: '제목', field: 'title', align: 'left', sortable: true },
   { name: 'englishTitle', label: '영어 제목', field: 'englishTitle', align: 'left' },
   { name: 'releaseDate', label: '개봉일', field: 'releaseDate', align: 'left', sortable: true },
@@ -481,29 +442,6 @@ async function doDelete() {
     deleteDialog.value = false;
   } catch {
     // store.error로 표시됨
-  }
-}
-
-// ── 스케줄 전체 삭제 ──────────────────────────────────────────────
-const deleteSchedulesDialog = ref(false);
-const deleteSchedulesTarget = ref<Movie | null>(null);
-const deleteSchedulesCount = ref(0);
-
-async function confirmDeleteSchedules(movie: Movie) {
-  deleteSchedulesTarget.value = movie;
-  deleteSchedulesCount.value = 0;
-  deleteSchedulesDialog.value = true;
-  const list = await schedulesStore.fetchByMovieCount(movie.id);
-  deleteSchedulesCount.value = list;
-}
-
-async function doDeleteSchedules() {
-  if (!deleteSchedulesTarget.value) return;
-  try {
-    await schedulesStore.deleteAllByMovie(deleteSchedulesTarget.value.id);
-    deleteSchedulesDialog.value = false;
-  } catch {
-    // schedulesStore.error 로 표시됨
   }
 }
 

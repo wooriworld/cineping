@@ -16,7 +16,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
   const engScheduleMovieIds = ref<Set<string>>(new Set());
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const scrapeLoading = ref(false);
 
   async function fetchSchedules() {
     loading.value = true;
@@ -142,43 +141,13 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     }
   }
 
-  async function fetchByMovieCount(movieId: string): Promise<number> {
-    try {
-      const list = await getWhere<Schedule>(COLLECTION, 'movieId', '==', movieId, 10000);
-      return list.length;
-    } catch {
-      return 0;
-    }
-  }
-
-  async function deleteAllByMovie(movieId: string) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const { error: err } = await supabase
-        .from(COLLECTION)
-        .delete()
-        .eq('movieId', movieId);
-      if (err) throw new Error(err.message);
-      schedules.value = schedules.value.filter((s) => s.movieId !== movieId);
-    } catch (e) {
-      error.value = (e as Error).message;
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  }
-
   async function scrapeSchedulesFromNaver(): Promise<void> {
-    scrapeLoading.value = true;
     error.value = null;
     try {
       await scrapeNaverSchedules();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
-    } finally {
-      scrapeLoading.value = false;
     }
   }
 
@@ -189,7 +158,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     engScheduleMovieIds,
     loading,
     error,
-    scrapeLoading,
     fetchSchedules,
     fetchScheduleCounts,
     fetchNewScheduleMovieIds,
@@ -199,8 +167,6 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     editSchedule,
     deleteSchedule,
     getByMovie,
-    fetchByMovieCount,
-    deleteAllByMovie,
     scrapeSchedulesFromNaver,
   };
 });

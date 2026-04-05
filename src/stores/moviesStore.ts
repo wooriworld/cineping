@@ -18,10 +18,6 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   const movies = ref<Movie[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const apiScrapeLoading = ref(false);
-  const allScrapeLoading = ref(false);
-  const kofaScrapeLoading = ref(false);
-  const emucineScrapeLoading = ref(false);
 
   async function fetchMovies() {
     loading.value = true;
@@ -50,20 +46,16 @@ export const useMoviesStore = defineStore('moviesStore', () => {
   }
 
   async function scrapeFromNaver(): Promise<void> {
-    apiScrapeLoading.value = true;
     error.value = null;
     try {
       await scrapeNaverMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
-    } finally {
-      apiScrapeLoading.value = false;
     }
   }
 
   async function scrapeAll(): Promise<ScrapeAllResult> {
-    allScrapeLoading.value = true;
     error.value = null;
     try {
       const result = await scrapeAllService();
@@ -72,34 +64,26 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
-    } finally {
-      allScrapeLoading.value = false;
     }
   }
 
   async function scrapeFromKofa(): Promise<void> {
-    kofaScrapeLoading.value = true;
     error.value = null;
     try {
       await scrapeKofaMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
-    } finally {
-      kofaScrapeLoading.value = false;
     }
   }
 
   async function scrapeFromEmucine(): Promise<void> {
-    emucineScrapeLoading.value = true;
     error.value = null;
     try {
       await scrapeEmucineMovies();
     } catch (e) {
       error.value = (e as Error).message;
       throw e;
-    } finally {
-      emucineScrapeLoading.value = false;
     }
   }
 
@@ -107,10 +91,6 @@ export const useMoviesStore = defineStore('moviesStore', () => {
     movies,
     loading,
     error,
-    apiScrapeLoading,
-    allScrapeLoading,
-    kofaScrapeLoading,
-    emucineScrapeLoading,
     fetchMovies,
     deleteMovie,
     scrapeFromNaver,
