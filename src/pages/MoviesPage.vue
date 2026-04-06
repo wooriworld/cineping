@@ -135,9 +135,7 @@
           >
             Reset
           </q-btn>
-          <q-btn style="background: #5b21b6; color: #fff" @click="filterDialog = false"
-            >Apply</q-btn
-          >
+          <q-btn style="background: #5b21b6; color: #fff" @click="applyFilter">Apply</q-btn>
         </div>
       </q-card>
     </q-dialog>
@@ -209,6 +207,7 @@ import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 import { resolveUrlToken } from 'src/services/urlTokenService';
+import { trackEvent } from 'src/composables/useAnalytics';
 
 const route = useRoute();
 const store = useMoviesStore();
@@ -345,7 +344,10 @@ const scheduleDialogFiltered = computed(() =>
   }),
 );
 
+const scheduleDialogReady = ref(false);
+
 async function openScheduleDialog(movie: Movie) {
+  scheduleDialogReady.value = false;
   scheduleDialogMovie.value = movie;
   scheduleDialogDate.value = '';
   scheduleDialogChain.value = 'All Theaters';
@@ -355,6 +357,12 @@ async function openScheduleDialog(movie: Movie) {
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;
+  trackEvent('movie_open', {
+    movie_title: movie.title,
+    has_new_badge: isMovieNew(movie),
+    has_update_badge: isMovieUpdate(movie),
+    has_eng_badge: schedulesStore.engScheduleMovieIds.has(movie.id),
+  });
   try {
     const list = await schedulesStore.getByMovie(movie.id);
     scheduleDialogSchedules.value = list;
@@ -366,13 +374,62 @@ async function openScheduleDialog(movie: Movie) {
     scheduleDialogDate.value = dates.find((d) => d >= today) ?? '';
   } finally {
     scheduleDialogLoading.value = false;
+    scheduleDialogReady.value = true;
   }
+}
+
+watch(scheduleDialogDate, (val) => {
+  if (!scheduleDialogReady.value || !val) return;
+  trackEvent('schedule_date_select', {
+    movie_title: scheduleDialogMovie.value?.title ?? '',
+    date: val,
+  });
+});
+
+watch(scheduleDialogChain, (val) => {
+  if (!scheduleDialogReady.value) return;
+  trackEvent('schedule_chain_filter', {
+    movie_title: scheduleDialogMovie.value?.title ?? '',
+    chain: val,
+  });
+});
+
+watch(scheduleDialogHallType, (val) => {
+  if (!scheduleDialogReady.value) return;
+  trackEvent('schedule_hall_filter', {
+    movie_title: scheduleDialogMovie.value?.title ?? '',
+    hall_type: val,
+  });
+});
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
+watch(searchTitle, (val) => {
+  if (searchTimer) clearTimeout(searchTimer);
+  const q = (val ?? '').trim();
+  if (!q) return;
+  searchTimer = setTimeout(() => {
+    trackEvent('search', { search_term: q });
+  }, 1000);
+});
+
+function applyFilter() {
+  trackEvent('filter_apply', {
+    filter_new: filterShowNew.value,
+    filter_update: filterShowUpdate.value,
+    filter_eng: filterShowEng.value,
+  });
+  filterDialog.value = false;
 }
 
 watch(
   () => route.query.t,
   async (t) => {
-    tokenIds.value = t && typeof t === 'string' ? await resolveUrlToken(t) : [];
+    if (t && typeof t === 'string') {
+      trackEvent('shared_link_access');
+      tokenIds.value = await resolveUrlToken(t);
+    } else {
+      tokenIds.value = [];
+    }
   },
   { immediate: true },
 );
