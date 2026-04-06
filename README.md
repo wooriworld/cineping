@@ -1,7 +1,7 @@
 # 🎬 영화 스케줄 알림 서비스 기획서
 
 > **프로젝트명: cineping  
-> \*\*버전:\*\* v1.4
+> \*\*버전:\*\* v1.5
 > **작성일:\*\* 2026.03.13
 
 ---
@@ -337,7 +337,34 @@ Showtime Updates (N)
 
 ---
 
-## 9. 향후 확장 기능 (v2)
+## 9. 분석 (Google Analytics 4)
+
+### 9.1 개요
+
+| 항목      | 내용                                                                |
+| --------- | ------------------------------------------------------------------- |
+| 측정 ID   | `G-9BCHW3Z6Y1`                                                      |
+| 방식      | gtag.js (SPA 수동 page_view 발송)                                   |
+| 구현 위치 | `index.html` 스크립트 로드 / `src/composables/useAnalytics.ts` 래퍼 |
+
+### 9.2 수집 이벤트
+
+| 이벤트명                | 트리거                      | 주요 파라미터                                                       |
+| ----------------------- | --------------------------- | ------------------------------------------------------------------- |
+| `page_view`             | 라우터 페이지 전환 시       | `page_path`                                                         |
+| `movie_open`            | 영화 카드 클릭              | `movie_title`, `has_new_badge`, `has_update_badge`, `has_eng_badge` |
+| `schedule_date_select`  | 스케줄 팝업 내 날짜 탭 클릭 | `movie_title`, `date`                                               |
+| `schedule_chain_filter` | 극장 체인 필터 변경         | `movie_title`, `chain`                                              |
+| `schedule_hall_filter`  | 상영관 타입 필터 변경       | `movie_title`, `hall_type`                                          |
+| `search`                | 검색창 입력 (1초 debounce)  | `search_term`                                                       |
+| `filter_apply`          | 배지 필터 Apply             | `filter_new`, `filter_update`, `filter_eng`                         |
+| `shared_link_access`    | `?t=` 토큰 URL로 진입       | —                                                                   |
+
+> 팝업 최초 자동 날짜 선택은 수집 제외 — 사용자가 직접 클릭한 경우만 수집
+
+---
+
+## 10. 향후 확장 기능 (v2)
 
 - **사용자별 watchlist 알림** — 현재는 채널 전체 알림만 발송, 감시 영화 지정 후 개인별 텔레그램 알림
 - **특정 지역/지점 필터 알림** — 예: "강남 CGV만 알림" 조건 설정
