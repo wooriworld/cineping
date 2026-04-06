@@ -93,6 +93,9 @@
           >wooriworld82@gmail.com</a
         >
       </p>
+      <div class="movies-footer-nav">
+        <router-link to="/about" class="movies-footer-nav-link">About</router-link>
+      </div>
     </div>
 
     <!-- 필터 다이얼로그 (오른쪽 슬라이드) -->

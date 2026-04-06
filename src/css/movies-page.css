@@ -423,6 +423,23 @@
   text-decoration: underline;
 }
 
+.movies-footer-nav {
+  margin-top: 4px;
+}
+
+.movies-footer-nav-link {
+  font-size: 12px;
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}
+
+.movies-footer-nav-link:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
 /* ── 반응형 페이지 패딩 ── */
 @media (max-width: 599px) {
   .movies-page {
