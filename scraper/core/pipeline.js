@@ -1,5 +1,5 @@
-import { runNaverScrape } from './movieScraper.js';
-import { runNaverScheduleScrape } from './scheduleScraper.js';
+import { runNaverScrape } from './naverScraper.js';
+import { runNaverScheduleScrape } from './naverScheduleScraper.js';
 import { runKofaScrape } from './kofaScraper.js';
 import { runEmucineScrape } from './emucineScraper.js';
 import { sendUpdateNotification } from './notifier.js';
