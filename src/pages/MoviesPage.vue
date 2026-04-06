@@ -197,6 +197,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useMeta } from 'quasar';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
 import type { Movie, Schedule } from 'src/types';
@@ -209,6 +210,22 @@ import { trackEvent } from 'src/composables/useAnalytics';
 
 const route = useRoute();
 const store = useMoviesStore();
+
+useMeta({
+  title: 'Find English Subtitled Movies in Seoul | cineping',
+  meta: {
+    description: {
+      name: 'description',
+      content:
+        'Find movies in Seoul with English subtitles across CGV, Lotte Cinema, Megabox, KOFA Cinematheque and Emu Cinema. Search Korean cinema English subtitles and indie films Seoul English subs easily.',
+    },
+    keywords: {
+      name: 'keywords',
+      content:
+        'movies in Seoul with English subtitles, Korean cinema English subtitles, indie films Seoul English subs, arthouse cinema Seoul English subtitles',
+    },
+  },
+});
 const schedulesStore = useSchedulesStore();
 
 const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog } =
