@@ -79,23 +79,18 @@
 
     <!-- 푸터 -->
     <div class="movies-footer">
-      <div class="movies-footer-inner">
+      <div class="movies-footer-logo-row">
         <div class="movies-footer-logo-box">
           <q-icon name="movie" size="14px" color="white" />
         </div>
         <span class="movies-footer-logo-text">cineping</span>
       </div>
-      <p class="movies-footer-sub">당신의 영화 스케줄을 한눈에</p>
-      <p class="movies-footer-copyright">© 2026 cineping. All rights reserved.</p>
-      <p class="movies-footer-contact">
-        <q-icon name="mail_outline" size="13px" class="movies-footer-contact-icon" />
-        <a href="mailto:wooriworld82@gmail.com" class="movies-footer-email"
-          >wooriworld82@gmail.com</a
-        >
-      </p>
-      <div class="movies-footer-nav">
-        <router-link to="/about" class="movies-footer-nav-link">About</router-link>
+      <div class="movies-footer-links">
+        <router-link to="/about" class="movies-footer-link">About</router-link>
+        <span class="movies-footer-divider">·</span>
+        <a href="mailto:wooriworld82@gmail.com" class="movies-footer-link">Contact</a>
       </div>
+      <p class="movies-footer-copyright">© 2026 cineping. All rights reserved.</p>
     </div>
 
     <!-- 필터 다이얼로그 (오른쪽 슬라이드) -->

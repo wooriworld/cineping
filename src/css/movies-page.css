@@ -350,28 +350,26 @@
 /* ── 푸터 ── */
 .movies-footer {
   margin-top: 48px;
-  padding-top: 28px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  text-align: center;
+  margin-bottom: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 24px;
+  gap: 10px;
 }
 
-.movies-footer-inner {
+.movies-footer-logo-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .movies-footer-logo-box {
   background: linear-gradient(135deg, #5b21b6, #7c3aed);
-  padding: 4px;
   border-radius: 6px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -386,58 +384,33 @@
   background-clip: text;
 }
 
-.movies-footer-sub {
-  font-size: 12px;
-  color: #737373;
-  margin: 0;
-}
-
-.movies-footer-copyright {
-  font-size: 11px;
-  color: #a3a3a3;
-  margin: 2px 0 0;
-  letter-spacing: 0.02em;
-}
-
-.movies-footer-contact {
-  font-size: 11px;
-  color: #a3a3a3;
-  margin: 4px 0 0;
+.movies-footer-links {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
-.movies-footer-contact-icon {
-  color: #a3a3a3;
-}
-
-.movies-footer-email {
-  color: #a3a3a3;
+.movies-footer-link {
+  font-size: 12px;
+  color: #9ca3af;
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
-.movies-footer-email:hover {
-  color: #737373;
-  text-decoration: underline;
+.movies-footer-link:hover {
+  color: #5b21b6;
 }
 
-.movies-footer-nav {
-  margin-top: 4px;
-}
-
-.movies-footer-nav-link {
+.movies-footer-divider {
   font-size: 12px;
-  color: #7c3aed;
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.15s ease;
+  color: #d1d5db;
 }
 
-.movies-footer-nav-link:hover {
-  opacity: 0.7;
-  text-decoration: underline;
+.movies-footer-copyright {
+  font-size: 11px;
+  color: #d1d5db;
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 
 /* ── 반응형 페이지 패딩 ── */
