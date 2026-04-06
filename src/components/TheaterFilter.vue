@@ -125,16 +125,16 @@ defineEmits<{
 }>();
 
 const CHAINS = [
-  { value: '극장 전체', label: '극장 전체' },
+  { value: 'All Theaters', label: 'All Theaters' },
   { value: 'CGV', label: 'CGV' },
-  { value: '롯데시네마', label: '롯데시네마' },
-  { value: '메가박스', label: '메가박스' },
-  { value: '그 외 극장', label: '그 외 극장' },
+  { value: 'LotteCinema', label: 'LotteCinema' },
+  { value: 'Megabox', label: 'Megabox' },
+  { value: 'Others', label: 'Others' },
 ];
 
 const REGIONS = [
-  { value: '지역 선택', label: '지역 선택' },
-  { value: '서울', label: '서울' },
+  { value: 'Select Region', label: 'Select Region' },
+  { value: 'Seoul', label: 'Seoul' },
   /* { value: '경기', label: '경기' },
   { value: '인천', label: '인천' },
   { value: '강원', label: '강원' },
@@ -151,22 +151,22 @@ const REGIONS = [
 ];
 
 const HALL_TYPES = [
-  { value: '상영관 전체', label: '상영관 전체' },
-  { value: '일반관', label: '일반관' },
-  { value: '특별관', label: '특별관' },
+  { value: 'All Screens', label: 'All Screens' },
+  { value: 'Standard', label: 'Standard' },
+  { value: 'Premium', label: 'Premium' },
 ];
 
 const SORTS = [
-  { value: 'theater' as SortType, label: '영화관 순' },
-  { value: 'time' as SortType, label: '시간 순' },
+  { value: 'theater' as SortType, label: 'Theater' },
+  { value: 'time' as SortType, label: 'Showtime' },
 ];
 
 const regionLabel = computed(() => {
-  if (!props.regionModel || props.regionModel === '지역 선택') return '지역 선택';
-  return `${props.regionModel} 지역`;
+  if (!props.regionModel || props.regionModel === 'Select Region') return 'Select Region';
+  return `${props.regionModel}`;
 });
 
 const sortLabel = computed(
-  () => SORTS.find((s) => s.value === props.sortModel)?.label ?? '영화관 순',
+  () => SORTS.find((s) => s.value === props.sortModel)?.label ?? 'Theater',
 );
 </script>

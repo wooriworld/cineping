@@ -8,13 +8,15 @@
     <div v-if="filterShowNew || filterShowUpdate || filterShowEng" class="movies-active-filters">
       <span class="movies-active-filter-label">필터:</span>
       <span v-if="filterShowNew" class="movies-active-chip movies-active-chip--new">NEW</span>
-      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update">UPDATE</span>
+      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update"
+        >UPDATE</span
+      >
       <span v-if="filterShowEng" class="movies-active-chip movies-active-chip--eng">ENG</span>
     </div>
 
     <!-- 로딩 -->
     <div v-if="store.loading" class="movies-loading">
-      <q-spinner size="40px" color="primary" />
+      <q-spinner size="40px" color="deep-purple" />
     </div>
 
     <!-- 영화 그리드 -->
@@ -33,9 +35,24 @@
               <q-icon name="image_not_supported" size="36px" color="grey-4" />
             </div>
             <div class="movie-card-badge-wrap">
-              <q-badge v-if="isMovieNew(movie)" color="negative" label="NEW" class="movie-card-badge-item" />
-              <q-badge v-else-if="isMovieUpdate(movie)" color="warning" label="UPDATE" class="movie-card-badge-item" />
-              <q-badge v-if="schedulesStore.engScheduleMovieIds.has(movie.id)" color="primary" label="ENG" class="movie-card-badge-item" />
+              <q-badge
+                v-if="isMovieNew(movie)"
+                color="negative"
+                label="NEW"
+                class="movie-card-badge-item"
+              />
+              <q-badge
+                v-else-if="isMovieUpdate(movie)"
+                color="warning"
+                label="UPDATE"
+                class="movie-card-badge-item"
+              />
+              <q-badge
+                v-if="schedulesStore.engScheduleMovieIds.has(movie.id)"
+                color="primary"
+                label="ENG"
+                class="movie-card-badge-item"
+              />
             </div>
             <div class="movie-card-overlay" />
           </div>
@@ -72,7 +89,9 @@
       <p class="movies-footer-copyright">© 2026 cineping. All rights reserved.</p>
       <p class="movies-footer-contact">
         <q-icon name="mail_outline" size="13px" class="movies-footer-contact-icon" />
-        <a href="mailto:wooriworld82@gmail.com" class="movies-footer-email">wooriworld82@gmail.com</a>
+        <a href="mailto:wooriworld82@gmail.com" class="movies-footer-email"
+          >wooriworld82@gmail.com</a
+        >
       </p>
     </div>
 
@@ -116,7 +135,9 @@
           >
             Reset
           </q-btn>
-          <q-btn style="background: #5b21b6; color: #fff" @click="filterDialog = false">Apply</q-btn>
+          <q-btn style="background: #5b21b6; color: #fff" @click="filterDialog = false"
+            >Apply</q-btn
+          >
         </div>
       </q-card>
     </q-dialog>
@@ -193,7 +214,8 @@ const route = useRoute();
 const store = useMoviesStore();
 const schedulesStore = useSchedulesStore();
 
-const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog } = useMoviesFilter();
+const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog } =
+  useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -206,10 +228,7 @@ function isMovieNew(m: Movie): boolean {
 }
 
 function isMovieUpdate(m: Movie): boolean {
-  return (
-    schedulesStore.newScheduleMovieIds.has(m.id) &&
-    (m.createdAt ?? '').slice(0, 10) < today
-  );
+  return schedulesStore.newScheduleMovieIds.has(m.id) && (m.createdAt ?? '').slice(0, 10) < today;
 }
 
 const filteredMovies = computed(() => {
@@ -254,7 +273,9 @@ const filteredMovies = computed(() => {
     const aNew = isMovieNew(a) ? 0 : 1;
     const bNew = isMovieNew(b) ? 0 : 1;
     if (aNew !== bNew) return aNew - bNew;
-    const createdDiff = (b.createdAt ?? '').slice(0, 10).localeCompare((a.createdAt ?? '').slice(0, 10));
+    const createdDiff = (b.createdAt ?? '')
+      .slice(0, 10)
+      .localeCompare((a.createdAt ?? '').slice(0, 10));
     if (createdDiff !== 0) return createdDiff;
     const countDiff = (counts[b.id] ?? 0) - (counts[a.id] ?? 0);
     if (countDiff !== 0) return countDiff;
@@ -266,10 +287,10 @@ const filteredMovies = computed(() => {
 const scheduleDialog = ref(false);
 const scheduleDialogMovie = ref<Movie | null>(null);
 const scheduleDialogDate = ref('');
-const scheduleDialogChain = ref('극장 전체');
-const scheduleDialogRegion = ref('서울');
+const scheduleDialogChain = ref('All Theaters');
+const scheduleDialogRegion = ref('Seoul');
 const scheduleDialogSort = ref<SortType>('theater');
-const scheduleDialogHallType = ref('상영관 전체');
+const scheduleDialogHallType = ref('All Screens');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
 
@@ -300,9 +321,7 @@ const scheduleDialogNewDates = computed<string[]>(() => {
       scheduleDialogSchedules.value
         .filter(
           (s) =>
-            s.lastUpdatedAt &&
-            s.lastUpdatedAt.slice(0, 10) === today &&
-            movieCreatedAtKST < today,
+            s.lastUpdatedAt && s.lastUpdatedAt.slice(0, 10) === today && movieCreatedAtKST < today,
         )
         .map((s) => s.date),
     ),
@@ -313,13 +332,13 @@ const scheduleDialogFiltered = computed(() =>
   scheduleDialogSchedules.value.filter((s) => {
     const matchDate = s.date === scheduleDialogDate.value;
     const matchChain =
-      scheduleDialogChain.value === '극장 전체' ||
-      (scheduleDialogChain.value === '그 외 극장'
-        ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
+      scheduleDialogChain.value === 'All Theaters' ||
+      (scheduleDialogChain.value === 'Others'
+        ? !['CGV', 'LotteCinema', 'Megabox'].includes(s.chain ?? '')
         : s.chain === scheduleDialogChain.value);
     const matchHallType =
-      scheduleDialogHallType.value === '상영관 전체' ||
-      (scheduleDialogHallType.value === '일반관'
+      scheduleDialogHallType.value === 'All Screens' ||
+      (scheduleDialogHallType.value === 'Premium'
         ? isRegularHall(s.screenType)
         : !isRegularHall(s.screenType));
     return matchDate && matchChain && matchHallType;
@@ -329,10 +348,10 @@ const scheduleDialogFiltered = computed(() =>
 async function openScheduleDialog(movie: Movie) {
   scheduleDialogMovie.value = movie;
   scheduleDialogDate.value = '';
-  scheduleDialogChain.value = '극장 전체';
-  scheduleDialogRegion.value = '서울';
+  scheduleDialogChain.value = 'All Theaters';
+  scheduleDialogRegion.value = 'Seoul';
   scheduleDialogSort.value = 'theater';
-  scheduleDialogHallType.value = '상영관 전체';
+  scheduleDialogHallType.value = 'All Screens';
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;
@@ -341,9 +360,7 @@ async function openScheduleDialog(movie: Movie) {
     scheduleDialogSchedules.value = list;
     const dates = [
       ...new Set(
-        list
-          .filter((s) => s.date !== today || s.startTime >= nowTimeKST)
-          .map((s) => s.date),
+        list.filter((s) => s.date !== today || s.startTime >= nowTimeKST).map((s) => s.date),
       ),
     ].sort();
     scheduleDialogDate.value = dates.find((d) => d >= today) ?? '';

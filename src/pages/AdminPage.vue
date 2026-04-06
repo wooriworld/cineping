@@ -1,8 +1,20 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-gutter-sm q-mb-md">
-      <q-btn class="admin-action-btn" color="green-8" icon="cloud_sync" label="전체 수집" @click="runAllScrape" />
-      <q-btn class="admin-action-btn" color="indigo" icon="api" label="Naver 영화 수집" @click="runApiMovieScrape" />
+      <q-btn
+        class="admin-action-btn"
+        color="green-8"
+        icon="cloud_sync"
+        label="전체 수집"
+        @click="runAllScrape"
+      />
+      <q-btn
+        class="admin-action-btn"
+        color="indigo"
+        icon="api"
+        label="Naver 영화 수집"
+        @click="runApiMovieScrape"
+      />
       <q-btn
         class="admin-action-btn"
         color="deep-orange"
@@ -10,7 +22,13 @@
         label="Naver 스케줄 수집"
         @click="runNaverScheduleScrape"
       />
-      <q-btn class="admin-action-btn" color="teal" icon="video_library" label="KOFA 영화 수집" @click="runKofaScrape" />
+      <q-btn
+        class="admin-action-btn"
+        color="teal"
+        icon="video_library"
+        label="KOFA 영화 수집"
+        @click="runKofaScrape"
+      />
       <q-btn
         class="admin-action-btn"
         color="deep-purple"
@@ -57,7 +75,15 @@
         </q-list>
       </q-btn-dropdown>
 
-      <q-btn-dropdown :label="sourceFilterLabel" class="admin-filter-dropdown" outline dense no-caps color="grey-7" icon="source">
+      <q-btn-dropdown
+        :label="sourceFilterLabel"
+        class="admin-filter-dropdown"
+        outline
+        dense
+        no-caps
+        color="grey-7"
+        icon="source"
+      >
         <q-list dense>
           <q-item
             v-for="opt in sourceFilterOptions"
@@ -72,7 +98,6 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
-
     </div>
 
     <q-banner v-if="store.error" class="bg-negative text-white q-mb-md" rounded>
@@ -274,7 +299,6 @@ const sourceFilterLabel = computed(
   () => sourceFilterOptions.find((o) => o.value === sourceFilter.value)?.label ?? '수집처 전체',
 );
 
-
 const filteredMovies = computed(() => {
   const counts = schedulesStore.scheduleCounts; // 반응형 의존성 명시적 추적
   const q = (searchTitle.value ?? '').trim();
@@ -382,10 +406,10 @@ async function runEmucinemaScrape() {
 const scheduleDialog = ref(false);
 const scheduleDialogMovie = ref<Movie | null>(null);
 const scheduleDialogDate = ref('');
-const scheduleDialogChain = ref('극장 전체');
-const scheduleDialogRegion = ref('서울');
+const scheduleDialogChain = ref('All Theaters');
+const scheduleDialogRegion = ref('Seoul');
 const scheduleDialogSort = ref<SortType>('theater');
-const scheduleDialogHallType = ref('상영관 전체');
+const scheduleDialogHallType = ref('All Screens');
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
 
@@ -412,13 +436,13 @@ const scheduleDialogFiltered = computed(() =>
   scheduleDialogSchedules.value.filter((s) => {
     const matchDate = s.date === scheduleDialogDate.value;
     const matchChain =
-      scheduleDialogChain.value === '극장 전체' ||
-      (scheduleDialogChain.value === '그 외 극장'
-        ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
+      scheduleDialogChain.value === 'All Theaters' ||
+      (scheduleDialogChain.value === 'Others'
+        ? !['CGV', 'LotteCinema', 'Megabox'].includes(s.chain ?? '')
         : s.chain === scheduleDialogChain.value);
     const matchHallType =
-      scheduleDialogHallType.value === '상영관 전체' ||
-      (scheduleDialogHallType.value === '일반관'
+      scheduleDialogHallType.value === 'All Screens' ||
+      (scheduleDialogHallType.value === 'Premium'
         ? isRegularHall(s.screenType)
         : !isRegularHall(s.screenType));
     return matchDate && matchChain && matchHallType;
@@ -428,10 +452,10 @@ const scheduleDialogFiltered = computed(() =>
 async function openScheduleDialog(movie: Movie) {
   scheduleDialogMovie.value = movie;
   scheduleDialogDate.value = '';
-  scheduleDialogChain.value = '극장 전체';
-  scheduleDialogRegion.value = '서울';
+  scheduleDialogChain.value = 'All Theaters';
+  scheduleDialogRegion.value = 'Seoul';
   scheduleDialogSort.value = 'theater';
-  scheduleDialogHallType.value = '상영관 전체';
+  scheduleDialogHallType.value = 'All Screens';
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;
