@@ -101,3 +101,59 @@
 .cineping-logo:hover {
   opacity: 0.85;
 }
+
+/* ===========================
+   구독 버튼 & 팝업
+=========================== */
+
+.subscribe-btn {
+  color: #5b21b6;
+}
+
+.subscribe-dialog-card {
+  width: 320px;
+  border-radius: 16px;
+}
+
+.subscribe-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0;
+}
+
+.subscribe-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.subscribe-dialog-telegram-icon {
+  color: #229ed9;
+}
+
+.subscribe-dialog-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  padding-bottom: 24px;
+}
+
+.subscribe-dialog-desc {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.subscribe-qr-img {
+  width: 220px;
+  border-radius: 12px;
+  cursor: pointer;
+}

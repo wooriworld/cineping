@@ -54,7 +54,40 @@
             <q-icon name="tune" size="22px" />
             <q-badge v-if="filterShowNew || filterShowUpdate" color="primary" floating rounded />
           </q-btn>
+
+          <!-- 구독 버튼 -->
+          <q-btn
+            flat
+            round
+            class="subscribe-btn q-ml-xs"
+            @click="subscribeDialog = true"
+            aria-label="텔레그램 구독"
+          >
+            <q-icon name="notifications_none" size="22px" />
+          </q-btn>
         </template>
+
+        <!-- 텔레그램 구독 팝업 -->
+        <q-dialog v-model="subscribeDialog">
+          <q-card class="subscribe-dialog-card">
+            <q-card-section class="subscribe-dialog-header">
+              <div class="subscribe-dialog-title">
+                <q-icon name="send" size="20px" class="subscribe-dialog-telegram-icon" />
+                <span>Telegram Notifications Subscription</span>
+              </div>
+              <q-btn flat round dense icon="close" @click="subscribeDialog = false" />
+            </q-card-section>
+
+            <q-card-section class="subscribe-dialog-body">
+              <p class="subscribe-dialog-desc">
+                Scan the QR code to get new movie and schedule updates on Telegram.
+              </p>
+              <a href="https://wooriworld.github.io/cineping/#/" target="_blank" rel="noopener">
+                <q-img src="~assets/telegram-qr.png" class="subscribe-qr-img" fit="contain" />
+              </a>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
 
         <!-- 데스크탑 네비게이션 -->
         <nav class="gt-sm row items-center q-gutter-sm q-ml-sm">
@@ -101,6 +134,7 @@ function goHome() {
 }
 
 const searchOpen = ref(false);
+const subscribeDialog = ref(false);
 const searchInputRef = ref<InstanceType<typeof QInput> | null>(null);
 
 async function openSearch() {
@@ -122,10 +156,6 @@ const isLocalhost = window.location.hostname === 'localhost';
 
 const navItems = [
   { to: '/', label: '현재 상영 영화', icon: 'movie' },
-  ...(isLocalhost
-    ? [
-        { to: '/admin', label: '어드민', icon: 'admin_panel_settings' },
-      ]
-    : []),
+  ...(isLocalhost ? [{ to: '/admin', label: '어드민', icon: 'admin_panel_settings' }] : []),
 ];
 </script>
