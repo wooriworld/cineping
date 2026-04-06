@@ -108,7 +108,6 @@
       :rows="filteredMovies"
       :columns="columns"
       row-key="id"
-      :loading="store.loading"
       :rows-per-page-options="[10, 20, 30, 0]"
       :pagination="{ rowsPerPage: 10 }"
       flat
@@ -117,11 +116,7 @@
       <template #body-cell-title="props">
         <q-td class="admin-title-cell">
           <div class="admin-title-wrap">
-            <span
-              class="cursor-pointer admin-title-text admin-title-link"
-              @click="openScheduleDialog(props.row)"
-              >{{ props.row.title }}</span
-            >
+            <span class="admin-title-text">{{ props.row.title }}</span>
             <q-badge
               v-if="props.row.createdAt?.slice(0, 10) === today"
               color="red"
@@ -189,54 +184,6 @@
       </template>
     </q-table>
 
-    <!-- 삭제 확인 -->
-    <q-dialog v-model="deleteDialog">
-      <q-card>
-        <q-card-section class="text-h6">정말 삭제하시겠습니까?</q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="취소" v-close-popup />
-          <q-btn color="negative" label="삭제" :loading="store.loading" @click="doDelete" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- 스케줄 조회 팝업 -->
-    <q-dialog v-model="scheduleDialog" maximized>
-      <q-card>
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">
-            {{ scheduleDialogMovie?.title }}
-            <span v-if="scheduleDialogMovie?.englishTitle" class="text-subtitle1 text-grey-6"
-              >({{ scheduleDialogMovie.englishTitle }})</span
-            >
-          </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section class="q-pt-sm">
-          <div v-if="scheduleDialogLoading" class="text-center q-pa-lg">
-            <q-spinner size="40px" color="primary" />
-          </div>
-          <template v-else>
-            <DateSelector
-              v-model="scheduleDialogDate"
-              :available-dates="scheduleDialogAvailableDates"
-            />
-            <TheaterFilter
-              v-model:chain-model="scheduleDialogChain"
-              v-model:region-model="scheduleDialogRegion"
-              v-model:sort-model="scheduleDialogSort"
-              v-model:hall-type-model="scheduleDialogHallType"
-            />
-            <ScheduleList
-              :schedules="scheduleDialogFiltered"
-              :sort-model="scheduleDialogSort"
-              :movie-created-at="scheduleDialogMovie?.createdAt"
-            />
-          </template>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
@@ -245,10 +192,6 @@ import 'src/css/admin.css';
 import { computed, ref, onMounted } from 'vue';
 import { useMoviesStore } from 'src/stores/moviesStore';
 import { useSchedulesStore } from 'src/stores/schedulesStore';
-import type { Movie, Schedule } from 'src/types';
-import DateSelector from 'src/components/DateSelector.vue';
-import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
-import ScheduleList from 'src/components/ScheduleList.vue';
 import type { QTableColumn } from 'quasar';
 
 const store = useMoviesStore();
@@ -340,18 +283,10 @@ const filteredMovies = computed(() => {
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 // ── 삭제 ─────────────────────────────────────────────────────────
-const deleteDialog = ref(false);
-const deleteTargetId = ref('');
-
-function confirmDelete(id: string) {
-  deleteTargetId.value = id;
-  deleteDialog.value = true;
-}
-
-async function doDelete() {
+async function confirmDelete(id: string) {
+  if (!confirm('정말 삭제하시겠습니까?')) return;
   try {
-    await store.deleteMovie(deleteTargetId.value);
-    deleteDialog.value = false;
+    await store.deleteMovie(id);
   } catch {
     // store.error로 표시됨
   }
@@ -399,74 +334,6 @@ async function runEmucinemaScrape() {
     await store.scrapeFromEmucine();
   } catch {
     // store.error 로 표시됨
-  }
-}
-
-// ── 스케줄 조회 팝업 ──────────────────────────────────────────────
-const scheduleDialog = ref(false);
-const scheduleDialogMovie = ref<Movie | null>(null);
-const scheduleDialogDate = ref('');
-const scheduleDialogChain = ref('All Theaters');
-const scheduleDialogRegion = ref('Seoul');
-const scheduleDialogSort = ref<SortType>('theater');
-const scheduleDialogHallType = ref('All Screens');
-const scheduleDialogLoading = ref(false);
-const scheduleDialogSchedules = ref<Schedule[]>([]);
-
-function isRegularHall(screenType: string): boolean {
-  const s = screenType || '';
-  return (
-    /^\d+관$/.test(s) || // N관
-    /^\d+관\(\d+층\)$/.test(s) || // N관(N층)
-    /^\d+관 \d+층$/.test(s) || // N관 N층
-    /^\d+관 \d+층 \(Laser\)$/.test(s) || // N관 N층 (Laser)
-    /^\d+관 \(Laser\)$/.test(s) || // N관 (Laser)
-    /^\d+관 B\d+층$/.test(s) || // N관 BN층
-    /^\d+관 B\d+층 \(Laser\)$/.test(s) || // N관 BN층 (Laser)
-    /^\d+관 본관\d+층$/.test(s) || // N관 본관N층
-    /^\d+관 본관 B\d+층$/.test(s) // N관 본관 BN층
-  );
-}
-
-const scheduleDialogAvailableDates = computed(() => [
-  ...new Set(scheduleDialogSchedules.value.map((s) => s.date)),
-]);
-
-const scheduleDialogFiltered = computed(() =>
-  scheduleDialogSchedules.value.filter((s) => {
-    const matchDate = s.date === scheduleDialogDate.value;
-    const matchChain =
-      scheduleDialogChain.value === 'All Theaters' ||
-      (scheduleDialogChain.value === 'Others'
-        ? !['CGV', 'LotteCinema', 'Megabox'].includes(s.chain ?? '')
-        : s.chain === scheduleDialogChain.value);
-    const matchHallType =
-      scheduleDialogHallType.value === 'All Screens' ||
-      (scheduleDialogHallType.value === 'Premium'
-        ? isRegularHall(s.screenType)
-        : !isRegularHall(s.screenType));
-    return matchDate && matchChain && matchHallType;
-  }),
-);
-
-async function openScheduleDialog(movie: Movie) {
-  scheduleDialogMovie.value = movie;
-  scheduleDialogDate.value = '';
-  scheduleDialogChain.value = 'All Theaters';
-  scheduleDialogRegion.value = 'Seoul';
-  scheduleDialogSort.value = 'theater';
-  scheduleDialogHallType.value = 'All Screens';
-  scheduleDialogSchedules.value = [];
-  scheduleDialogLoading.value = true;
-  scheduleDialog.value = true;
-  try {
-    const list = await schedulesStore.getByMovie(movie.id);
-    scheduleDialogSchedules.value = list;
-    const dates = [...new Set(list.map((s) => s.date))].sort();
-    const todayStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    scheduleDialogDate.value = dates.find((d) => d >= todayStr) ?? '';
-  } finally {
-    scheduleDialogLoading.value = false;
   }
 }
 
