@@ -224,6 +224,37 @@ useMeta({
       content:
         'movies in Seoul with English subtitles, Korean cinema English subtitles, indie films Seoul English subs, arthouse cinema Seoul English subtitles',
     },
+    ogSiteName: {
+      property: 'og:site_name',
+      content: 'cineping',
+    },
+    ogTitle: {
+      property: 'og:title',
+      content: 'Find English Subtitled Movies in Seoul',
+    },
+    ogDescription: {
+      property: 'og:description',
+      content: 'Find English-subtitled movies and showtimes in Seoul easily.',
+    },
+    ogType: {
+      property: 'og:type',
+      content: 'website',
+    },
+    ogUrl: {
+      property: 'og:url',
+      content: 'https://wooriworld.github.io/cineping/',
+    },
+  },
+  script: {
+    ldJson: {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'cineping',
+        url: 'https://wooriworld.github.io/cineping/',
+      }),
+    },
   },
 });
 const schedulesStore = useSchedulesStore();
