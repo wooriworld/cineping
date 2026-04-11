@@ -88,7 +88,7 @@ export async function runEmucineScrape(supabase) {
   const toHHMM = (t) => (t ?? '').slice(0, 5);
 
   // ── 1. 이미지 파싱 (오늘 이후 Eng 자막만) ────────────────────────
-  const imageResults = await scrapeEmucineSchedules();
+  const imageResults = await scrapeEmucineSchedules(supabase);
   const errors = imageResults.filter((r) => r.error).map((r) => r.error);
 
   const engSchedules = imageResults

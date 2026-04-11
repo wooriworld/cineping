@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { createHash } from 'crypto';
 
 const EMU_BASE = 'https://www.emuartspace.com';
 const EMU_PAGE_URL = `${EMU_BASE}/bbs/m/about_data_view.php?type=about&ep=ep205032292582d223ceaa81&gp=all&item=ad6632918315896c80e7cbf3`;
@@ -54,13 +55,59 @@ function extractJsonFromResponse(text) {
 }
 
 /**
+ * 이미지 버퍼의 SHA-256 해시를 반환한다.
+ * @param {Buffer} buffer
+ * @returns {string}
+ */
+function sha256(buffer) {
+  return createHash('sha256').update(buffer).digest('hex');
+}
+
+/**
+ * Supabase 캐시에서 이미지 해시로 스케줄을 조회한다.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} imageHash
+ * @returns {Promise<{ date: string, time: string, title: string }[] | null>}
+ */
+async function getCachedSchedules(supabase, imageHash) {
+  const { data, error } = await supabase
+    .from('emucine_image_cache')
+    .select('schedules')
+    .eq('imageHash', imageHash)
+    .maybeSingle();
+  if (error) {
+    console.warn('[에무시네마] 캐시 조회 오류:', error.message);
+    return null;
+  }
+  return data?.schedules ?? null;
+}
+
+/**
+ * Supabase 캐시에 이미지 해시와 파싱 결과를 저장한다.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} imageHash
+ * @param {string} imageUrl
+ * @param {{ date: string, time: string, title: string }[]} schedules
+ */
+async function setCachedSchedules(supabase, imageHash, imageUrl, schedules) {
+  const { error } = await supabase.from('emucine_image_cache').upsert(
+    { imageHash, imageUrl, schedules, cachedAt: new Date().toISOString() },
+    { onConflict: 'imageHash' },
+  );
+  if (error) {
+    console.warn('[에무시네마] 캐시 저장 오류:', error.message);
+  }
+}
+
+/**
  * 에무시네마 상영시간표 이미지를 Gemini로 분석해 스케줄을 반환한다.
+ * - 이미지 SHA-256 해시를 Supabase 캐시와 비교해 동일하면 Gemini 호출을 건너뜀
  * - 페이지에서 이미지 URL 동적 탐색 (파일명 변경에 무관)
- * - Gemini에게 직접 JSON 추출 요청
  *
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @returns {Promise<{ imageUrl: string, schedules: { date: string, time: string, title: string }[], error?: string }[]>}
  */
-export async function scrapeEmucineSchedules() {
+export async function scrapeEmucineSchedules(supabase) {
   const imageUrls = await fetchScheduleImageUrls();
   if (imageUrls.length === 0) {
     console.warn('[에무시네마] 상영시간표 이미지를 찾지 못했습니다.');
@@ -107,6 +154,16 @@ export async function scrapeEmucineSchedules() {
         continue;
       }
 
+      // ── 캐시 확인 ────────────────────────────────────────────────
+      const imageHash = sha256(imgBuffer);
+      const cached = await getCachedSchedules(supabase, imageHash);
+      if (cached) {
+        console.log(`[에무시네마] 캐시 HIT — Gemini 호출 생략 (${imageUrl})`);
+        results.push({ imageUrl, schedules: cached, fromCache: true });
+        continue;
+      }
+
+      // ── Gemini 호출 ──────────────────────────────────────────────
       const base64 = imgBuffer.toString('base64');
       const mimeType = imageUrl.toUpperCase().endsWith('.PNG') ? 'image/png' : 'image/jpeg';
 
@@ -129,6 +186,11 @@ export async function scrapeEmucineSchedules() {
       const geminiData = await geminiRes.json();
       const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       const schedules = extractJsonFromResponse(responseText);
+
+      // ── 캐시 저장 ────────────────────────────────────────────────
+      await setCachedSchedules(supabase, imageHash, imageUrl, schedules);
+      console.log(`[에무시네마] Gemini 분석 완료 → 캐시 저장 (${imageUrl})`);
+
       results.push({ imageUrl, schedules });
     } catch (err) {
       console.error(`[에무시네마] Gemini 오류 (${imageUrl}):`, err.message);
