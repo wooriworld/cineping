@@ -49,7 +49,7 @@
 | ---------- | -------------------------------------------------------------- |
 | 네이버     | 스케줄 API HTTP 직접 호출 + cheerio 파싱                       |
 | KOFA       | 시네마테크 스케줄 페이지 HTTP 호출 + cheerio HTML 파싱         |
-| 에무시네마 | 상영시간표 이미지 다운로드 → Gemini Vision API OCR → JSON 추출 |
+| 에무시네마 | 상영시간표 이미지 다운로드 → SHA-256 해시로 Supabase 캐시 조회 → 캐시 HIT 시 Gemini 생략 / MISS 시 Gemini Vision API (`gemini-2.5-flash`) OCR → JSON 추출 → 캐시 저장 |
 
 **수집 데이터 항목**
 
@@ -200,7 +200,7 @@ Showtime Updates (N)
 | ------------ | --------------------------------------------------------------------------- |
 | 런타임       | Node.js (ESM)                                                               |
 | 서버         | Express (로컬 실행, 수동 트리거)                                            |
-| 스크래핑     | 네이버·KOFA: HTTP 직접 호출 + cheerio / 에무시네마: Gemini Vision API (OCR) |
+| 스크래핑     | 네이버·KOFA: HTTP 직접 호출 + cheerio / 에무시네마: Gemini Vision API `gemini-2.5-flash` (OCR) + Supabase 이미지 해시 캐시 |
 | 스케줄러     | Railway Cron                                                                |
 | 데이터베이스 | Supabase (PostgreSQL)                                                       |
 | 알림         | Telegram Bot API                                                            |
@@ -279,6 +279,28 @@ Showtime Updates (N)
 
 ---
 
+### `emucine_image_cache` 테이블
+
+```json
+{
+  "imageHash": "a3f1c9...hex64",
+  "imageUrl": "https://www.emuartspace.com/about/emuartspace/all/schedule.jpg",
+  "schedules": [
+    { "date": "2026-04-12", "time": "14:30", "title": "텐", "subtitle": "*Eng Subtitles", "hall": "1관" }
+  ],
+  "cachedAt": "2026-04-11T09:00:00+09:00"
+}
+```
+
+> 필드 설명
+>
+> - imageHash: 이미지 버퍼 SHA-256 해시 — unique key, upsert conflict 기준
+> - imageUrl: 원본 이미지 URL
+> - schedules: Gemini OCR 파싱 결과 JSON 배열
+> - cachedAt: 캐시 저장 시각 (ISO 8601) — 동일 이미지 재배치 시 Gemini 호출 생략
+
+---
+
 ## 6. 배치 파이프라인 흐름
 
 ```
@@ -333,7 +355,7 @@ Showtime Updates (N)
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | 네이버 API 스펙 변경으로 수집 중단 | 파서 모듈 분리 (`naverMovieApiParser`, `naverScheduleApiParser`), 에러 발생 시 해당 파서만 실패 처리 후 텔레그램 알림 발송 |
 | KOFA / 에무시네마 파서 오류        | 소스별 독립 try/catch 처리, 실패 시 해당 수집만 건너뛰고 나머지 배치 정상 진행                                             |
-| Gemini Vision API 장애·할당량 초과 | 에무시네마 수집 실패 시 개별 처리 후 계속 진행, 전체 배치 영향 없음. 무료 할당량 모니터링 필요                             |
+| Gemini Vision API 장애·할당량 초과 | 이미지 SHA-256 해시 기반 Supabase 캐시(`emucine_image_cache`)로 동일 이미지 재배치 시 Gemini 호출 생략 — API 사용량 대폭 감소. 장애 시 개별 처리 후 배치 계속 진행 |
 | 에무시네마 이미지 URL 패턴 변경    | 파일명 고정 참조 대신 `img[src^="/about/emuartspace/all/"]` 패턴으로 동적 탐색하여 파일명 변경에 무관                      |
 | Railway 무료 티어 한도 초과        | 하루 2회 배치 실행(`run-scrape.js`), 실행 시간·메모리 사용량 모니터링 필요                                                 |
 | Telegram Bot API 속도 제한         | 영화별 스케줄 수집 간 1.5초 딜레이 적용, 알림은 수집 완료 후 1건으로 통합 발송                                             |
