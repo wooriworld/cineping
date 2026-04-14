@@ -52,31 +52,10 @@
 
         <!-- 지도 영역 -->
         <transition name="map-slide">
-          <div v-if="openMapSet.has(theater.name)" class="theater-map-area">
-            <div class="theater-map-placeholder">
-              <div class="map-pin-icon">
-                <q-icon name="location_on" size="36px" color="deep-purple-6" />
-                <q-icon name="place" size="20px" color="deep-purple-4" class="map-pin-dot" />
-              </div>
-              <div class="map-placeholder-text">지도 API 연동 영역</div>
-              <div class="map-placeholder-sub">Kakao Maps / Naver Maps</div>
-            </div>
-            <div class="theater-map-info">
-              <div class="map-info-address">
-                <div class="map-address-name">{{ theater.name }}</div>
-                <div class="map-address-detail">지도 API 연동 시 주소가 표시됩니다</div>
-              </div>
-              <q-btn
-                unelevated
-                label="길찾기"
-                icon="directions"
-                color="deep-purple-7"
-                text-color="white"
-                size="sm"
-                class="map-navi-btn"
-              />
-            </div>
-          </div>
+          <TheaterMap
+            v-if="openMapSet.has(theater.name)"
+            :theater-name="theater.name"
+          />
         </transition>
 
       </div>
@@ -86,6 +65,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import TheaterMap from 'src/components/TheaterMap.vue';
 import type { Schedule } from 'src/types';
 import type { SortType } from 'components/TheaterFilter.vue';
 import 'src/css/schedule.css';
@@ -96,7 +76,8 @@ const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 1
 const openMapSet = ref<Set<string>>(new Set());
 function toggleMap(theaterName: string): void {
   const next = new Set(openMapSet.value);
-  next.has(theaterName) ? next.delete(theaterName) : next.add(theaterName);
+  if (next.has(theaterName)) next.delete(theaterName);
+  else next.add(theaterName);
   openMapSet.value = next;
 }
 

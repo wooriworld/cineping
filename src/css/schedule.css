@@ -64,39 +64,63 @@
   overflow: hidden;
 }
 
-.theater-map-placeholder {
-  height: 180px;
-  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+/* 네이버 지도 캔버스 래퍼 */
+.theater-map-canvas-wrap {
+  position: relative;
+  height: 200px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.naver-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* 로딩 / 에러 오버레이 */
+.map-overlay {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  position: relative;
+  gap: 8px;
+  pointer-events: none;
 }
 
-.map-pin-icon {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.map-overlay--loading {
+  background: rgba(26, 26, 46, 0.85);
 }
 
-.map-pin-dot {
+.map-overlay--error {
+  background: #f5f5f5;
+}
+
+.map-overlay-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.map-overlay--error .map-overlay-text {
+  color: #aaa;
+}
+
+/* 지도 열기 힌트 */
+.map-open-hint {
   position: absolute;
-  bottom: -4px;
-}
-
-.map-placeholder-text {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
-  margin-top: 8px;
-  font-weight: 500;
-}
-
-.map-placeholder-sub {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 12px;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
 }
 
 .theater-map-info {
