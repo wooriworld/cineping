@@ -7,7 +7,7 @@ function loadNaverScript(clientId: string): Promise<void> {
   if (scriptPromise) return scriptPromise;
 
   scriptPromise = new Promise((resolve, reject) => {
-    if (typeof naver !== 'undefined' && naver.maps?.Service?.geocode) {
+    if (typeof naver !== 'undefined' && typeof naver.maps?.Service?.geocode === 'function') {
       resolve();
       return;
     }
@@ -22,7 +22,7 @@ function loadNaverScript(clientId: string): Promise<void> {
         reject(new Error('네이버 지도 초기화 타임아웃'));
       }, 10000);
       const poll = setInterval(() => {
-        if (typeof naver !== 'undefined' && naver.maps?.Service?.geocode) {
+        if (typeof naver !== 'undefined' && typeof naver.maps?.Service?.geocode === 'function') {
           clearInterval(poll);
           clearTimeout(timeout);
           resolve();
