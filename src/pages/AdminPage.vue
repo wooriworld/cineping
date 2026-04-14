@@ -163,7 +163,7 @@ const columns: QTableColumn[] = [
     sortable: true,
     format: (val: string) => (val ? val.substring(0, 10).replace(/-/g, '/') : '-'),
   },
-  { name: 'scheduleCount', label: '스케줄', field: 'id', align: 'center' },
+  { name: 'scheduleCount', label: '스케줄', field: (row) => schedulesStore.scheduleCounts[row.id] || 0, align: 'center', sortable: true },
   { name: 'sourceId', label: '수집처ID', field: 'sourceId', align: 'left' },
   { name: 'source', label: '수집처', field: 'source', align: 'center' },
   { name: 'actions', label: '관리', field: 'actions', align: 'center' },
