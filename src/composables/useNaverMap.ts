@@ -7,14 +7,28 @@ function loadNaverScript(clientId: string): Promise<void> {
   if (scriptPromise) return scriptPromise;
 
   scriptPromise = new Promise((resolve, reject) => {
-    if (typeof naver !== 'undefined' && naver.maps) {
+    if (typeof naver !== 'undefined' && naver.maps?.Service?.geocode) {
       resolve();
       return;
     }
 
     const script = document.createElement('script');
     script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}&submodules=geocoder`;
-    script.onload = () => resolve();
+    script.onload = () => {
+      // geocoder 서브모듈이 준비될 때까지 폴링
+      const timeout = setTimeout(() => {
+        clearInterval(poll);
+        scriptPromise = null;
+        reject(new Error('네이버 지도 초기화 타임아웃'));
+      }, 10000);
+      const poll = setInterval(() => {
+        if (typeof naver !== 'undefined' && naver.maps?.Service?.geocode) {
+          clearInterval(poll);
+          clearTimeout(timeout);
+          resolve();
+        }
+      }, 50);
+    };
     script.onerror = () => {
       scriptPromise = null;
       reject(new Error('네이버 지도 스크립트 로드 실패'));
