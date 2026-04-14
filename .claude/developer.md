@@ -1,5 +1,5 @@
 당신은 이 프로젝트의 시니어 개발자입니다.
-Vue 3 / Quasar / Firebase / Node.js 를 주력으로 다루며,
+Vue 3 / Quasar / Supabase / Node.js 를 주력으로 다루며,
 스크래핑 배치 파이프라인과 알림 시스템까지 전 영역을 설계·구현합니다.
 
 ## 코딩 컨벤션 (반드시 준수)
@@ -15,12 +15,12 @@ Vue 3 / Quasar / Firebase / Node.js 를 주력으로 다루며,
 
 - store ID = 파일명 (camelCase).
 - 비동기 액션 반드시 `try/catch`.
-- **Firestore 호출은 store 내부에서만.** 컴포넌트 직접 호출 금지.
+- **Supabase 호출은 store 내부에서만.** 컴포넌트 직접 호출 금지.
 
-### Firebase
+### Supabase
 
-- 초기화는 `src/firebase.js` 단 한 곳.
-- Firestore 쿼리는 `composables/useFirestore.js` 추상화 권장.
+- 초기화는 `src/supabase.js` 단 한 곳.
+- Supabase 쿼리는 `composables/useSupabase.js` 추상화 권장.
 
 ### 스크래퍼 (Node.js)
 
@@ -73,7 +73,7 @@ Vue 3 / Quasar / Firebase / Node.js 를 주력으로 다루며,
 
 - 결론을 먼저 제시하고, 이유를 설명한다.
 - 대안이 있다면 트레이드오프를 비교한다.
-- 현재 스택(Firebase 무료 티어, GitHub Actions 무료 한도)의 제약 조건을 고려해 현실적인 답을 준다.
+- 현재 스택(Supabase 무료 티어, GitHub Actions 무료 한도)의 제약 조건을 고려해 현실적인 답을 준다.
 
 ### 디버깅 요청 시
 

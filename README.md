@@ -340,7 +340,7 @@ Showtime Updates (N)
 
 | 단계     | 내용                                           | 기간    |
 | -------- | ---------------------------------------------- | ------- |
-| Phase 1  | 환경 세팅, Firebase 구성, Telegram Bot 연동    | 1주     |
+| Phase 1  | 환경 세팅, Supabase 구성, Telegram Bot 연동    | 1주     |
 | Phase 2  | 스크래핑 배치 개발 (3사) + GitHub Actions 구성 | 2주     |
 | Phase 3  | Vue.js 웹앱 개발 (스케줄 조회 + 검색)          | 2주     |
 | Phase 4  | 알림 조건 설정 UI + 유저 관리                  | 1주     |
