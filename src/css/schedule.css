@@ -52,6 +52,101 @@
   padding: 8px 14px 4px;
   background: rgba(0, 0, 0, 0.02);
   border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+
+
+/* 지도 영역 */
+.theater-map-area {
+  border-top: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.theater-map-placeholder {
+  height: 180px;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+}
+
+.map-pin-icon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.map-pin-dot {
+  position: absolute;
+  bottom: -4px;
+}
+
+.map-placeholder-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.map-placeholder-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.theater-map-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.map-info-address {
+  flex: 1;
+  min-width: 0;
+}
+
+.map-address-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-address-detail {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.map-navi-btn {
+  flex-shrink: 0;
+  border-radius: 8px !important;
+  font-weight: 600;
+}
+
+/* 지도 슬라이드 트랜지션 */
+.map-slide-enter-active,
+.map-slide-leave-active {
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  max-height: 300px;
+  opacity: 1;
+}
+
+.map-slide-enter-from,
+.map-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 
 /* 극장명 */
@@ -63,6 +158,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: color 0.2s;
+}
+
+.theater-header .theater-name--active {
+  color: #7c3aed;
 }
 
 .theater-name::before {

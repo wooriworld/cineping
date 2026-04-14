@@ -15,8 +15,8 @@
         class="theater-card"
       >
         <!-- 극장 헤더 -->
-        <div class="theater-header">
-          <span class="theater-name">{{ theater.name }}</span>
+        <div class="theater-header" @click="toggleMap(theater.name)">
+          <span :class="['theater-name', { 'theater-name--active': openMapSet.has(theater.name) }]">{{ theater.name }}</span>
         </div>
 
         <!-- 가로 스크롤 상영 시간 -->
@@ -50,18 +50,55 @@
           />
         </div>
 
+        <!-- 지도 영역 -->
+        <transition name="map-slide">
+          <div v-if="openMapSet.has(theater.name)" class="theater-map-area">
+            <div class="theater-map-placeholder">
+              <div class="map-pin-icon">
+                <q-icon name="location_on" size="36px" color="deep-purple-6" />
+                <q-icon name="place" size="20px" color="deep-purple-4" class="map-pin-dot" />
+              </div>
+              <div class="map-placeholder-text">지도 API 연동 영역</div>
+              <div class="map-placeholder-sub">Kakao Maps / Naver Maps</div>
+            </div>
+            <div class="theater-map-info">
+              <div class="map-info-address">
+                <div class="map-address-name">{{ theater.name }}</div>
+                <div class="map-address-detail">지도 API 연동 시 주소가 표시됩니다</div>
+              </div>
+              <q-btn
+                unelevated
+                label="길찾기"
+                icon="directions"
+                color="deep-purple-7"
+                text-color="white"
+                size="sm"
+                class="map-navi-btn"
+              />
+            </div>
+          </div>
+        </transition>
+
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Schedule } from 'src/types';
 import type { SortType } from 'components/TheaterFilter.vue';
 import 'src/css/schedule.css';
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+// 지도 토글 상태
+const openMapSet = ref<Set<string>>(new Set());
+function toggleMap(theaterName: string): void {
+  const next = new Set(openMapSet.value);
+  next.has(theaterName) ? next.delete(theaterName) : next.add(theaterName);
+  openMapSet.value = next;
+}
 
 interface TheaterGroup {
   name: string;
