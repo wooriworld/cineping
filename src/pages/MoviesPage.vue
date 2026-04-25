@@ -162,7 +162,7 @@
               v-if="scheduleDialogMovie?.englishTitle"
               href="#"
               class="movies-dialog-english-title"
-              @click.prevent="openGoogleSearchByEnglishTitle"
+              @click.prevent="openLetterboxdByEnglishTitle"
             >
               {{ scheduleDialogMovie.englishTitle }}
             </a>
@@ -218,6 +218,7 @@ import ScheduleList from 'src/components/ScheduleList.vue';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 import { resolveUrlToken } from 'src/services/urlTokenService';
 import { trackEvent } from 'src/composables/useAnalytics';
+import { openLetterboxdSearchByEnglishTitle } from 'src/composables/useLetterboxdSearch';
 
 const route = useRoute();
 const store = useMoviesStore();
@@ -485,11 +486,10 @@ function openNaverMovieSearch() {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function openGoogleSearchByEnglishTitle() {
-  const englishTitle = scheduleDialogMovie.value?.englishTitle?.trim();
+function openLetterboxdByEnglishTitle() {
+  const englishTitle = scheduleDialogMovie.value?.englishTitle;
   if (!englishTitle) return;
-  const url = `https://www.google.com/search?q=${encodeURIComponent(englishTitle)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  openLetterboxdSearchByEnglishTitle(englishTitle);
 }
 
 watch(
