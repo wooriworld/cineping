@@ -316,9 +316,16 @@
 }
 
 .movies-dialog-title {
+  color: inherit;
+  text-decoration: none;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.movies-dialog-title:hover {
+  text-decoration: underline;
 }
 
 .movies-dialog-close-btn {
@@ -329,6 +336,12 @@
   font-size: 0.8rem;
   color: #999;
   line-height: 1.3;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.movies-dialog-english-title:hover {
+  text-decoration: underline;
 }
 
 .movies-dialog-header {

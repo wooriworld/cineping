@@ -151,10 +151,21 @@
             class="movies-dialog-poster q-mr-sm"
           />
           <div class="movies-dialog-title-wrap">
-            <div class="text-h6 movies-dialog-title">{{ scheduleDialogMovie?.title }}</div>
-            <div v-if="scheduleDialogMovie?.englishTitle" class="movies-dialog-english-title">
+            <a
+              href="#"
+              class="text-h6 movies-dialog-title"
+              @click.prevent="openNaverMovieSearch"
+            >
+              {{ scheduleDialogMovie?.title }}
+            </a>
+            <a
+              v-if="scheduleDialogMovie?.englishTitle"
+              href="#"
+              class="movies-dialog-english-title"
+              @click.prevent="openGoogleSearchByEnglishTitle"
+            >
               {{ scheduleDialogMovie.englishTitle }}
-            </div>
+            </a>
           </div>
           <q-btn
             icon="close"
@@ -465,6 +476,20 @@ function applyFilter() {
     filter_eng: filterShowEng.value,
   });
   filterDialog.value = false;
+}
+
+function openNaverMovieSearch() {
+  const koreanTitle = scheduleDialogMovie.value?.title?.trim();
+  if (!koreanTitle) return;
+  const url = `https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=${encodeURIComponent(koreanTitle)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function openGoogleSearchByEnglishTitle() {
+  const englishTitle = scheduleDialogMovie.value?.englishTitle?.trim();
+  if (!englishTitle) return;
+  const url = `https://www.google.com/search?q=${encodeURIComponent(englishTitle)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 watch(
