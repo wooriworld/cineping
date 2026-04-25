@@ -37,8 +37,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
       if (err) throw new Error(err.message);
       const counts: Record<string, number> = {};
       for (const row of data ?? []) {
-        const r = row as { movieId: string; count: number };
-        counts[r.movieId] = Number(r.count);
+        counts[row.movieId] = Number(row.count);
       }
       scheduleCounts.value = counts;
     } catch (e) {
@@ -54,7 +53,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
         .select('movieId')
         .gte('lastUpdatedAt', `${kstToday}T00:00:00.000Z`);
       if (err) throw new Error(err.message);
-      newScheduleMovieIds.value = new Set((data ?? []).map((r) => (r as { movieId: string }).movieId));
+      newScheduleMovieIds.value = new Set((data ?? []).map((r) => r.movieId));
     } catch (e) {
       error.value = (e as Error).message;
     }
@@ -71,7 +70,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
         .gte('date', kstToday)
         .lte('date', in7days);
       if (err) throw new Error(err.message);
-      engScheduleMovieIds.value = new Set((data ?? []).map((r) => (r as { movieId: string }).movieId));
+      engScheduleMovieIds.value = new Set((data ?? []).map((r) => r.movieId));
     } catch (e) {
       error.value = (e as Error).message;
     }
@@ -107,7 +106,7 @@ export const useSchedulesStore = defineStore('schedulesStore', () => {
     loading.value = true;
     error.value = null;
     try {
-      await update(COLLECTION, id, data as Partial<Record<string, unknown>>);
+      await update(COLLECTION, id, data);
       const idx = schedules.value.findIndex((s) => s.id === id);
       if (idx !== -1) schedules.value[idx] = { ...schedules.value[idx]!, ...data };
     } catch (e) {

@@ -7,5 +7,5 @@ export async function resolveUrlToken(token: string): Promise<string[]> {
     .eq('token', token)
     .single();
   if (error || !data) return [];
-  return (data as { ids: string[] }).ids;
+  return data.ids;
 }

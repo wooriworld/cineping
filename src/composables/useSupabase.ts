@@ -13,13 +13,13 @@ export function useSupabase() {
     tableName: string,
     field: string,
     _op: string,
-    value: unknown,
+    value: string,
     limit = 1000,
   ): Promise<T[]> {
     const { data, error } = await supabase
       .from(tableName)
       .select('*')
-      .eq(field, value as string)
+      .eq(field, value)
       .limit(limit);
     if (error) throw new Error(error.message);
     return (data ?? []) as T[];
