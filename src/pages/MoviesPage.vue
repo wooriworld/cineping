@@ -4,15 +4,7 @@
       {{ store.error }}
     </q-banner>
 
-    <!-- 활성 필터 칩 -->
-    <div v-if="filterShowNew || filterShowUpdate || filterShowEng" class="movies-active-filters">
-      <span class="movies-active-filter-label">필터:</span>
-      <span v-if="filterShowNew" class="movies-active-chip movies-active-chip--new">NEW</span>
-      <span v-if="filterShowUpdate" class="movies-active-chip movies-active-chip--update"
-        >UPDATE</span
-      >
-      <span v-if="filterShowEng" class="movies-active-chip movies-active-chip--eng">ENG</span>
-    </div>
+    <MoviesPageFilter />
 
     <!-- 로딩 -->
     <div v-if="store.loading" class="movies-loading">
@@ -93,51 +85,6 @@
       <p class="movies-footer-copyright">© 2026 cineping. All rights reserved.</p>
     </div>
 
-    <!-- 필터 다이얼로그 (오른쪽 슬라이드) -->
-    <q-dialog v-model="filterDialog" position="right" full-height>
-      <q-card class="filter-dialog-card">
-        <div class="filter-dialog-header">
-          <span class="text-h6 text-weight-bold">Filter</span>
-          <q-btn flat round dense icon="close" @click="filterDialog = false" />
-        </div>
-
-        <div class="filter-dialog-body">
-          <div>
-            <div class="filter-section-label">Listing Updates</div>
-            <label class="filter-checkbox-row">
-              <q-checkbox v-model="filterShowNew" color="negative" />
-              <span class="filter-badge filter-badge--new">NEW</span>
-              <span>Movie</span>
-            </label>
-            <label class="filter-checkbox-row">
-              <q-checkbox v-model="filterShowUpdate" color="warning" />
-              <span class="filter-badge filter-badge--update">UPDATE</span>
-              <span>Schedule</span>
-            </label>
-            <label class="filter-checkbox-row">
-              <q-checkbox v-model="filterShowEng" color="primary" />
-              <span class="filter-badge filter-badge--eng">ENG</span>
-              <span>Subtitle</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-dialog-footer">
-          <q-btn
-            outline
-            @click="
-              filterShowNew = false;
-              filterShowUpdate = false;
-              filterShowEng = false;
-            "
-          >
-            Reset
-          </q-btn>
-          <q-btn style="background: #5b21b6; color: #fff" @click="applyFilter">Apply</q-btn>
-        </div>
-      </q-card>
-    </q-dialog>
-
     <!-- 스케줄 조회 팝업 -->
     <q-dialog v-model="scheduleDialog" maximized>
       <q-card class="column no-wrap">
@@ -215,6 +162,7 @@ import type { Movie, Schedule } from 'src/types';
 import DateSelector from 'src/components/DateSelector.vue';
 import TheaterFilter, { type SortType } from 'src/components/TheaterFilter.vue';
 import ScheduleList from 'src/components/ScheduleList.vue';
+import MoviesPageFilter from 'src/components/MoviesPageFilter.vue';
 import { useMoviesFilter } from 'src/composables/useMoviesFilter';
 import { resolveUrlToken } from 'src/services/urlTokenService';
 import { trackEvent } from 'src/composables/useAnalytics';
@@ -271,8 +219,7 @@ useMeta({
 });
 const schedulesStore = useSchedulesStore();
 
-const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng, filterDialog } =
-  useMoviesFilter();
+const { searchTitle, filterShowNew, filterShowUpdate, filterShowEng } = useMoviesFilter();
 
 const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -469,15 +416,6 @@ watch(searchTitle, (val) => {
     trackEvent('search', { search_term: q });
   }, 1000);
 });
-
-function applyFilter() {
-  trackEvent('filter_apply', {
-    filter_new: filterShowNew.value,
-    filter_update: filterShowUpdate.value,
-    filter_eng: filterShowEng.value,
-  });
-  filterDialog.value = false;
-}
 
 function openNaverMovieSearch() {
   const koreanTitle = scheduleDialogMovie.value?.title?.trim();

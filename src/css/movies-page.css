@@ -299,6 +299,11 @@
   flex: 1;
 }
 
+.filter-dialog-apply-btn {
+  background: #5b21b6;
+  color: #fff;
+}
+
 /* ── 스케줄 다이얼로그 ── */
 .movies-dialog-poster {
   width: 48px;
