@@ -47,7 +47,7 @@ const props = defineProps<{
 
 defineEmits<{ 'update:modelValue': [value: string] }>();
 
-const DAYS = ['Sun', 'Mon', 'The', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const dates = computed(() => {
   const today = new Date();
