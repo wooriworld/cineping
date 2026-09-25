@@ -102,40 +102,20 @@
       </q-btn-dropdown>
     </div>
 
-    <!-- 즐겨찾는 상영관 (디자인 전용 — 데이터 연동 전 샘플) -->
+    <!-- 즐겨찾는 상영관 (label 로 schedules.theater 부분일치 필터) -->
     <div class="favorite-theater-inner" role="group" aria-label="즐겨찾는 상영관">
       <div class="favorite-theater-scroll">
         <q-chip
+          v-for="label in FAVORITE_THEATERS"
+          :key="label"
           clickable
           dense
           icon="star"
-          label="CGV 용산아이파크몰"
-          class="favorite-theater-chip favorite-theater-chip--active"
-          aria-pressed="true"
-        />
-        <q-chip
-          clickable
-          dense
-          icon="star"
-          label="메가박스 코엑스"
+          :label="label"
           class="favorite-theater-chip"
-          aria-pressed="false"
-        />
-        <q-chip
-          clickable
-          dense
-          icon="star"
-          label="롯데시네마 월드타워"
-          class="favorite-theater-chip"
-          aria-pressed="false"
-        />
-        <q-chip
-          clickable
-          dense
-          icon="star"
-          label="아트나인"
-          class="favorite-theater-chip"
-          aria-pressed="false"
+          :class="{ 'favorite-theater-chip--active': theaterKeywordModel === label }"
+          :aria-pressed="theaterKeywordModel === label"
+          @click="toggleTheaterKeyword(label)"
         />
         <q-chip
           clickable
@@ -161,14 +141,23 @@ const props = defineProps<{
   regionModel: string;
   sortModel: SortType;
   hallTypeModel: string;
+  theaterKeywordModel: string | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'update:chainModel': [value: string];
   'update:regionModel': [value: string];
   'update:sortModel': [value: SortType];
   'update:hallTypeModel': [value: string];
+  'update:theaterKeywordModel': [value: string | null];
 }>();
+
+const FAVORITE_THEATERS = ['영등포', '여의도', '용산', '홍대', '월드타워', '목동', '코엑스'];
+
+// 같은 칩을 다시 누르면 선택 해제
+function toggleTheaterKeyword(label: string) {
+  emit('update:theaterKeywordModel', props.theaterKeywordModel === label ? null : label);
+}
 
 const CHAINS = [
   { value: 'All Theaters', label: 'All Theaters' },

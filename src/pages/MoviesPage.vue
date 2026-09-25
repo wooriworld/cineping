@@ -139,6 +139,7 @@
               v-model:region-model="scheduleDialogRegion"
               v-model:sort-model="scheduleDialogSort"
               v-model:hall-type-model="scheduleDialogHallType"
+              v-model:theater-keyword-model="scheduleDialogTheaterKeyword"
             />
             <ScheduleList
               :schedules="scheduleDialogFiltered"
@@ -295,6 +296,7 @@ const scheduleDialogChain = ref('All Theaters');
 const scheduleDialogRegion = ref('Seoul');
 const scheduleDialogSort = ref<SortType>('theater');
 const scheduleDialogHallType = ref('All Screens');
+const scheduleDialogTheaterKeyword = ref<string | null>(null);
 const scheduleDialogLoading = ref(false);
 const scheduleDialogSchedules = ref<Schedule[]>([]);
 
@@ -345,7 +347,10 @@ const scheduleDialogFiltered = computed(() =>
       (scheduleDialogHallType.value === 'Premium'
         ? isRegularHall(s.screenType)
         : !isRegularHall(s.screenType));
-    return matchDate && matchChain && matchHallType;
+    // schedules.theater LIKE '%keyword%'
+    const keyword = scheduleDialogTheaterKeyword.value;
+    const matchTheater = !keyword || s.theater.includes(keyword);
+    return matchDate && matchChain && matchHallType && matchTheater;
   }),
 );
 
@@ -359,6 +364,7 @@ async function openScheduleDialog(movie: Movie) {
   scheduleDialogRegion.value = 'Seoul';
   scheduleDialogSort.value = 'theater';
   scheduleDialogHallType.value = 'All Screens';
+  scheduleDialogTheaterKeyword.value = null;
   scheduleDialogSchedules.value = [];
   scheduleDialogLoading.value = true;
   scheduleDialog.value = true;
