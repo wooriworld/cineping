@@ -13,6 +13,16 @@ const SEARCH_HEADERS = {
   Referer: 'https://www.naver.com/',
 };
 
+// JSON 문자열 이스케이프(\", & 등) 복원
+function parseJsonString(raw) {
+  if (!raw) return '';
+  try {
+    return JSON.parse(`"${raw}"`).trim();
+  } catch {
+    return raw.trim();
+  }
+}
+
 async function fetchNaverMovieInfoBySearch(title) {
   const params = new URLSearchParams({ where: 'nexearch', pkid: '68', query: title });
   try {
@@ -20,9 +30,12 @@ async function fetchNaverMovieInfoBySearch(title) {
     if (!res.ok) return { sourceId: '', englishTitle: '' };
     const html = await res.text();
     const $ = cheerio.load(html);
-    const sourceId = $('[data-did="NCOMOVIE"]').first().attr('data-cid') ?? '';
-    const txts = $('.sub_title .txt');
-    const candidate = txts.length >= 2 ? $(txts[1]).text().trim() : '';
+    // 신규 레이아웃은 CSS 클래스가 해시(_text_1hp0o_61 등)라 불안정 → 페이지 내장 JSON에서 추출
+    const sourceId =
+      $('[data-did="MOVIE"]').first().attr('data-cid') ??
+      html.match(/"movieCode":"(\d+)"/)?.[1] ??
+      '';
+    const candidate = parseJsonString(html.match(/"titleEn":"((?:[^"\\]|\\.)*)"/)?.[1] ?? '');
     const englishTitle = /[a-zA-Z]/.test(candidate) ? candidate : '';
     return { sourceId, englishTitle };
   } catch {
