@@ -110,7 +110,7 @@
           :key="label"
           clickable
           dense
-          icon="star"
+          icon="place"
           :label="label"
           class="favorite-theater-chip"
           :class="{ 'favorite-theater-chip--active': theaterKeywordModel === label }"
