@@ -12,21 +12,6 @@
   gap: 8px;
 }
 
-/* 좌측 라벨 */
-.favorite-theater-label {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #111111;
-}
-
-.favorite-theater-label-icon {
-  color: #f5b301;
-}
-
 /* 가로 스크롤 칩 목록 */
 .favorite-theater-scroll {
   flex: 1;
@@ -63,7 +48,7 @@
 .favorite-theater-chip.q-chip .q-chip__icon {
   font-size: 14px;
   margin-right: 4px;
-  color: #aaaaaa;
+  color: #f5b301;
 }
 
 .favorite-theater-chip.q-chip:hover {
