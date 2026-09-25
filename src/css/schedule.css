@@ -63,6 +63,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+}
+
+.theater-name:hover {
+  text-decoration: underline;
 }
 
 .theater-name::before {

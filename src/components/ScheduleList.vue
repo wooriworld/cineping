@@ -16,7 +16,7 @@
       >
         <!-- 극장 헤더 -->
         <div class="theater-header">
-          <span class="theater-name">{{ theater.name }}</span>
+          <span class="theater-name" @click="openNaverMap(theater.name)">{{ theater.name }}</span>
         </div>
 
         <!-- 가로 스크롤 상영 시간 -->
@@ -120,6 +120,11 @@ const grouped = computed(() => {
 
 function openBooking(url: string): void {
   if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function openNaverMap(theaterName: string): void {
+  const url = `https://map.naver.com/p/search/${encodeURIComponent(theaterName)}?c=15.00,0,0,0,dh`;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function scrollShowtime(event: Event, delta: number): void {
