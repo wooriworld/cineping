@@ -101,6 +101,57 @@
         </q-list>
       </q-btn-dropdown>
     </div>
+
+    <!-- 즐겨찾는 상영관 (디자인 전용 — 데이터 연동 전 샘플) -->
+    <div class="favorite-theater-inner" role="group" aria-label="즐겨찾는 상영관">
+      <div class="favorite-theater-label">
+        <q-icon name="star" size="14px" class="favorite-theater-label-icon" />
+        <span>즐겨찾기</span>
+      </div>
+
+      <div class="favorite-theater-scroll">
+        <q-chip
+          clickable
+          dense
+          icon="place"
+          label="CGV 용산아이파크몰"
+          class="favorite-theater-chip favorite-theater-chip--active"
+          aria-pressed="true"
+        />
+        <q-chip
+          clickable
+          dense
+          icon="place"
+          label="메가박스 코엑스"
+          class="favorite-theater-chip"
+          aria-pressed="false"
+        />
+        <q-chip
+          clickable
+          dense
+          icon="place"
+          label="롯데시네마 월드타워"
+          class="favorite-theater-chip"
+          aria-pressed="false"
+        />
+        <q-chip
+          clickable
+          dense
+          icon="place"
+          label="아트나인"
+          class="favorite-theater-chip"
+          aria-pressed="false"
+        />
+        <q-chip
+          clickable
+          dense
+          icon="add"
+          label="상영관 추가"
+          class="favorite-theater-chip favorite-theater-chip--add"
+          aria-label="즐겨찾는 상영관 추가"
+        />
+      </div>
+    </div>
   </div>
 </template>
 

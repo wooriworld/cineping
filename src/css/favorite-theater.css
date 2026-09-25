@@ -1,0 +1,103 @@
+/* ===========================
+   즐겨찾는 상영관 영역
+   (필터 영역 하단, 가로 스크롤 칩 목록)
+=========================== */
+
+.favorite-theater-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 좌측 라벨 */
+.favorite-theater-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.favorite-theater-label-icon {
+  color: #f5b301;
+}
+
+/* 가로 스크롤 칩 목록 */
+.favorite-theater-scroll {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.favorite-theater-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 기본 칩 */
+.favorite-theater-chip.q-chip {
+  flex-shrink: 0;
+  margin: 0;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  border: 1px solid #e2e2e2;
+  background: #ffffff;
+  color: #444444;
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.favorite-theater-chip.q-chip .q-chip__icon {
+  font-size: 14px;
+  margin-right: 4px;
+  color: #aaaaaa;
+}
+
+.favorite-theater-chip.q-chip:hover {
+  border-color: rgba(91, 33, 182, 0.4);
+  background: rgba(91, 33, 182, 0.03);
+  color: #5b21b6;
+}
+
+/* 선택된 칩 */
+.favorite-theater-chip--active.q-chip,
+.favorite-theater-chip--active.q-chip:hover {
+  border-color: #5b21b6;
+  background: #5b21b6;
+  color: #ffffff;
+}
+
+.favorite-theater-chip--active.q-chip .q-chip__icon {
+  color: #ffffff;
+}
+
+/* 추가 칩 (점선) */
+.favorite-theater-chip--add.q-chip {
+  border-style: dashed;
+  border-color: #cfcfcf;
+  background: transparent;
+  color: #888888;
+}
+
+.favorite-theater-chip--add.q-chip .q-chip__icon {
+  color: inherit;
+}
+
+/* 키보드 포커스 표시 */
+.favorite-theater-chip.q-chip:focus-visible {
+  outline: 2px solid rgba(91, 33, 182, 0.5);
+  outline-offset: 1px;
+}
