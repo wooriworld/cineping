@@ -91,7 +91,7 @@ export async function runKofaScrape(supabase) {
       if (!schedulesByMovieId.has(movieId)) schedulesByMovieId.set(movieId, []);
       schedulesByMovieId.get(movieId).push({
         movieId,
-        chain: 'KOFA',
+        chain: '독립',
         theater: 'KOFA 시네마테크',
         date: s.date,
         startTime: s.startTime,
@@ -109,7 +109,7 @@ export async function runKofaScrape(supabase) {
           .from('schedules')
           .select('id, date, startTime')
           .eq('movieId', movieId)
-          .eq('chain', 'KOFA')
+          .eq('chain', '독립')
           .limit(10000);
         if (exErr) throw new Error(exErr.message);
 

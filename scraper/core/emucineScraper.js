@@ -173,7 +173,7 @@ export async function runEmucineScrape(supabase) {
       .filter((s) => (titleMap.get(s.title) ?? s.title) === dbTitle)
       .map((s) => ({
         movieId,
-        chain: 'EMUCINE',
+        chain: '독립',
         theater: '에무시네마',
         date: s.date,
         startTime: s.time,
@@ -199,12 +199,12 @@ export async function runEmucineScrape(supabase) {
     );
 
     const toDeleteIds = (allSchedules ?? [])
-      .filter((s) => s.chain === 'EMUCINE' && !newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
+      .filter((s) => s.chain === '독립' && !newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
       .map((s) => s.id);
 
-    // EMUCINE chain 중 수집 목록에 있는 기존 스케줄 → hasEnglishSubtitle = true
+    // 독립(에무시네마) chain 중 수집 목록에 있는 기존 스케줄 → hasEnglishSubtitle = true
     const existingToUpdateIds = (allSchedules ?? [])
-      .filter((s) => s.chain === 'EMUCINE' && newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
+      .filter((s) => s.chain === '독립' && newKeySet.has(`${s.date}_${toHHMM(s.startTime)}`))
       .map((s) => s.id);
 
     const toAdd = newSchedules.filter((s) => !allMap.has(`${s.date}_${toHHMM(s.startTime)}`));

@@ -127,9 +127,9 @@ defineEmits<{
 const CHAINS = [
   { value: 'All Theaters', label: 'All Theaters' },
   { value: 'CGV', label: 'CGV' },
-  { value: 'LotteCinema', label: 'LotteCinema' },
-  { value: 'Megabox', label: 'Megabox' },
-  { value: 'Others', label: 'Others' },
+  { value: '롯데시네마', label: '롯데시네마' },
+  { value: '메가박스', label: '메가박스' },
+  { value: '독립', label: '독립' },
 ];
 
 const REGIONS = [

@@ -1,4 +1,4 @@
-export type ChainType = 'CGV' | '롯데시네마' | '메가박스' | '씨네Q' | 'KOFA';
+export type ChainType = 'CGV' | '롯데시네마' | '메가박스' | '독립';
 
 export interface Movie {
   id: string;

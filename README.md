@@ -254,7 +254,7 @@ Showtime Updates (N)
 
 > 필드 설명
 >
-> - chain: 영화관 체인 (`CGV` / `롯데시네마` / `메가박스` / `씨네Q` / `KOFA` / `EMUCINE`)
+> - chain: 영화관 체인 (`CGV` / `롯데시네마` / `메가박스` / `독립`)
 > - hasEnglishSubtitle: 영어 자막 상영 여부 — ENG 배지 표시 기준
 > - unique key: `date + theater + startTime` — diff 비교 및 중복 방지용
 > - lastUpdatedAt: KST ISO 8601 — NEW 배지 표시 기준

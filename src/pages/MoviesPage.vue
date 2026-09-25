@@ -338,7 +338,7 @@ const scheduleDialogFiltered = computed(() =>
     const matchChain =
       scheduleDialogChain.value === 'All Theaters' ||
       (scheduleDialogChain.value === 'Others'
-        ? !['CGV', 'LotteCinema', 'Megabox'].includes(s.chain ?? '')
+        ? !['CGV', '롯데시네마', '메가박스'].includes(s.chain ?? '')
         : s.chain === scheduleDialogChain.value);
     const matchHallType =
       scheduleDialogHallType.value === 'All Screens' ||
